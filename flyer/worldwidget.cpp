@@ -27,7 +27,11 @@ namespace Flyer
 
 // ============================================================================
 // Constructor
-WorldWidget::WorldWidget ( QWidget* parent, Qt::WindowFlags f ) : QGLWidget ( parent, f )
+#ifdef FLYER_NO_OPENGL
+WorldWidget::WorldWidget ( QWidget* parent, Qt::WindowFlags f ) : QWidget( parent, f )
+#else
+WorldWidget::WorldWidget ( QWidget* parent, Qt::WindowFlags f ) : QGLWidget ( parent, NULL, f )
+#endif
 {
 	connect( & _timer, SIGNAL(timeout()), SLOT(onTimer()) );
 	
@@ -328,13 +332,27 @@ Plane* WorldWidget::plane() const
 	return _pWorld->playerPlane();
 }
 
+#ifdef FLYER_NO_OPENGL
+// ============================================================================
+// Paints content
+void WorldWidget::paintEvent( QPaintEvent* )
+{
+	QPainter painter( this );
+	render( painter );
+}
+
+#else
 // ============================================================================
 // Initializes opengl for drawing
 void WorldWidget::initializeGL()
 {
-	glEnable( GL_LINE_SMOOTH );
-	glEnable( GL_POINT_SMOOTH );
-	glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
+	// turn on antialiasing, if available
+	if ( format().sampleBuffers() )
+	{
+		glEnable( GL_LINE_SMOOTH );
+		glEnable( GL_POINT_SMOOTH );
+		glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
+	}
 }
 
 // ============================================================================
@@ -344,6 +362,7 @@ void WorldWidget::paintGL()
 	QPainter painter( this );
 	render( painter );
 }
+#endif
 
 } // ns
 // EOF

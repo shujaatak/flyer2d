@@ -11,7 +11,8 @@ SOURCES = main.cpp worldwidget.cpp \
  landinglight.cpp \
  damagemanager.cpp \
  system.cpp \
- engine.cpp
+ engine.cpp \
+ body.cpp
 HEADERS = worldwidget.h Box2D.h \
  mainwindow.h \
  plane.h \
@@ -22,7 +23,8 @@ HEADERS = worldwidget.h Box2D.h \
  landinglight.h \
  damagemanager.h \
  system.h \
- engine.h
+ engine.h \
+ body.h
 
 FORMS += mainwindow.ui
 
@@ -37,3 +39,4 @@ QT += opengl
 
 HEADERS -= object.h
 
+#DEFINES += FLYER_NO_OPENGL

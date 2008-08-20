@@ -82,7 +82,7 @@ void System::renderShape( QPainter& painter, b2Shape* pShape )
 		b2PolygonShape* pPolygon = (b2PolygonShape*)pShape;
 		
 		QPolygonF polygon;
-		b2Vec2* pVertices = pPolygon->GetVertices();
+		const b2Vec2* pVertices = pPolygon->GetVertices();
 		for ( int i = 0; i < pPolygon->GetVertexCount(); i++ )
 		{
 			polygon.append( QPointF( pVertices[i].x, pVertices[i].y ) );
