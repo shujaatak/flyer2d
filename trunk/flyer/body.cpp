@@ -160,23 +160,34 @@ QTransform Body::transform() const
 }
 
 // ============================================================================
-/// Flips body along it's horizontal axis.
-void Body::flipVertical()
+/// Flips body along defined axis.
+/// Axis is defined as pair of points.
+void Body::flip( const QPointF& p1, const QPointF& p2 )
 {
-	// flip shapes
+	// flip shapes uside down
 	foreach( b2ShapeDef* pShapeDef, _shapeDefinitions )
 	{
 		// polygon
-		if ( pShapeDef->type = e_polygonShape )
+		if ( pShapeDef->type == e_polygonShape )
 		{
 			b2PolygonDef* pPoygonDef = (b2PolygonDef*)pShapeDef;
+			
+			// copy vertices to buffer
+			b2Vec2 buffer[ b2_maxPolygonVertices ];
 			for ( int i = 0; i < pPoygonDef->vertexCount; i++ )
 			{
-				pPoygonDef->vertices[i].y = - pPoygonDef->vertices[i].y;
+				buffer[i] = pPoygonDef->vertices[i];
+			}
+
+			// copy back from byffer, but reversed and flipped
+			for ( int j = 0; j < pPoygonDef->vertexCount; j++ )
+			{
+				pPoygonDef->vertices[j].x = buffer[ pPoygonDef->vertexCount - j - 1 ].x;
+				pPoygonDef->vertices[j].y = - buffer[ pPoygonDef->vertexCount - j - 1 ].y;
 			}
 		}
 		// circle
-		else if ( pShapeDef->type = e_circleShape )
+		else if ( pShapeDef->type == e_circleShape )
 		{
 			b2CircleDef* pCircleDef = (b2CircleDef*)pShapeDef;
 			
@@ -190,15 +201,31 @@ void Body::flipVertical()
 		// get world
 		b2World* pWorld = _pBody->GetWorld();
 		
-		// preserve sensitive data
+		// get current position
 		b2Vec2 pos = _pBody->GetPosition();
 		double angle = _pBody->GetAngle();
+		
+		//transform position
+		
+		double axisAngle = atan2( p2.y() - p1.y(), p2.x() - p1.x() );
+		double ds = (p2.y() - p1.y())*(p2.y() - p1.y()) + (p2.x() - p1.x())*(p2.x() - p1.x()); // distance squared between p1 nad p2
+		double u = ( ( pos.x - p1.x() ) * (p2.x() - p1.x()) + (pos.y - p1.y()) * (p2.y() - p1.y())) / ds; // helper value
+		// closest point on axis
+		double cx = p1.x()+ u * (p2.x() - p1.x());
+		double cy = p1.y()+ u * (p2.y() - p1.y());
+		
+		double newAngle = angle - 2 * (angle-axisAngle);
+		b2Vec2 newPos( pos.x - 2*(pos.x-cx), pos.y - 2*(pos.y-cy) );
+		
+
+		// preserve dynamic data
+		
 		b2Vec2 linearSpeed = _pBody->GetLinearVelocity();
 		double angularSpeed = _pBody->GetAngularVelocity();
 		
 		// modify definition
-		_definition.position = pos;
-		_definition.angle = angle;
+		_definition.position = newPos;
+		_definition.angle = newAngle;
 		
 		// re-create with new def
 		pWorld->DestroyBody( _pBody );

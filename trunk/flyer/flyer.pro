@@ -12,7 +12,9 @@ SOURCES = main.cpp worldwidget.cpp \
  damagemanager.cpp \
  system.cpp \
  engine.cpp \
- body.cpp
+ body.cpp \
+ joint.cpp \
+ mounting.cpp
 HEADERS = worldwidget.h Box2D.h \
  mainwindow.h \
  plane.h \
@@ -24,7 +26,9 @@ HEADERS = worldwidget.h Box2D.h \
  damagemanager.h \
  system.h \
  engine.h \
- body.h
+ body.h \
+ joint.h \
+ mounting.h
 
 FORMS += mainwindow.ui
 

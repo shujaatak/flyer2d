@@ -19,6 +19,7 @@
 #include "Box2D.h"
 
 #include "engine.h"
+#include "body.h"
 
 namespace Flyer
 {
@@ -28,8 +29,7 @@ namespace Flyer
 Engine::Engine ( const QString& name, double thrust, const QPointF& normal /* = QPointF( 1.0, 0.0 )*/ )
 	 : System ( name )
 {
-	_maxThrust	= thrust;
-	_currentMaxThrust = thrust;
+	setMaxThrust( thrust );
 	_throttle	= 0.0;
 	_normal		= normal;
 }
@@ -38,6 +38,14 @@ Engine::Engine ( const QString& name, double thrust, const QPointF& normal /* = 
 // Destructor
 Engine::~Engine()
 {
+}
+
+// ============================================================================
+// / Sest engine max thrust.
+void Engine::setMaxThrust( double thrust )
+{
+	_maxThrust	= thrust;
+	_currentMaxThrust = thrust;
 }
 
 // ============================================================================
@@ -65,7 +73,7 @@ void Engine::damage ( double force )
 		_currentMaxThrust = 0.0;
 	}
 	
-
+	qDebug("Engine: max thrust reduced to %g", _currentMaxThrust );
 }
 
 // ============================================================================
@@ -74,10 +82,10 @@ void Engine::simulate ( double dt )
 {
 	Q_ASSERT( body() );
 	
-	const b2Vec2& pos = body()->GetPosition();
+	const b2Vec2& pos = body()->b2body()->GetPosition();
 	
 	QPointF thrust	= thrustForce();
-	body()->ApplyForce
+	body()->b2body()->ApplyForce
 		( 10.0 * b2Vec2( thrust.x(), thrust.y() ) // newtons per kg
 		, pos );
 }
@@ -86,7 +94,7 @@ void Engine::simulate ( double dt )
 // Thrust force (in kg)
 QPointF Engine::thrustForce()
 {
-	double angle = body()->GetAngle();
+	double angle = body()->b2body()->GetAngle();
 	
 	double thrust = _throttle * _currentMaxThrust;
 	
@@ -109,7 +117,7 @@ void Engine::render( QPainter& painter, const QRectF& rect )
 	// render force (debug )
 	double fs = 50 ; // force scale
 	QPointF tf = thrustForce() / fs;
-	const b2Vec2& pos = body()->GetPosition();
+	const b2Vec2& pos = body()->b2body()->GetPosition();
 
 	painter.setPen( Qt::red );
 	painter.drawLine( QLineF( pos.x, pos.y, pos.x + tf.x(), pos.y + tf.y() ) );
