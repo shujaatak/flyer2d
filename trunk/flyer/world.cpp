@@ -145,7 +145,7 @@ void World::initWorld()
 	_objects.append( _pGround );
 	
 	// init plane
-	_pPlayerPlane = new Plane( this, QPointF( 10250, _pGround->height(10250) + 2.5 ), 0.2 );
+	_pPlayerPlane = new Plane( this, QPointF( 0, _pGround->height(300) + 2.5 ), 0.2 );
 	_objects.append( _pPlayerPlane );
 	
 	// airfields

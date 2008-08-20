@@ -31,7 +31,11 @@ class World;
 /**
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
+#ifdef FLYER_NO_OPENGL
+class WorldWidget : public QWidget
+#else
 class WorldWidget : public QGLWidget
+#endif
 {
 	Q_OBJECT
 public:
@@ -55,7 +59,12 @@ signals:
 	
 protected:
 
-	//virtual void paintEvent( QPaintEvent* pEvent );
+#ifdef FLYER_NO_OPENGL
+	virtual void paintEvent( QPaintEvent* pEvent );
+#else
+	virtual void initializeGL();
+	virtual void paintGL();
+#endif
 	virtual void resizeEvent( QResizeEvent* );
 	
 	virtual void mouseMoveEvent( QMouseEvent* pEvent );
@@ -64,9 +73,6 @@ protected:
 	virtual void keyPressEvent( QKeyEvent* pEvent );
 	virtual void keyReleaseEvent( QKeyEvent* pEvent );
 	
-	virtual void initializeGL();
-	virtual void paintGL();
-
 private slots:
 
 	void onTimer();

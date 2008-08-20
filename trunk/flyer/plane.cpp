@@ -66,8 +66,8 @@ Plane::Plane( World* pWorld, const QPointF& pos, double angle ) : WorldObject( p
 	// settings
 	_elevator = 0;
 	_wheelBrake = false;
-	_orientation = 1;
 	_flaps = 0.0;
+	_orientation = 1.0;
 	_autopilot = false;
 	
 	// create systems
@@ -79,6 +79,13 @@ Plane::Plane( World* pWorld, const QPointF& pos, double angle ) : WorldObject( p
 	// set 90% to engine, 10% unused
 	_pEngineDamageManager->addSystem( _pEngine, 9 );
 	_pEngineDamageManager->addSystem( NULL, 0 );
+	
+	// create bodies
+	
+	_bodies.append( & _bodyHull );
+	_bodies.append( & _bodyEngine );
+	_bodies.append( & _bodyLeg );
+	_bodies.append( & _bodyWheel );
 	
 	createBodies( pos, angle );
 	createShapes( pos, angle );
@@ -96,7 +103,6 @@ void Plane::createBodies( const QPointF& pos, double angle )
 	QTransform transform;
 	transform.translate( pos.x(), pos.y() );
 	transform.rotateRadians( angle );
-	transform.scale( 1.0, _orientation );
 	
 	QPointF wheelCenter = transform.map( WHEEL_POS );
 	QPointF legJointPos = transform.map( LEG_JOINT_POS );
@@ -112,20 +118,23 @@ void Plane::createBodies( const QPointF& pos, double angle )
 	mainDef.position.Set( pos.x(), pos.y() );
 	mainDef.angle = angle;
 	
-	_pMainBody = pWorld->CreateBody( & mainDef );
+	//_pMainBody = pWorld->CreateBody( & mainDef );
+	_bodyHull.create( mainDef, pWorld );
 	
 	// wheel
 	b2BodyDef wheelDef;
 	wheelDef.massData.mass = 10;	// 10kg
-	wheelDef.massData.center.Set(  wheelCenter.x(), wheelCenter.y() );
+	wheelDef.massData.center.SetZero();
 	wheelDef.massData.I = 1;
 	wheelDef.linearDamping = 0;
 	wheelDef.angularDamping = 0.01;
 	
-	wheelDef.position.Set( wheelCenter.x(), wheelCenter.y() ); // 1 meter below
+	wheelDef.position.Set( pos.x(), pos.y() ); // 1 meter below
 	wheelDef.angle = angle;
 	
-	_pMainWheel = pWorld->CreateBody( & wheelDef );
+	//_pMainWheel = pWorld->CreateBody( & wheelDef );
+	_bodyWheel.create( wheelDef, pWorld );
+	
 
 	// leg
 	b2BodyDef legDef;
@@ -135,7 +144,8 @@ void Plane::createBodies( const QPointF& pos, double angle )
 	legDef.linearDamping = 0;
 	legDef.angularDamping = 0;
 	
-	_pMainLeg = pWorld->CreateBody( & legDef );
+	//_pMainLeg = pWorld->CreateBody( & legDef );
+	_bodyLeg.create( legDef, pWorld );
 	
 	// engine
 	b2BodyDef engineDef;
@@ -144,15 +154,16 @@ void Plane::createBodies( const QPointF& pos, double angle )
 	engineDef.linearDamping = 0;
 	engineDef.angularDamping = 0;
 	
-	_pEngineCase =  pWorld->CreateBody( & engineDef );
-	_pEngine->setBody( _pEngineCase );
+	//_pEngineCase =  pWorld->CreateBody( & engineDef );
+	_bodyEngine.create( engineDef, pWorld );
+	_pEngine->setBody( _bodyEngine.b2body() );
 	
 
 	// joints
 
 	// joint between wheel and leg
 	b2RevoluteJointDef wheelJoint;
-	wheelJoint.Initialize( _pMainLeg, _pMainWheel, b2Vec2( wheelCenter.x(), wheelCenter.y() ) );
+	wheelJoint.Initialize( _bodyLeg.b2body(), _bodyWheel.b2body(), b2Vec2( wheelCenter.x(), wheelCenter.y() ) );
 	wheelJoint.enableMotor = true;
 	wheelJoint.maxMotorTorque = WHEEL_BRAKE_TORQUE;
 	wheelJoint.enableLimit = false;
@@ -160,7 +171,7 @@ void Plane::createBodies( const QPointF& pos, double angle )
 	
 	// joint between leg and body
 	b2RevoluteJointDef legJoint;
-	legJoint.Initialize( _pMainBody, _pMainLeg, b2Vec2( legJointPos.x(), legJointPos.y() ) );
+	legJoint.Initialize( _bodyHull.b2body(), _bodyLeg.b2body(), b2Vec2( legJointPos.x(), legJointPos.y() ) );
 	legJoint.enableMotor = true;
 	legJoint.enableLimit = true;
 	legJoint.lowerAngle = 0.0;
@@ -169,7 +180,7 @@ void Plane::createBodies( const QPointF& pos, double angle )
 	
 	// joint between body and engine
 	b2RevoluteJointDef engineJoint;
-	engineJoint.Initialize( _pMainBody, _pEngineCase, b2Vec2( engineJointPos.x(), engineJointPos.y() ) );
+	engineJoint.Initialize( _bodyHull.b2body(), _bodyEngine.b2body(), b2Vec2( engineJointPos.x(), engineJointPos.y() ) );
 	engineJoint.enableMotor = true;
 	engineJoint.enableLimit = true;
 	engineJoint.lowerAngle = 0.0;
@@ -188,73 +199,77 @@ void Plane::createBodies( const QPointF& pos, double angle )
 void Plane::createShapes( const QPointF& pos, double angle )
 {
 	// main body shape
-	_shapeBody.clear();
-	_shapeBody.append( QPointF( 1.5, 0.5 * _orientation ) );
-	_shapeBody.append( QPointF(-0.1, 0.9 * _orientation ) );
-	_shapeBody.append( QPointF(-5.0, 0.0 * _orientation ) );
-	_shapeBody.append( QPointF( 0.0,-0.7 * _orientation ) );
-	_shapeBody.append( QPointF( 1.5,-0.5 * _orientation ) );
+	QPolygonF shapeBody;
+	shapeBody.append( QPointF( 1.5, 0.5) );
+	shapeBody.append( QPointF(-0.1, 0.9) );
+	shapeBody.append( QPointF(-5.0, 0.0) );
+	shapeBody.append( QPointF( 0.0,-0.7) );
+	shapeBody.append( QPointF( 1.5,-0.5) );
 		
-	_shapeSkid.clear();
-	_shapeSkid.append( QPointF(-5.0,-0.3 * _orientation) );
-	_shapeSkid.append( QPointF(-4.7,-0.3 * _orientation) );
-	_shapeSkid.append( QPointF(-4.0, 0.0 * _orientation) );
-	_shapeSkid.append( QPointF(-4.7, 1.0 * _orientation) );
-	_shapeSkid.append( QPointF(-5.0, 1.0 * _orientation) );
+	QPolygonF shapeSkid;
+	shapeSkid.append( QPointF(-5.0,-0.3) );
+	shapeSkid.append( QPointF(-4.7,-0.3) );
+	shapeSkid.append( QPointF(-4.0, 0.0) );
+	shapeSkid.append( QPointF(-4.7, 1.0) );
+	shapeSkid.append( QPointF(-5.0, 1.0) );
 
-	b2PolygonDef mainShape = shapeToDef( _shapeBody, _orientation < 0 );
+	b2PolygonDef mainShape = shapeToDef( shapeBody, false );
 	mainShape.friction = 0.5;
 	mainShape.restitution = 0.3;
 	
-	b2PolygonDef skidShape = shapeToDef( _shapeSkid, _orientation < 0 ); 
+	b2PolygonDef skidShape = shapeToDef( shapeSkid, false ); 
 	skidShape.friction = 0.01;
 	skidShape.restitution = 0.1;
 	
 	
-	_pMainBodyShape = _pMainBody->CreateShape( & mainShape );
-	_pSkidShape = _pMainBody->CreateShape( & skidShape );
+	//_pMainBodyShape = _pMainBody->CreateShape( & mainShape );
+	//_pSkidShape = _pMainBody->CreateShape( & skidShape );
+	_bodyHull.addShape( & mainShape );
+	_bodyHull.addShape( & skidShape );
 	
 	// wheel 
 	b2CircleDef wheelShape;
 	wheelShape.radius = WHEEL_RADIUS;
-	wheelShape.localPosition.SetZero();
+	wheelShape.localPosition.Set( WHEEL_POS.x(), WHEEL_POS.y() );
 	wheelShape.isSensor = false;
 	wheelShape.restitution = 0.0;
 	wheelShape.density = 10;
 	wheelShape.friction = 0.7;
 	
-	_pWheelShape = _pMainWheel->CreateShape( & wheelShape );
-	_pMainWheel->SetMassFromShapes();
+	//_pWheelShape = _pMainWheel->CreateShape( & wheelShape );
+	//_pMainWheel->SetMassFromShapes();
+	_bodyWheel.addShape( & wheelShape );
 	
 	// leg
-	_shapeLeg.clear();
-	_shapeLeg.append( QPointF(-0.2, -0.2 * _orientation) );
-	_shapeLeg.append( QPointF( 0.3, -1.6 * _orientation) );
-	_shapeLeg.append( QPointF( 0.7, -1.6 * _orientation) );
-	_shapeLeg.append( QPointF( 0.2, -0.2 * _orientation) );
-	b2PolygonDef legShape = shapeToDef( _shapeLeg, _orientation < 0 );
+	QPolygonF shapeLeg;
+	shapeLeg.append( QPointF(-0.2, -0.2) );
+	shapeLeg.append( QPointF( 0.3, -1.6) );
+	shapeLeg.append( QPointF( 0.7, -1.6) );
+	shapeLeg.append( QPointF( 0.2, -0.2) );
+	b2PolygonDef legShape = shapeToDef( shapeLeg, false );
 	legShape.friction = 0;
 	legShape.restitution = 0.1;
 	legShape.density = 20;
 	
-	_pLegShape = _pMainLeg->CreateShape( & legShape );
-	
-	_pMainLeg->SetMassFromShapes();
+	//_pLegShape = _pMainLeg->CreateShape( & legShape );
+	//_pMainLeg->SetMassFromShapes();
+	_bodyLeg.addShape( & legShape );
 	
 	// engine
-	_shapeEngine.clear();
-	_shapeEngine.append( QPointF( 1.3, 0.6 *  _orientation) );
-	_shapeEngine.append( QPointF( 1.3, -0.6 *  _orientation) );
-	_shapeEngine.append( QPointF( 1.8, -0.5 *  _orientation) );
-	_shapeEngine.append( QPointF( 1.8, 0.5 *  _orientation) );
-	b2PolygonDef engineShape = shapeToDef( _shapeEngine, _orientation < 0 );
+	QPolygonF shapeEngine;
+	shapeEngine.append( QPointF( 1.3, 0.6) );
+	shapeEngine.append( QPointF( 1.3, -0.6) );
+	shapeEngine.append( QPointF( 1.8, -0.5) );
+	shapeEngine.append( QPointF( 1.8, 0.5) );
+	b2PolygonDef engineShape = shapeToDef( shapeEngine, false );
 	engineShape.friction	= mainShape.friction;
 	engineShape.restitution	= mainShape.restitution;
 	engineShape.density		= 10;
 	engineShape.userData	= _pEngineDamageManager;
 	
-	_pEngineShape = _pEngineCase->CreateShape( & engineShape );
-	_pEngineCase->SetMassFromShapes();
+	//_pEngineShape = _pEngineCase->CreateShape( & engineShape );
+	//_pEngineCase->SetMassFromShapes();
+	_bodyEngine.addShape( & engineShape );
 
 }
 
@@ -296,20 +311,11 @@ void Plane::render( QPainter& painter, const QRectF& rect )
 	painter.setBrush( Qt::gray );
 
 	// draw body and leg
-	const b2Vec2& pos = _pMainBody->GetPosition();
-	QTransform mainTransform;
-	mainTransform.translate( pos.x, pos.y );
-	mainTransform.rotateRadians( _pMainBody->GetAngle() );
+	QTransform mainTransform = _bodyHull.transform();
 	
-	QPainterPath path;
-	path.addPolygon( _shapeBody );
-	path.closeSubpath();
-	path.addPolygon( _shapeLeg );
-	path.closeSubpath();
-	path.addPolygon( _shapeSkid );
-	path.closeSubpath();
+	QPainterPath hull = _bodyHull.shape();
+	QPainterPath leg = _bodyLeg.shape();
 	
-	path.setFillRule( Qt::WindingFill );
 	
 	// draw elevator
 	double dx = cos( (_elevator*ELEVATOR_STEP*_orientation) ) * ELEVATOR_LENGTH;
@@ -322,23 +328,23 @@ void Plane::render( QPainter& painter, const QRectF& rect )
 	
 	painter.save();
 		painter.setTransform( mainTransform, true );
-		painter.drawPath( path );
+		painter.drawPath( leg );
+		painter.drawPath( hull );
 		painter.drawLine( QLineF( ELEVATOR_POS.x(), ELEVATOR_POS.y(), ELEVATOR_POS.x() - dx, ELEVATOR_POS.y()-dy ) );
 		painter.drawLine( QLineF( -wx, -wy, wx, wy ) );
 		
 	painter.restore();
 
 	// draw wheel
-	const b2Vec2& wheelPos = _pMainWheel->GetPosition();
-	double angle = _pMainWheel->GetAngle();
-	QTransform wheelTransform;
-	wheelTransform.translate( wheelPos.x, wheelPos.y );
-	wheelTransform.rotateRadians( angle );
+	QTransform wheelTransform = _bodyWheel.transform();
 	
 	painter.save();
 		painter.setTransform( wheelTransform, true );
-		painter.drawEllipse( QRectF(-WHEEL_RADIUS, -WHEEL_RADIUS, WHEEL_RADIUS*2, WHEEL_RADIUS*2 ) );
-		painter.drawLine( QLineF( -WHEEL_RADIUS, 0.0, WHEEL_RADIUS, 0.0 ) );
+		//painter.drawEllipse( QRectF(-WHEEL_RADIUS, -WHEEL_RADIUS, WHEEL_RADIUS*2, WHEEL_RADIUS*2 ) );
+		//painter.drawLine( QLineF( -WHEEL_RADIUS, 0.0, WHEEL_RADIUS, 0.0 ) );
+		// TODO temp - use provided shape
+		painter.drawPath( _bodyWheel.shape() );
+		
 		
 	painter.restore();
 	
@@ -360,6 +366,7 @@ void Plane::render( QPainter& painter, const QRectF& rect )
 	double fs = 50 ; // force scale
 	QPointF wf = wingsForce() / fs;
 	QPointF ef = elevatorForce() / fs;
+	const b2Vec2& pos = _bodyHull.b2body()->GetPosition();
 	
 	painter.setPen( Qt::blue );
 	painter.drawLine( QLineF( pos.x, pos.y, pos.x + wf.x(), pos.y + wf.y() ) );
@@ -373,10 +380,10 @@ void Plane::render( QPainter& painter, const QRectF& rect )
 // Simulates plane
 void Plane::simulate( double dt )
 {
-	const b2Vec2& pos = _pMainBody->GetPosition();
+	const b2Vec2& pos = _bodyHull.b2body()->GetPosition();
 	
 	QPointF wings	= wingsForce();
-	_pMainBody->ApplyForce
+	_bodyHull.b2body()->ApplyForce
 		( 10.0 * b2Vec2( wings.x(), wings.y() ) // newtons per kg
 		, pos );
 	
@@ -384,7 +391,7 @@ void Plane::simulate( double dt )
 	// elevator
 	QPointF eforce = elevatorForce();
 	QPointF epoint = elevatorPos();
-	_pMainBody->ApplyForce
+	_bodyHull.b2body()->ApplyForce
 		( 10.0 * b2Vec2( eforce.x(), eforce.y() )
 		, b2Vec2( epoint.x(), epoint.y() )
 		);
@@ -461,9 +468,9 @@ void Plane::setFlaps( double f )
 // Aerodynamic force
 QPointF Plane::wingsForce()
 {
-	double angle = _pMainBody->GetAngle(); // hull angle
+	double angle = _bodyHull.b2body()->GetAngle(); // hull angle
 	
-	b2Vec2 velocity = _pMainBody->GetLinearVelocity();
+	b2Vec2 velocity = _bodyHull.b2body()->GetLinearVelocity();
 	double v = sqrt( velocity.x*velocity.x + velocity.y*velocity.y );
 	double velAngle = atan2( velocity.y, velocity.x );
 	
@@ -488,7 +495,7 @@ QPointF Plane::wingsForce()
 // Returns plane position
 QPointF Plane::pos() const
 {
-	const b2Vec2& p = _pMainBody->GetPosition();
+	const b2Vec2& p = _bodyHull.b2body()->GetPosition();
 	
 	return QPointF( p.x, p.y );
 }
@@ -497,9 +504,9 @@ QPointF Plane::pos() const
 // Calcultes and applies elevator force
 QPointF Plane::elevatorForce()
 {
-	double angle = _pMainBody->GetAngle(); // hull angle
+	double angle = _bodyHull.b2body()->GetAngle(); // hull angle
 	
-	b2Vec2 velocity = _pMainBody->GetLinearVelocity();
+	b2Vec2 velocity = _bodyHull.b2body()->GetLinearVelocity();
 	double v = sqrt( velocity.x*velocity.x + velocity.y*velocity.y );
 	double velAngle = atan2( velocity.y, velocity.x );
 	
@@ -523,8 +530,8 @@ QPointF Plane::elevatorForce()
 // Elevator position
 QPointF Plane::elevatorPos()
 {
-	double angle = _pMainBody->GetAngle(); // hull angle
-	b2Vec2 pos = _pMainBody->GetPosition();
+	double angle = _bodyHull.b2body()->GetAngle(); // hull angle
+	b2Vec2 pos = _bodyHull.b2body()->GetPosition();
 	
 	return QPointF( pos.x + ELEVATOR_POS.x()*cos(angle), pos.y + ELEVATOR_POS.x()*sin(angle) ); // TODO elvetor Y here
 }
@@ -533,8 +540,8 @@ QPointF Plane::elevatorPos()
 // Air speed
 double Plane::airspeed()
 {
-	double angle = _pMainBody->GetAngle(); // hull angle
-	b2Vec2 velocity = _pMainBody->GetLinearVelocity();
+	double angle = _bodyHull.b2body()->GetAngle(); // hull angle
+	b2Vec2 velocity = _bodyHull.b2body()->GetLinearVelocity();
 	double v = sqrt( velocity.x*velocity.x + velocity.y*velocity.y );
 	double velAngle = atan2( velocity.y, velocity.x );
 	
@@ -566,19 +573,23 @@ void Plane::flip()
 	_orientation = _orientation * -1;
 	
 	// get data which are to be preserved
+	/*
 	b2Vec2 pos = _pMainBody->GetPosition();
 	double angle = _pMainBody->GetAngle();
 	b2Vec2 linearSpeed = _pMainBody->GetLinearVelocity();
 	double angularSpeed = _pMainBody->GetAngularVelocity();
+	*/
 	// TODO other bodies speeds
 	
 	//if turn, change angle
 	if ( turn )
 	{
-		angle = M_PI-angle;
+		//angle = M_PI-angle;
+		// TODO rotate here
 	}
 	
 	// destroy bodies
+	/*
 	b2World* pWorld = world()->b2world();
 	
 	pWorld->DestroyBody( _pMainBody );
@@ -590,6 +601,11 @@ void Plane::flip()
 	
 	_pMainBody->SetLinearVelocity( linearSpeed );
 	_pMainBody->SetAngularVelocity( angularSpeed );
+	*/
+	foreach( Body* pBody, _bodies )
+	{
+		pBody->flipVertical();
+	}
 }
 
 // ============================================================================
@@ -622,7 +638,7 @@ void Plane::setAutopilot( bool on )
 void Plane::simulateAutopilot( double dt )
 {
 	// first - get angle. this is our error
-	b2Vec2 velocity = _pMainBody->GetLinearVelocity();
+	b2Vec2 velocity = _bodyHull.b2body()->GetLinearVelocity();
 	
 	// abort operation when moving too slow
 	if ( airspeed() < AP_MIN_AIRSPEED )

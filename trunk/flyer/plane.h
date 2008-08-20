@@ -24,6 +24,7 @@ class QPainter;
 #include "Box2D.h"
 
 #include "worldobject.h"
+#include "body.h"
 
 
 namespace Flyer
@@ -94,6 +95,7 @@ private:
 	void simulateAutopilot( double dt );
 
 	// physical objects
+	/*
 	b2Body*	_pMainBody;
 	b2Body*	_pMainWheel;
 	b2Body* _pMainLeg;
@@ -105,17 +107,26 @@ private:
 	b2Shape* _pWheelShape;
 	b2Shape* _pEngineShape;
 	
-	b2RevoluteJoint* _pMainWheelJoint;
-	b2RevoluteJoint* _pLegJoin;
-	
 	// shapes
 	QPolygonF	_shapeBody;	// main hull body
 	QPolygonF	_shapeSkid;	// skid and rudder
 	QPolygonF	_shapeLeg;	// leg
 	QPolygonF	_shapeEngine;	// engine
+	*/
+	
+	// bodies 
+	Body _bodyHull;
+	Body _bodyEngine;
+	Body _bodyLeg;
+	Body _bodyWheel;
+	
+	
+	b2RevoluteJoint* _pMainWheelJoint;
+	b2RevoluteJoint* _pLegJoin;
+	
 	
 	// systems
-	Engine*		_pEngine;
+	Engine*			_pEngine;
 	
 	// damage managers
 	DamageManager* _pEngineDamageManager;
@@ -125,6 +136,7 @@ private:
 	
 	bool _wheelBrake;	//!< Flag - is whele brake on
 	
+	// TODO remove
 	double _orientation;	//!< Orientation - 1 - normal, -1 - mirrored. 
 	
 	double _flaps;		///< Flaps: 0 - 1
@@ -136,6 +148,9 @@ private:
 	
 	// systems
 	QMap<int, QList<System*> >	_systems;
+	
+	// bodies
+	QList<Body*>	_bodies;
 };
 
 }

@@ -30,6 +30,7 @@ Engine::Engine ( const QString& name, double thrust, const QPointF& normal /* = 
 {
 	_maxThrust	= thrust;
 	_currentMaxThrust = thrust;
+	_throttle	= 0.0;
 	_normal		= normal;
 }
 
