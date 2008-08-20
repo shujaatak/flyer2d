@@ -167,49 +167,6 @@ void WorldWidget::step()
 	
 }
 
-// ============================================================================
-// updates viewport so plane is visible
-/*
-void WorldWidget::makeSurePlaneVisible()
-{
-	QPointF pos = _pPlane->pos();
-	
-	// margin
-	QPointF bottomRight = _transform.inverted().map( rect().bottomRight() );
-	QPointF topLeft = _transform.inverted().map( rect().topLeft() );
-	
-	double w = bottomRight.x() - topLeft.x();
-	double h = topLeft.y() - bottomRight.y();
-	
-	double maxx = topLeft.x() + 0.7*w;
-	double minx = topLeft.x() + 0.3*w;
-	
-	double maxy = bottomRight.y() + 0.7*h;
-	double miny = bottomRight.y() + 0.3*h;
-	
-	// near right margin?
-	if ( pos.x() > maxx )
-	{
-		_transform.translate( maxx - pos.x(), 0 );
-	}
-	// near left
-	else if ( pos.x() < minx )
-	{
-		_transform.translate( minx - pos.x(), 0 );
-	}
-	
-	// near top?
-	if ( pos.y() > maxy )
-	{
-		_transform.translate( 0, maxy - pos.y() );
-	}
-	// near bottom?
-	else if ( pos.y() < miny )
-	{
-		_transform.translate( 0, miny - pos.y() );
-	}
-	
-}*/
 
 // ============================================================================
 // Adjusts translation to plane position
@@ -347,12 +304,13 @@ void WorldWidget::paintEvent( QPaintEvent* )
 void WorldWidget::initializeGL()
 {
 	// turn on antialiasing, if available
-	if ( format().sampleBuffers() )
-	{
+	// TODO, no my computer has it working, but this returns false
+	//if ( format().sampleBuffers() )
+	//{
 		glEnable( GL_LINE_SMOOTH );
 		glEnable( GL_POINT_SMOOTH );
 		glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
-	}
+	//}
 }
 
 // ============================================================================

@@ -14,56 +14,57 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#ifndef FLYERBODY_H
-#define FLYERBODY_H
-
-#include <QList>
-#include <QPainterPath>
-#include <QTransform>
+#ifndef FLYERJOINT_H
+#define FLYERJOINT_H
 
 #include "Box2D.h"
+#include <QPointF>
 
 namespace Flyer
 {
 
+class Body;
+
 /**
-	Wrap around b2Body. It rembeers it's shapes and know how to re-create itself.
+	Wrap around joint object.
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class Body
+class Joint
 {
 public:
-	Body();
-	virtual ~Body();
+	Joint();
+	virtual ~Joint();
 	
-	/// Creates body
-	void create( const b2BodyDef& def, b2World* pWorld );
+	/// Creates joint
+	void create( b2JointDef* pDef, b2World* pWorld );
 	
-	/// Retruns unrlying box2d body
-	b2Body* b2body() const { return _pBody; }
+	/// Returns associated box2d object.
+	b2Joint* b2joint() const { return _pJoint; }
 	
-	/// Adds shape to body
-	void addShape( b2ShapeDef* pShapeDef );
+	/// Set associated bodies
+	void setBodies( Body* pBody1, Body* pBody2 );
 	
-	/// Returns body shape as painter path
-	QPainterPath shape() const;
-	
-	/// Returns body position and orientation as QTranform
-	QTransform transform() const;
-	
-	/// Flips body along defined axis
+	/// Flips joint along defined axis
 	void flip( const QPointF& p1, const QPointF& p2 );
+	
+	/// Makes joint broken
+	void breakJoint();
 
 private:
 
-	b2Body*		_pBody;
-	b2BodyDef	_definition;
-	QList< b2ShapeDef*>	_shapeDefinitions;
+	b2JointDef* _pDefinition;
+	b2Joint*	_pJoint;	///< b2d Joint object
+	b2World*	_pWorld;	///< Cached world
+	
+	Body*		_pBody1;	///< Connected body
+	Body*		_pBody2;	///< Connected body
+	
+	bool		_broken;	///< Flag: joint is broken
 };
 
 }
 
-#endif // FLYERBODY_H
+#endif // FLYERJOINT_H
 
 // EOF
 

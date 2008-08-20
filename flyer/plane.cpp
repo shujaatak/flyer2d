@@ -30,6 +30,8 @@ namespace Flyer
 static const double WHEEL_RADIUS = 0.5; // [m]
 static const QPointF WHEEL_POS = QPointF( 0.5, -1.5 );
 static const QPointF ELEVATOR_POS = QPointF( -4.0, 0.0 );
+static const QPointF ENGINE_POS = QPointF( 1.5, 0.0 );
+
 static const double ELEVATOR_LENGTH = 1.0;
 static const double MAX_THRUST = 500; // kg force
 static const double WHEEL_BRAKE_TORQUE = 1000; // not too big, to have nice effects
@@ -71,21 +73,36 @@ Plane::Plane( World* pWorld, const QPointF& pos, double angle ) : WorldObject( p
 	_autopilot = false;
 	
 	// create systems
-	_pEngine = new Engine( "engine", MAX_THRUST );
-	addSystem( _pEngine, SystemRendered2 | SystemSimulated );
+	_sysEngine.setName("engine");
+	_sysEngine.setMaxThrust( MAX_THRUST );
+	_sysEngine.setDamageCapacity( 2000 );
+	addSystem( & _sysEngine, SystemRendered2 | SystemSimulated );
+	
+	_sysWheelMounting.setName("wheel mounting");
+	_sysWheelMounting.setTolerance( 30E3 );
+	_sysWheelMounting.setDamageCapacity( 200E3 );
+	_sysWheelMounting.setJoint( & _jointWheel );
+	addSystem( & _sysWheelMounting, SystemSimulated );
 	
 	// create damage managers
-	_pEngineDamageManager = new DamageManager( 1000 ); /// threshold of 1000 newtons
+	_pEngineDamageManager = new DamageManager( 100 );
 	// set 90% to engine, 10% unused
-	_pEngineDamageManager->addSystem( _pEngine, 9 );
+	_pEngineDamageManager->addSystem( & _sysEngine, 9 );
 	_pEngineDamageManager->addSystem( NULL, 0 );
 	
-	// create bodies
+	// init bodies list
 	
 	_bodies.append( & _bodyHull );
 	_bodies.append( & _bodyEngine );
 	_bodies.append( & _bodyLeg );
 	_bodies.append( & _bodyWheel );
+	
+	// init joints list
+	_joints.append( & _jointWheel ); // TODO temporarly reduced set of joints for easier debugging
+	_joints.append( & _jointEngine );
+	_joints.append( & _jointLeg );
+	
+	// create objects
 	
 	createBodies( pos, angle );
 	createShapes( pos, angle );
@@ -107,6 +124,7 @@ void Plane::createBodies( const QPointF& pos, double angle )
 	QPointF wheelCenter = transform.map( WHEEL_POS );
 	QPointF legJointPos = transform.map( LEG_JOINT_POS );
 	QPointF engineJointPos = transform.map( ENGINE_JOINT_POS );
+	QPointF enginePos = transform.map( ENGINE_POS );
 	
 	// main body
 	b2BodyDef mainDef;
@@ -118,7 +136,6 @@ void Plane::createBodies( const QPointF& pos, double angle )
 	mainDef.position.Set( pos.x(), pos.y() );
 	mainDef.angle = angle;
 	
-	//_pMainBody = pWorld->CreateBody( & mainDef );
 	_bodyHull.create( mainDef, pWorld );
 	
 	// wheel
@@ -129,10 +146,9 @@ void Plane::createBodies( const QPointF& pos, double angle )
 	wheelDef.linearDamping = 0;
 	wheelDef.angularDamping = 0.01;
 	
-	wheelDef.position.Set( pos.x(), pos.y() ); // 1 meter below
+	wheelDef.position.Set( wheelCenter.x(), wheelCenter.y() ); // 1 meter below
 	wheelDef.angle = angle;
 	
-	//_pMainWheel = pWorld->CreateBody( & wheelDef );
 	_bodyWheel.create( wheelDef, pWorld );
 	
 
@@ -149,14 +165,13 @@ void Plane::createBodies( const QPointF& pos, double angle )
 	
 	// engine
 	b2BodyDef engineDef;
-	engineDef.position.Set( pos.x(), pos.y() );
+	engineDef.position.Set( enginePos.x(), enginePos.y() );
 	engineDef.angle = angle;
 	engineDef.linearDamping = 0;
 	engineDef.angularDamping = 0;
 	
-	//_pEngineCase =  pWorld->CreateBody( & engineDef );
 	_bodyEngine.create( engineDef, pWorld );
-	_pEngine->setBody( _bodyEngine.b2body() );
+	_sysEngine.setBody( & _bodyEngine );
 	
 
 	// joints
@@ -188,9 +203,18 @@ void Plane::createBodies( const QPointF& pos, double angle )
 	engineJoint.collideConnected = false;
 	
 	
-	_pMainWheelJoint = (b2RevoluteJoint*)pWorld->CreateJoint( & wheelJoint );
-	_pLegJoin = (b2RevoluteJoint*)pWorld->CreateJoint( & legJoint );
-	pWorld->CreateJoint( & engineJoint );
+	//_pMainWheelJoint = (b2RevoluteJoint*)pWorld->CreateJoint( & wheelJoint );
+	_jointWheel.create( & wheelJoint, pWorld );
+	_jointWheel.setBodies( & _bodyLeg, & _bodyWheel );
+	
+	//_pLegJoin = (b2RevoluteJoint*)pWorld->CreateJoint( & legJoint );
+	_jointLeg.create( & legJoint, pWorld );
+	_jointLeg.setBodies( & _bodyHull, & _bodyLeg );
+	
+	
+	//pWorld->CreateJoint( & engineJoint );
+	_jointEngine.create( & engineJoint, pWorld );
+	_jointEngine.setBodies( & _bodyHull, &_bodyEngine );
 	
 }
 
@@ -222,22 +246,18 @@ void Plane::createShapes( const QPointF& pos, double angle )
 	skidShape.restitution = 0.1;
 	
 	
-	//_pMainBodyShape = _pMainBody->CreateShape( & mainShape );
-	//_pSkidShape = _pMainBody->CreateShape( & skidShape );
 	_bodyHull.addShape( & mainShape );
 	_bodyHull.addShape( & skidShape );
 	
 	// wheel 
 	b2CircleDef wheelShape;
 	wheelShape.radius = WHEEL_RADIUS;
-	wheelShape.localPosition.Set( WHEEL_POS.x(), WHEEL_POS.y() );
+	wheelShape.localPosition.SetZero();
 	wheelShape.isSensor = false;
 	wheelShape.restitution = 0.0;
 	wheelShape.density = 10;
 	wheelShape.friction = 0.7;
 	
-	//_pWheelShape = _pMainWheel->CreateShape( & wheelShape );
-	//_pMainWheel->SetMassFromShapes();
 	_bodyWheel.addShape( & wheelShape );
 	
 	// leg
@@ -251,24 +271,20 @@ void Plane::createShapes( const QPointF& pos, double angle )
 	legShape.restitution = 0.1;
 	legShape.density = 20;
 	
-	//_pLegShape = _pMainLeg->CreateShape( & legShape );
-	//_pMainLeg->SetMassFromShapes();
 	_bodyLeg.addShape( & legShape );
 	
 	// engine
 	QPolygonF shapeEngine;
-	shapeEngine.append( QPointF( 1.3, 0.6) );
-	shapeEngine.append( QPointF( 1.3, -0.6) );
-	shapeEngine.append( QPointF( 1.8, -0.5) );
-	shapeEngine.append( QPointF( 1.8, 0.5) );
+	shapeEngine.append( QPointF( -0.2, 0.6) );
+	shapeEngine.append( QPointF( -0.2, -0.6) );
+	shapeEngine.append( QPointF( 0.3, -0.5) );
+	shapeEngine.append( QPointF( 0.3, 0.5) );
 	b2PolygonDef engineShape = shapeToDef( shapeEngine, false );
 	engineShape.friction	= mainShape.friction;
 	engineShape.restitution	= mainShape.restitution;
 	engineShape.density		= 10;
 	engineShape.userData	= _pEngineDamageManager;
 	
-	//_pEngineShape = _pEngineCase->CreateShape( & engineShape );
-	//_pEngineCase->SetMassFromShapes();
 	_bodyEngine.addShape( & engineShape );
 
 }
@@ -340,10 +356,8 @@ void Plane::render( QPainter& painter, const QRectF& rect )
 	
 	painter.save();
 		painter.setTransform( wheelTransform, true );
-		//painter.drawEllipse( QRectF(-WHEEL_RADIUS, -WHEEL_RADIUS, WHEEL_RADIUS*2, WHEEL_RADIUS*2 ) );
-		//painter.drawLine( QLineF( -WHEEL_RADIUS, 0.0, WHEEL_RADIUS, 0.0 ) );
-		// TODO temp - use provided shape
-		painter.drawPath( _bodyWheel.shape() );
+		painter.drawEllipse( QRectF(-WHEEL_RADIUS, -WHEEL_RADIUS, WHEEL_RADIUS*2, WHEEL_RADIUS*2 ) );
+		painter.drawLine( QLineF( -WHEEL_RADIUS, 0.0, WHEEL_RADIUS, 0.0 ) );
 		
 		
 	painter.restore();
@@ -397,14 +411,17 @@ void Plane::simulate( double dt )
 		);
 	
 	// wheel brake
-	if ( _wheelBrake )
+	if ( _jointWheel.b2joint() )
 	{
-		_pMainWheelJoint->SetMaxMotorTorque( WHEEL_BRAKE_TORQUE );
-		_pMainWheelJoint->SetMotorSpeed( 0.0 );
-	}
-	else
-	{
-		_pMainWheelJoint->SetMaxMotorTorque( 0.0 );
+		if ( _wheelBrake )
+		{
+			static_cast<b2RevoluteJoint*>(_jointWheel.b2joint())->SetMaxMotorTorque( WHEEL_BRAKE_TORQUE );
+			static_cast<b2RevoluteJoint*>(_jointWheel.b2joint())->SetMotorSpeed( 0.0 );
+		}
+		else
+		{
+			static_cast<b2RevoluteJoint*>(_jointWheel.b2joint())->SetMaxMotorTorque( 0.0 );
+		}
 	}
 	
 	// autopilot
@@ -424,14 +441,14 @@ void Plane::simulate( double dt )
 // Sets throttle
 void Plane::setThrottle( double t )
 {
-	_pEngine->setThrottle( t );
+	_sysEngine.setThrottle( t );
 }
 
 // ============================================================================
 // Returns throtlle
 double Plane::throttle() const
 {
-	return _pEngine->throttle();
+	return _sysEngine.throttle();
 }
 
 // ============================================================================
@@ -566,45 +583,43 @@ void Plane::flip()
 		return; // no flip below this speed
 	}
 	
-	// flip?
+	// flip or turn?
 	bool turn = airspeed() <= MAX_TURN_SPEED; // turn otherwise
-	
 	
 	_orientation = _orientation * -1;
 	
-	// get data which are to be preserved
-	/*
-	b2Vec2 pos = _pMainBody->GetPosition();
-	double angle = _pMainBody->GetAngle();
-	b2Vec2 linearSpeed = _pMainBody->GetLinearVelocity();
-	double angularSpeed = _pMainBody->GetAngularVelocity();
-	*/
-	// TODO other bodies speeds
+	// find axis of flip
+	QPointF p1, p2;
 	
 	//if turn, change angle
 	if ( turn )
 	{
-		//angle = M_PI-angle;
-		// TODO rotate here
+		// for turn - rotate around vertical axis
+		b2Vec2 pos = _bodyHull.b2body()->GetPosition();
+		p1 = QPointF( pos.x, pos.y );
+		p2 = QPointF( pos.x, pos.y + 1.0 );
+		
+	}
+	else
+	{
+		// for speed flip - rotate around velocity vector
+		b2Vec2 pos = _bodyHull.b2body()->GetPosition();
+		b2Vec2 vel = _bodyHull.b2body()->GetLinearVelocity();
+	
+		p1 = QPointF ( pos.x, pos.y );
+		p2 = QPointF ( pos.x + vel.x, pos.y + vel.y );
 	}
 	
-	// destroy bodies
-	/*
-	b2World* pWorld = world()->b2world();
-	
-	pWorld->DestroyBody( _pMainBody );
-	pWorld->DestroyBody( _pMainWheel );
-	pWorld->DestroyBody( _pMainLeg );
-	
-	createBodies( QPointF( pos.x, pos.y ), angle );
-	createShapes( QPointF( pos.x, pos.y ), angle );
-	
-	_pMainBody->SetLinearVelocity( linearSpeed );
-	_pMainBody->SetAngularVelocity( angularSpeed );
-	*/
+	// flip bodies
 	foreach( Body* pBody, _bodies )
 	{
-		pBody->flipVertical();
+		pBody->flip( p1, p2 );
+	}
+	
+	// flip joints
+	foreach( Joint* pJoint, _joints )
+	{
+		pJoint->flip( p1, p2 );
 	}
 }
 

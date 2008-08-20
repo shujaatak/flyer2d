@@ -14,50 +14,55 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#include <QPainter>
-
-#include "system.h"
-#include "body.h"
-
+#include "mounting.h"
+#include "joint.h"
 
 namespace Flyer
 {
 
-static const double DEFAULT_DAMAGE_CAPACITY = 5000;
-
-
 // ============================================================================
 // Constructor
-System::System( const QString& name ):  _name( name )
+Mounting::Mounting ( const QString& name, Joint* pJoint = NULL, double tolerance = 0.0, double capacity = 0.0 )
+	: System ( name )
 {
-	// init members
-	_pBody = NULL;
-	_damageCapacity = DEFAULT_DAMAGE_CAPACITY;
+	_tolerance = tolerance;
+	_pJoint = pJoint;
+	setDamageCapacity( capacity );
+	
+	_damageReceived = 0;
+	
 }
 
 // ============================================================================
 // Destructor
-System::~System()
+Mounting::~Mounting()
 {
-	// nope
 }
 
 // ============================================================================
-// Renders system body
-void System::renderBody( QPainter& painter )
+/// Handles damage
+void Mounting::damage ( double damage )
 {
-	if ( _pBody )
+	_damageReceived += damage;
+	//qDebug("damage left: %g", damageCapacity() - _damageReceived );
+	if ( _damageReceived > damageCapacity() && _pJoint )
 	{
-		
-		QTransform t = _pBody->transform();
-		
-		painter.save();
-			painter.setTransform( t, true );
-			painter.drawPath( _pBody->shape() );
-		painter.restore();
-	
+		_pJoint->breakJoint();
 	}
 }
 
+// ============================================================================
+/// Handles simulation step
+void Mounting::simulate ( double dt )
+{
+	if ( _pJoint && _pJoint->b2joint() )
+	{
+		double forceTime = dt * _pJoint->b2joint()->GetReactionForce().Length();
+		if ( forceTime > _tolerance*dt )
+		{
+			damage( forceTime );
+		}
+	}
+}
 
 }

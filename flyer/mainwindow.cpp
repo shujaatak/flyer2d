@@ -15,6 +15,7 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 #include <QKeyEvent>
+#include <QGLFormat>
 
 #include "mainwindow.h"
 #include "plane.h"
@@ -26,6 +27,11 @@ namespace Flyer
 // Constructor
 MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags f): QWidget(parent, f)
 {
+	// turn on sample buffers
+	QGLFormat format = QGLFormat::defaultFormat();
+	format.setSampleBuffers( true );
+	QGLFormat::setDefaultFormat( format );
+	
  	setupUi( this );
 	connect( worldWidget, SIGNAL(elevatorChanged(double)), SLOT(elevatorChanged(double)) );
 	connect( worldWidget, SIGNAL(throttleChanged(double)), SLOT(throttleChanged(double)) );

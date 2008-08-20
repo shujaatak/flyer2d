@@ -32,7 +32,7 @@ namespace Flyer
 class Engine : public System
 {
 public:
-	Engine ( const QString& name, double thrust, const QPointF& normal = QPointF( 1.0, 0.0 ) );
+	Engine ( const QString& name = "", double thrust = 0.0, const QPointF& normal = QPointF( 1.0, 0.0 ) );
 	virtual ~Engine();
 
 	virtual void damage ( double force );
@@ -43,6 +43,9 @@ public:
 	
 	void setThrottle( double throttle ); /// Sets throttle (0-1)
 	double throttle() const { return  _throttle; }
+	
+	/// Sets engine's max thrust
+	void setMaxThrust( double thrust );
 	
 
 private:

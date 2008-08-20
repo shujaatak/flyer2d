@@ -22,12 +22,12 @@
 class QPainter;
 class QRectF;
 
-class b2Body;
-class b2Shape;
 
 
 namespace Flyer
 {
+
+class Body;
 
 /**
 	Base class for all aircraft (and other) systems.
@@ -46,8 +46,8 @@ public:
 	QString name() const { return _name; }
 	void setName( const QString& name ) { _name = name; }
 	
-	void setBody( b2Body* pBody ) { _pBody = pBody; }
-	b2Body* body() const { return _pBody; }
+	void setBody( Body* pBody ) { _pBody = pBody; }
+	Body* body() const { return _pBody; }
 	
 	void setDamageCapacity( double dc ) { _damageCapacity = dc; }
 	double damageCapacity() const { return _damageCapacity; }
@@ -64,13 +64,10 @@ protected:
 	/// renders system's body
 	void renderBody( QPainter& painter );
 	
-	// Renders shape
-	void renderShape( QPainter& painter, b2Shape* pShape );
-	
 private:
 
 	QString _name;				///< System's name
-	b2Body*	_pBody;				///< _body associated with system
+	Body*	_pBody;				///< _body associated with system
 	double	_damageCapacity;	///< Amount of damage system can sustain before being comlletely useless
 };
 
