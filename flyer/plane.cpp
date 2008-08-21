@@ -22,6 +22,7 @@
 #include "world.h"
 #include "engine.h"
 #include "damagemanager.h"
+#include "b2dqt.h"
 
 namespace Flyer
 {
@@ -59,22 +60,22 @@ static const double MAX_TURN_SPEED = 0.1;	///< max speed for turn
 static const double AP_I = 1.5;	
 static const double AP_P = 2.5;	
 static const double AP_D = 0.3;	
-static const double AP_MIN_AIRSPEED = 10;	// m/s
 
 
 
 // ============================================================================
 // Constructor
-Plane::Plane( World* pWorld, const QPointF& pos, double angle ) : WorldObject( pWorld )
+Plane::Plane( World* pWorld, const QPointF& pos, double angle ) : Machine( pWorld )
 	, _sysEngine( this )
 	, _sysWheelMounting( this )
 	, _sysWing( this )
 	, _sysElevator( this )
+	, _sysBrake( this )
+	, _sysAutopilot( this )
+	, _sysGun( this )
 {
 	// settings
-	_wheelBrake = false;
 	_orientation = 1.0;
-	_autopilot = false;
 	
 	// create systems
 	_sysEngine.setName("engine");
@@ -105,23 +106,38 @@ Plane::Plane( World* pWorld, const QPointF& pos, double angle ) : WorldObject( p
 	_sysElevator.setLiftCoeff( ELEVATOR_LIFT );
 	addSystem( & _sysElevator, SystemRendered2 | SystemSimulated );
 	
+	_sysBrake.setBrakingTorque( WHEEL_BRAKE_TORQUE );
+	_sysBrake.setJoint( & _jointWheel );
+	addSystem( & _sysBrake, SystemSimulated );
+	
+	_sysAutopilot.setPID( AP_P, AP_I, AP_D );
+	_sysAutopilot.setElevator( & _sysElevator );
+	_sysAutopilot.setBody( & _bodyHull );
+	addSystem( & _sysAutopilot, SystemSimulated );
+	
+	_sysGun.setBody( & _bodyHull );
+	_sysGun.setMuzzle( QPointF( 2.0, 0.0 ) );
+	_sysGun.setNormal( QPointF( 1.0, 0.0 ) );
+	_sysGun.setBulletMass( 7.91E-3 ); 
+	//_sysGun.setBulletVelocity( 735 ); // NOTE too fast to see
+	_sysGun.setBulletVelocity( 60 );
+	//_sysGun.setBulletSize( 7.85E-3 ); NOTE: too smnal, cant see // all values from kalashnikov ;)
+	_sysGun.setBulletSize( 0.1 ); // ridicoulously big, but i need to see them :)
+	_sysGun.setFiringInterval( 0.4 ); // 2.5 shots/sec
+	_sysGun.setBulletLifespan( 2.0 ); // TODO experimantal
+	addSystem( & _sysGun, SystemSimulated );
+
+	
 	// create damage managers
 	_pEngineDamageManager = new DamageManager( 100 );
 	// set 90% to engine, 10% unused
 	_pEngineDamageManager->addSystem( & _sysEngine, 9 );
 	_pEngineDamageManager->addSystem( NULL, 0 );
 	
-	// init bodies list
-	
-	_bodies.append( & _bodyHull );
-	_bodies.append( & _bodyEngine );
-	_bodies.append( & _bodyLeg );
-	_bodies.append( & _bodyWheel );
-	
 	// init joints list
-	_joints.append( & _jointWheel ); // TODO temporarly reduced set of joints for easier debugging
-	_joints.append( & _jointEngine );
-	_joints.append( & _jointLeg );
+	addJoint( & _jointWheel );
+	addJoint( & _jointEngine );
+	addJoint( & _jointLeg );
 	
 	// create objects
 	
@@ -158,6 +174,7 @@ void Plane::createBodies( const QPointF& pos, double angle )
 	mainDef.angle = angle;
 	
 	_bodyHull.create( mainDef, pWorld );
+	addBody( & _bodyHull, BodyRendered2 );
 	
 	// wheel
 	b2BodyDef wheelDef;
@@ -171,6 +188,7 @@ void Plane::createBodies( const QPointF& pos, double angle )
 	wheelDef.angle = angle;
 	
 	_bodyWheel.create( wheelDef, pWorld );
+	addBody( & _bodyWheel, 0 );
 	
 
 	// leg
@@ -183,6 +201,7 @@ void Plane::createBodies( const QPointF& pos, double angle )
 	
 	//_pMainLeg = pWorld->CreateBody( & legDef );
 	_bodyLeg.create( legDef, pWorld );
+	addBody( & _bodyLeg, BodyRendered3 );
 	
 	// engine
 	b2BodyDef engineDef;
@@ -193,6 +212,7 @@ void Plane::createBodies( const QPointF& pos, double angle )
 	
 	_bodyEngine.create( engineDef, pWorld );
 	_sysEngine.setBody( & _bodyEngine );
+	addBody( & _bodyEngine, BodyRendered1 );
 	
 
 	// joints
@@ -320,28 +340,6 @@ Plane::~Plane()
 	// none
 }
 
-// ============================================================================
-// Converts shape to b2d polygon def
-b2PolygonDef Plane::shapeToDef( const QPolygonF& shape, bool reversed )
-{
-	b2PolygonDef def;
-	def.vertexCount = 0;
-	
-	if ( shape.size() > 8 )
-	{
-		qWarning("Shape has too many vertices");
-		return def;
-	}
-	
-	def.vertexCount = shape.size();
-	for( int i = 0; i < def.vertexCount; i++ )
-	{
-		int vertexIndex = reversed ? (def.vertexCount - i - 1) : i;
-		def.vertices[vertexIndex].Set( shape[i].x(), shape[i].y() );
-	}
-	
-	return def;
-}
 
 // ============================================================================
 // Draws a plane.
@@ -350,106 +348,19 @@ void Plane::render( QPainter& painter, const QRectF& rect )
 	painter.setPen( Qt::black );
 	painter.setBrush( Qt::gray );
 
-	// draw body and leg
-	QTransform mainTransform = _bodyHull.transform();
-	
-	QPainterPath hull = _bodyHull.shape();
-	QPainterPath leg = _bodyLeg.shape();
-	
-	
-	// draw elevator
-	/*
-	double dx = cos( (_elevator*ELEVATOR_STEP*_orientation) ) * ELEVATOR_LENGTH;
-	double dy = sin( (_elevator*ELEVATOR_STEP*_orientation) ) * ELEVATOR_LENGTH;
-	*/
-	
-	painter.save();
-		painter.setTransform( mainTransform, true );
-		painter.drawPath( leg );
-		painter.drawPath( hull );
-		//painter.drawLine( QLineF( ELEVATOR_POS.x(), ELEVATOR_POS.y(), ELEVATOR_POS.x() - dx, ELEVATOR_POS.y()-dy ) );
-		
-	painter.restore();
+	Machine::render( painter, rect );
 
 	// draw wheel
 	QTransform wheelTransform = _bodyWheel.transform();
 	
 	painter.save();
+		painter.setPen( Qt::black );
+		painter.setBrush( Qt::gray );
 		painter.setTransform( wheelTransform, true );
 		painter.drawEllipse( QRectF(-WHEEL_RADIUS, -WHEEL_RADIUS, WHEEL_RADIUS*2, WHEEL_RADIUS*2 ) );
 		painter.drawLine( QLineF( -WHEEL_RADIUS, 0.0, WHEEL_RADIUS, 0.0 ) );
-		
-		
 	painter.restore();
 	
-	// draw systems (only this should left here )
-	foreach( System* pSystem, _systems[ SystemRendered1 ] )
-	{
-		pSystem->render( painter, rect );
-	}
-	foreach( System* pSystem, _systems[ SystemRendered2 ] )
-	{
-		pSystem->render( painter, rect );
-	}
-	foreach( System* pSystem, _systems[ SystemRendered3 ] )
-	{
-		pSystem->render( painter, rect );
-	}
-	
-	// draw forces
-	/*
-	double fs = 50 ; // force scale
-	QPointF ef = elevatorForce() / fs;
-	const b2Vec2& pos = _bodyHull.b2body()->GetPosition();
-	
-	
-	painter.setPen( Qt::darkYellow );
-	painter.drawLine( QLineF( elevatorPos(), elevatorPos() + ef ) );
-	*/
-	
-}
-
-// ============================================================================
-// Simulates plane
-void Plane::simulate( double dt )
-{
-	
-	// elevator
-	/*
-	const b2Vec2& pos = _bodyHull.b2body()->GetPosition();
-	QPointF eforce = elevatorForce();
-	QPointF epoint = elevatorPos();
-	_bodyHull.b2body()->ApplyForce
-		( 10.0 * b2Vec2( eforce.x(), eforce.y() )
-		, b2Vec2( epoint.x(), epoint.y() )
-		);
-	*/
-	
-	// wheel brake
-	if ( _jointWheel.b2joint() )
-	{
-		if ( _wheelBrake )
-		{
-			static_cast<b2RevoluteJoint*>(_jointWheel.b2joint())->SetMaxMotorTorque( WHEEL_BRAKE_TORQUE );
-			static_cast<b2RevoluteJoint*>(_jointWheel.b2joint())->SetMotorSpeed( 0.0 );
-		}
-		else
-		{
-			static_cast<b2RevoluteJoint*>(_jointWheel.b2joint())->SetMaxMotorTorque( 0.0 );
-		}
-	}
-	
-	// autopilot
-	if ( _autopilot )
-	{
-		simulateAutopilot( dt );
-	}
-	
-	// simul;ate sustrem (only this should be left here)
-	foreach ( System* pSystem, _systems[ SystemSimulated ] )
-	{
-		pSystem->simulate( dt );
-	}
 }
 
 // ============================================================================
@@ -470,7 +381,7 @@ double Plane::throttle() const
 // Sets elevator -1 - to 1
 void Plane::setElevator( double e )
 {
-	if ( _autopilot )
+	if ( autopilot() )
 	{
 		return; // do nothing
 	}
@@ -506,13 +417,6 @@ double Plane::airspeed()
 	double velAngle = atan2( velocity.y, velocity.x );
 	
 	return v * cos( angle - velAngle );
-}
-
-// ============================================================================
-// Turbns wheel brake on/off
-void Plane::applyWheelBrake( bool on )
-{
-	_wheelBrake = on;
 }
 
 // ============================================================================
@@ -554,13 +458,13 @@ void Plane::flip()
 	}
 	
 	// flip bodies
-	foreach( Body* pBody, _bodies )
+	foreach( Body* pBody, _allBodies )
 	{
 		pBody->flip( p1, p2 );
 	}
 	
 	// flip joints
-	foreach( Joint* pJoint, _joints )
+	foreach( Joint* pJoint, _allJoints )
 	{
 		pJoint->flip( p1, p2 );
 	}
@@ -583,40 +487,7 @@ void Plane::renderOnMap( QPainter& painter, const QRectF& rect )
 // Sets autopilot on/off
 void Plane::setAutopilot( bool on )
 {
-	if ( ! _autopilot )
-	{
-		_apErrorIntegral = 0.0;
-		_apPreviousError = 0.0;
-	}
-	_autopilot = on;
-}
-
-// ============================================================================
-// Sets elevator using autopilot logic.
-void Plane::simulateAutopilot( double dt )
-{
-	// first - get angle. this is our error
-	b2Vec2 velocity = _bodyHull.b2body()->GetLinearVelocity();
-	
-	// abort operation when moving too slow
-	if ( airspeed() < AP_MIN_AIRSPEED )
-	{
-		setElevator( 0.0 );
-		return;
-	}
-	
-	double error = velocity.y / fabs( velocity.x ); // approx angle in radians
-	
-	// update integral
-	_apErrorIntegral += error*dt;
-	
-	// get derivative
-	double der = ( error - _apPreviousError ) / dt;
-	_apPreviousError = error;
-	
-	// apply steering
-	setElevator( AP_P * error + AP_I * _apErrorIntegral + AP_D * der );
-
+	_sysAutopilot.setOn( on );
 }
 
 // ============================================================================
@@ -626,28 +497,5 @@ double Plane::elevatorAngle() const
 	return _sysElevator.angle();
 }
 
-// ============================================================================
-//. Adds system to aircraft. types is  bitmask with system types.
-void Plane::addSystem( System* pSystem, int types )
-{
-	for ( int i = 0; i < 8; i++ ) // scaning only first 8 bits
-	{
-		int bit = 1<<i;
-		if ( types & bit )
-		{
-			_systems[ bit ].append( pSystem );
-		}
-	}
-}
-
-// ============================================================================
-// Removes system from all lists
-void Plane::removeSystem( System* pSystem )
-{
-	for ( int i = 0; i < 8; i++ ) // scaning only first 8 bits
-	{
-		_systems[ 1<<i ].removeAll( pSystem );
-	}
-}
 
 }

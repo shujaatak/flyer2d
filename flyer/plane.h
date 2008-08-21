@@ -17,19 +17,19 @@
 #ifndef FLYERPLANE_H
 #define FLYERPLANE_H
 
-class QPainter;
-#include <QMap>
-#include <QList>
 
 #include "Box2D.h"
 
-#include "worldobject.h"
+#include "machine.h"
 #include "body.h"
 #include "joint.h"
 #include "mounting.h"
 #include "engine.h"
 #include "wing.h"
 #include "controlsurface.h"
+#include "wheelbrake.h"
+#include "autopilot.h"
+#include "gun.h"
 
 
 namespace Flyer
@@ -40,9 +40,11 @@ class Engine;
 class DamageManager;
 
 /**
+	Plane is a special machine, that has fed designated, aircraft-specific systems,
+	available by dedicated interface, like: winfs, engine, elevator, brake.
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class Plane : public WorldObject
+class Plane : public Machine
 {
 public:
 	Plane( World* pWorld, const QPointF& pos, double angle );
@@ -50,7 +52,6 @@ public:
 	
 	void render( QPainter& painter, const QRectF& rect );
 	void renderOnMap( QPainter& painter, const QRectF& rect );
-	void simulate( double dt );
 	
 	void setThrottle( double t );
 	double throttle() const;
@@ -65,8 +66,8 @@ public:
 	
 	QPointF pos() const; ///< Plane position
 	
-	void applyWheelBrake( bool on );
-	bool wheelBrake() const { return _wheelBrake; }
+	void applyWheelBrake( bool on ){ _sysBrake.setOn( on ); }
+	bool wheelBrake() const { return _sysBrake.on(); }
 	
 	double flaps() const { return _sysWing.flaps(); }
 	void setFlaps( double f );
@@ -74,30 +75,24 @@ public:
 	void flip();		///< Flips plane to the other side
 	
 	void setAutopilot( bool on );
-	bool autopilot() const { return _autopilot; }
+	bool autopilot() const { return _sysAutopilot.on(); }
 	
-	// system manipulation
-	enum SystemType {				/// system type
-		SystemSimulated	= 1,		///< System is simulated
-		SystemRendered1	= 2,		///< System is rendered on layer 1
-		SystemRendered2	= 4,		///< System is rendered on layer 1
-		SystemRendered3	= 8			///< System is rendered on layer 1
-		};
-
-	void addSystem( System* pSystem, int types );
-	void removeSystem( System* pSystem );
-
+	void setFiring( bool on ) { _sysGun.setFiring( on ); }
+	
+	// systems
+	void setAutopilot( Autopilot* pAutopilot ){ _pAutopilot = pAutopilot; }
+	void setEngine( Engine* pEngine ) { _pEngine = pEngine; }
+	void setWheelBrake( WheelBrake* pBrake ) { _pBrake = pBrake; }
+	void setWing( Wing* pWing ) { _pWing = pWing; }
+	void setElevator( ControlSurface* pElevator ) { _pElevator = pElevator; }
+	
+	
 private:
 
 	void createBodies( const QPointF& pos, double angle );
 	void createShapes( const QPointF& pos, double angle );
 
-	static b2PolygonDef shapeToDef( const QPolygonF& shape, bool reversed );
 	
-	// simulation calculations
-	
-	void simulateAutopilot( double dt );
-
 	// bodies 
 	Body _bodyHull;
 	Body _bodyEngine;
@@ -109,36 +104,28 @@ private:
 	Joint _jointEngine;
 	Joint _jointLeg;
 	
-	
 	// systems
 	Engine			_sysEngine;
 	Mounting		_sysWheelMounting;
 	Wing			_sysWing;
 	ControlSurface	_sysElevator;
+	WheelBrake		_sysBrake;
+	Autopilot		_sysAutopilot;
+	Gun				_sysGun;
 	
 	// damage managers
 	DamageManager* _pEngineDamageManager;
 	
-	// settings
-	bool _wheelBrake;	//!< Flag - is whele brake on
+	// special systems
+	Engine* 		_pEngine;
+	Wing*			_pWing;
+	WheelBrake*		_pBrake;
+	Autopilot*		_pAutopilot;
+	ControlSurface*	_pElevator;
 	
-	// TODO remove
+	// variables
+	
 	double _orientation;	//!< Orientation - 1 - normal, -1 - mirrored. 
-	
-	bool	_autopilot;	///< FLag - is autopilot on
-	
-	// autopilot params
-	double _apPreviousError;
-	double _apErrorIntegral;
-	
-	// systems
-	QMap<int, QList<System*> >	_systems;
-	
-	// bodies
-	QList<Body*>	_bodies;
-	
-	// joints
-	QList<Joint*>	_joints;
 };
 
 }

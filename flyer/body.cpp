@@ -14,6 +14,8 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+#include <QPainter>
+
 #include "body.h"
 
 namespace Flyer
@@ -238,7 +240,24 @@ void Body::flip( const QPointF& p1, const QPointF& p2 )
 		_pBody->SetAngularVelocity( angularSpeed );
 		
 	}
-
 }
+
+// ============================================================================
+// Renders body
+void Body::render( QPainter& painter )
+{
+	if ( _pBody )
+	{
+		
+		QTransform t = transform();
+		
+		painter.save();
+			painter.setTransform( t, true );
+			painter.drawPath( shape() );
+		painter.restore();
+	
+	}
+}
+
 
 }

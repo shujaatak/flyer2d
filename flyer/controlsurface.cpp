@@ -66,8 +66,8 @@ QPointF ControlSurface::aerodynamicForce() const
 		QPointF force = calculateForce( v, sina ); // f0rce in wing coordinates
 		
 		result = QPointF
-			( force.x()*cos(angle) + force.y()*sin(angle)
-			, force.x()*sin(angle) - force.y()*cos(angle)
+			( force.x()*cos(bodyAngle) + force.y()*sin(bodyAngle)
+			, force.x()*sin(bodyAngle) - force.y()*cos(bodyAngle)
 			);
 		
 	}
@@ -120,9 +120,9 @@ void ControlSurface::render(QPainter& painter, const QRectF& )
 	// draw force (DEBUG )
 	double fs = 500 ; // force scale
 	QPointF wf = aerodynamicForce() / fs;
-	const b2Vec2& pos = body()->b2body()->GetPosition();
+	const b2Vec2& pos = body()->b2body()->GetWorldPoint( point2vec( _position ) );
 	
-	painter.setPen( Qt::darkYellow );
+	painter.setPen( Qt::green );
 	painter.drawLine( QLineF( pos.x, pos.y, pos.x + wf.x(), pos.y + wf.y() ) );
 }
 

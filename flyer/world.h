@@ -62,6 +62,8 @@ public:
 	/// Return environment
 	const Environment* environment() const { return & _environment; }
 	
+	/// Adds object to the world
+	void addObject( WorldObject* pObject );
 	
 private:
 	

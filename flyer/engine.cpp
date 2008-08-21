@@ -75,8 +75,10 @@ void Engine::damage ( double force )
 	{
 		_currentMaxThrust = 0.0;
 	}
-	
-	qDebug("Engine: max thrust reduced to %g", _currentMaxThrust );
+	else
+	{
+		qDebug("Engine: max thrust reduced to %g", _currentMaxThrust );
+	}
 }
 
 // ============================================================================
@@ -116,7 +118,7 @@ void Engine::render( QPainter& painter, const QRectF& rect )
 	Q_ASSERT( body() );
 	
 	// render body
-	renderBody( painter );
+	body()->render( painter );
 
 	// render propeller
 	painter.save();

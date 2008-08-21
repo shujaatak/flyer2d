@@ -14,25 +14,34 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-///\file b2dqt.h - gate between similar Box2D and Qt types
-#ifndef FLYERB2DQT_H
-#define FLYERB2DQT_H
-
-#include <QPolygonF>
-#include "Box2D.h"
+#include "b2dqt.h"
 
 namespace Flyer {
 
-/// Converts QPointF to bVec2d
-inline b2Vec2 point2vec( const QPointF& p ) { return b2Vec2( p.x(), p.y() ); }
-
-/// Converts b2Vec2 to QPointF
-inline QPointF vec2point( const b2Vec2& v ) { return QPointF( v.x, v.y ); }
-
-/// Creates polygon shape definition useing shape described by QPolygonF
-b2PolygonDef shapeToDef( const QPolygonF& shape, bool reversed );
+// ============================================================================
+// QPolygonF - > b2PolygonDef
+b2PolygonDef shapeToDef( const QPolygonF& shape, bool reversed )
+{
+	b2PolygonDef def;
+	def.vertexCount = 0;
+	
+	if ( shape.size() > 8 )
+	{
+		qWarning("Shape has too many vertices");
+		return def;
+	}
+	
+	def.vertexCount = shape.size();
+	for( int i = 0; i < def.vertexCount; i++ )
+	{
+		int vertexIndex = reversed ? (def.vertexCount - i - 1) : i;
+		def.vertices[vertexIndex].Set( shape[i].x(), shape[i].y() );
+	}
+	
+	return def;
+}
 
 }
-#endif // FLYERB2DQT_H
+
 // EOF
 

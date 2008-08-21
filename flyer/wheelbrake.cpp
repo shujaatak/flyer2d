@@ -14,34 +14,50 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#include <QPainter>
-
-#include "system.h"
-#include "body.h"
-
+#include "wheelbrake.h"
+#include "joint.h"
 
 namespace Flyer
 {
 
-static const double DEFAULT_DAMAGE_CAPACITY = 5000;
-
-
 // ============================================================================
 // Constructor
-System::System( Plane* pParent, const QString& name ):  _name( name )
+WheelBrake::WheelBrake ( Plane* pParent, const QString& name ) : System ( pParent, name )
 {
-	// init members
-	_pBody = NULL;
-	_pParent = pParent;
-	_damageCapacity = DEFAULT_DAMAGE_CAPACITY;
+	_pJoint = NULL;
+	_on = false;
 }
 
 // ============================================================================
-// Destructor
-System::~System()
+// estructor
+WheelBrake::~WheelBrake()
 {
-	// nope
 }
 
+// ============================================================================
+// Damages brake
+void WheelBrake::damage ( double firce )
+{
+	qDebug("TODO implement wheel brake damage");
+}
+
+// ============================================================================
+// Simulates brake
+void WheelBrake::simulate ( double dt )
+{
+	if ( _pJoint && _pJoint->b2joint() && _pJoint->b2joint()->GetType() == e_revoluteJoint )
+	{
+		b2RevoluteJoint* pRevoluteJoint = static_cast<b2RevoluteJoint*>( _pJoint->b2joint() );
+		if ( _on )
+		{
+			pRevoluteJoint->SetMaxMotorTorque( _brakingTorque );
+			pRevoluteJoint->SetMotorSpeed( 0.0 );
+		}
+		else
+		{
+			pRevoluteJoint->SetMaxMotorTorque( 0.0 );
+		}
+	}
+}
 
 }
