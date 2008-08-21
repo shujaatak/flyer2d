@@ -32,6 +32,7 @@ static const QPointF WHEEL_POS = QPointF( 0.5, -1.5 );
 static const QPointF ELEVATOR_POS = QPointF( -4.0, 0.0 );
 static const QPointF ENGINE_POS = QPointF( 1.5, 0.0 );
 
+static const double ELEVATOR_LIFT = 10.0;
 static const double ELEVATOR_LENGTH = 1.0;
 static const double MAX_THRUST = 500; // kg force
 static const double WHEEL_BRAKE_TORQUE = 1000; // not too big, to have nice effects
@@ -40,12 +41,13 @@ static const double ELEVATOR_STEP = 0.2;	/// elevator movement - in radians
 static const QPointF ENGINE_JOINT_POS( 1.4, 0.0 );
 static const QPointF LEG_JOINT_POS( 0.0, -0.3 );
 
-static const double WING_DRAG_H	= 0.08;		// horizontal component of wing's drag
-static const double WING_DRAG_V	= 5;		// vertical component of wing's drag
-static const double WING_LIFT = 12;
+static const double WING_DRAG_H	= 0.8;		// horizontal component of wing's drag
+static const double WING_DRAG_V	= 50;		// vertical component of wing's drag
+static const double WING_LIFT = 120;
 static const double WING_INCLINATION = 0.04;	// hull-wings angle
-static const double FLAPS_EXTRA_DRAG = 0.5;		// extra drag due to max flaps
-static const double FLAPS_EXTRA_LIFT = 8;		// extra drag due to max flaps
+static const double FLAPS_EXTRA_DRAG = 5;		// extra drag due to max flaps
+static const double FLAPS_EXTRA_LIFT = 80;		// extra drag due to max flaps
+static const double WING_WIDTH = 1.5;
 
 
 static const double HULL_MASS = 1000.0; // 1t
@@ -64,11 +66,13 @@ static const double AP_MIN_AIRSPEED = 10;	// m/s
 // ============================================================================
 // Constructor
 Plane::Plane( World* pWorld, const QPointF& pos, double angle ) : WorldObject( pWorld )
+	, _sysEngine( this )
+	, _sysWheelMounting( this )
+	, _sysWing( this )
+	, _sysElevator( this )
 {
 	// settings
-	_elevator = 0;
 	_wheelBrake = false;
-	_flaps = 0.0;
 	_orientation = 1.0;
 	_autopilot = false;
 	
@@ -83,6 +87,23 @@ Plane::Plane( World* pWorld, const QPointF& pos, double angle ) : WorldObject( p
 	_sysWheelMounting.setDamageCapacity( 200E3 );
 	_sysWheelMounting.setJoint( & _jointWheel );
 	addSystem( & _sysWheelMounting, SystemSimulated );
+	
+	_sysWing.setWidth( WING_WIDTH );
+	_sysWing.setDragCoeffH( WING_DRAG_H );
+	_sysWing.setDragCoeffV( WING_DRAG_V );
+	_sysWing.setLiftCoeff( WING_LIFT );
+	_sysWing.setFlapsDrag( FLAPS_EXTRA_DRAG );
+	_sysWing.setFlapsLift( FLAPS_EXTRA_LIFT );
+	_sysWing.setBody( & _bodyHull );
+	_sysWing.setInclination( WING_INCLINATION );
+	addSystem( & _sysWing, SystemRendered2 | SystemSimulated );
+	
+	_sysElevator.setWidth( ELEVATOR_LENGTH );
+	_sysElevator.setPosition( ELEVATOR_POS );
+	_sysElevator.setStep( ELEVATOR_STEP );
+	_sysElevator.setBody( & _bodyHull );
+	_sysElevator.setLiftCoeff( ELEVATOR_LIFT );
+	addSystem( & _sysElevator, SystemRendered2 | SystemSimulated );
 	
 	// create damage managers
 	_pEngineDamageManager = new DamageManager( 100 );
@@ -284,7 +305,10 @@ void Plane::createShapes( const QPointF& pos, double angle )
 	engineShape.restitution	= mainShape.restitution;
 	engineShape.density		= 10;
 	engineShape.userData	= _pEngineDamageManager;
-	
+	_sysEngine.setPropellerBladeLength( 0.8 );
+	_sysEngine.setPropellerCenter( QPointF( 0.5, 0.0 ) );
+	_sysEngine.setPropllerAxis( QLineF( 0.3, 0.0, 0.7, 0.0 ) );
+
 	_bodyEngine.addShape( & engineShape );
 
 }
@@ -334,20 +358,16 @@ void Plane::render( QPainter& painter, const QRectF& rect )
 	
 	
 	// draw elevator
+	/*
 	double dx = cos( (_elevator*ELEVATOR_STEP*_orientation) ) * ELEVATOR_LENGTH;
 	double dy = sin( (_elevator*ELEVATOR_STEP*_orientation) ) * ELEVATOR_LENGTH;
-	
-	// draw wings
-	const double WING_WIDTH = 1.5;
-	double wx = cos( (WING_INCLINATION*_orientation) ) * WING_WIDTH/2;
-	double wy = sin( (WING_INCLINATION*_orientation) ) * WING_WIDTH/2;
+	*/
 	
 	painter.save();
 		painter.setTransform( mainTransform, true );
 		painter.drawPath( leg );
 		painter.drawPath( hull );
-		painter.drawLine( QLineF( ELEVATOR_POS.x(), ELEVATOR_POS.y(), ELEVATOR_POS.x() - dx, ELEVATOR_POS.y()-dy ) );
-		painter.drawLine( QLineF( -wx, -wy, wx, wy ) );
+		//painter.drawLine( QLineF( ELEVATOR_POS.x(), ELEVATOR_POS.y(), ELEVATOR_POS.x() - dx, ELEVATOR_POS.y()-dy ) );
 		
 	painter.restore();
 
@@ -377,16 +397,15 @@ void Plane::render( QPainter& painter, const QRectF& rect )
 	}
 	
 	// draw forces
+	/*
 	double fs = 50 ; // force scale
-	QPointF wf = wingsForce() / fs;
 	QPointF ef = elevatorForce() / fs;
 	const b2Vec2& pos = _bodyHull.b2body()->GetPosition();
 	
-	painter.setPen( Qt::blue );
-	painter.drawLine( QLineF( pos.x, pos.y, pos.x + wf.x(), pos.y + wf.y() ) );
 	
 	painter.setPen( Qt::darkYellow );
 	painter.drawLine( QLineF( elevatorPos(), elevatorPos() + ef ) );
+	*/
 	
 }
 
@@ -394,21 +413,17 @@ void Plane::render( QPainter& painter, const QRectF& rect )
 // Simulates plane
 void Plane::simulate( double dt )
 {
-	const b2Vec2& pos = _bodyHull.b2body()->GetPosition();
-	
-	QPointF wings	= wingsForce();
-	_bodyHull.b2body()->ApplyForce
-		( 10.0 * b2Vec2( wings.x(), wings.y() ) // newtons per kg
-		, pos );
-	
 	
 	// elevator
+	/*
+	const b2Vec2& pos = _bodyHull.b2body()->GetPosition();
 	QPointF eforce = elevatorForce();
 	QPointF epoint = elevatorPos();
 	_bodyHull.b2body()->ApplyForce
 		( 10.0 * b2Vec2( eforce.x(), eforce.y() )
 		, b2Vec2( epoint.x(), epoint.y() )
 		);
+	*/
 	
 	// wheel brake
 	if ( _jointWheel.b2joint() )
@@ -460,53 +475,16 @@ void Plane::setElevator( double e )
 		return; // do nothing
 	}
 	
-	if ( e < -1.0 )
-		_elevator = -1.0;
-	else if ( e > 1.0 )
-		_elevator = 1.0;
-	else 
-		_elevator = e;
+	_sysElevator.setValue( e );
 }
 
 // ============================================================================
 // Set flaps = 0-1
 void Plane::setFlaps( double f )
 {
-	if ( f < 0 )
-		_flaps = 0.0;
-	else if ( f > 1.0 )
-		_flaps = 1.0;
-	else 
-		_flaps = f;
+	_sysWing.setFlaps( f );
 }
 
-
-// ============================================================================
-// Aerodynamic force
-QPointF Plane::wingsForce()
-{
-	double angle = _bodyHull.b2body()->GetAngle(); // hull angle
-	
-	b2Vec2 velocity = _bodyHull.b2body()->GetLinearVelocity();
-	double v = sqrt( velocity.x*velocity.x + velocity.y*velocity.y );
-	double velAngle = atan2( velocity.y, velocity.x );
-	
-	double attack = angle + (WING_INCLINATION*_orientation) - velAngle; // angle of attack
-	double sina = sin(attack);
-
-	// lift
-	double lift = v*v * ( WING_LIFT + FLAPS_EXTRA_LIFT*_flaps ) * sina;
-	
-	// drag
-	double dragH = WING_DRAG_H + FLAPS_EXTRA_DRAG*_flaps;
-	double drag = v*v * (dragH +( WING_DRAG_V-dragH) * sina*sina );
-	
-	return QPointF
-		( -drag*cos(angle) - lift*sin(angle)
-		, -drag*sin(angle) + lift*cos(angle)
-		);
-	
-}
 
 // ============================================================================
 // Returns plane position
@@ -517,41 +495,6 @@ QPointF Plane::pos() const
 	return QPointF( p.x, p.y );
 }
 
-// ============================================================================
-// Calcultes and applies elevator force
-QPointF Plane::elevatorForce()
-{
-	double angle = _bodyHull.b2body()->GetAngle(); // hull angle
-	
-	b2Vec2 velocity = _bodyHull.b2body()->GetLinearVelocity();
-	double v = sqrt( velocity.x*velocity.x + velocity.y*velocity.y );
-	double velAngle = atan2( velocity.y, velocity.x );
-	
-	double attack = angle + (_elevator*ELEVATOR_STEP*_orientation) - velAngle; // elevator's angle of attack
-	double sina = sin(attack);
-
-	// lift
-	const double l = 0.5; // elev lift coeff
-	double lift = v*v * l * sina;
-	
-	// no drag
-	double drag = 0;
-	
-	return QPointF
-		( -drag*cos(angle) - lift*sin(angle)
-		, -drag*sin(angle) + lift*cos(angle)
-		);
-}
-
-// ============================================================================
-// Elevator position
-QPointF Plane::elevatorPos()
-{
-	double angle = _bodyHull.b2body()->GetAngle(); // hull angle
-	b2Vec2 pos = _bodyHull.b2body()->GetPosition();
-	
-	return QPointF( pos.x + ELEVATOR_POS.x()*cos(angle), pos.y + ELEVATOR_POS.x()*sin(angle) ); // TODO elvetor Y here
-}
 
 // ============================================================================
 // Air speed
@@ -658,7 +601,7 @@ void Plane::simulateAutopilot( double dt )
 	// abort operation when moving too slow
 	if ( airspeed() < AP_MIN_AIRSPEED )
 	{
-		_elevator = 0.0;
+		setElevator( 0.0 );
 		return;
 	}
 	
@@ -672,9 +615,7 @@ void Plane::simulateAutopilot( double dt )
 	_apPreviousError = error;
 	
 	// apply steering
-	_elevator = ( AP_P * error + AP_I * _apErrorIntegral + AP_D * der );
-	if ( _elevator > 1.0 ) _elevator = 1.0;
-	if ( _elevator < -1.0 ) _elevator = -1.0;
+	setElevator( AP_P * error + AP_I * _apErrorIntegral + AP_D * der );
 
 }
 
@@ -682,7 +623,7 @@ void Plane::simulateAutopilot( double dt )
 // Elevator angle
 double Plane::elevatorAngle() const
 {
-	return _elevator * ELEVATOR_STEP;
+	return _sysElevator.angle();
 }
 
 // ============================================================================

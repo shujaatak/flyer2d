@@ -14,45 +14,52 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#ifndef FLYERMOUNTING_H
-#define FLYERMOUNTING_H
+#ifndef FLYERWING_H
+#define FLYERWING_H
 
-#include "system.h"
+#include "surface.h"
 
 namespace Flyer
 {
 
-class Joint;
-
 /**
-	It's a pseudo system, which - when attached to joint - breaks it when too big force
-	acts upon for too long time;
+	Wing. Aerodynamic surfasce with flaps.
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class Mounting : public System
+class Wing : public Surface
 {
 public:
-	Mounting ( Plane* pParent, const QString& name = "", Joint* pJoint = NULL, double tolerance = 0.0, double capacity = 0.0 );
-	virtual ~Mounting();
+	Wing ( Plane* pParent, const QString& name = "" );
+	virtual ~Wing();
 
 	virtual void damage ( double force );
-	virtual void simulate ( double dt );
+	virtual void render( QPainter& painter, const QRectF& rect );
 	
 	// properties
-	void setJoint( Joint* pJoint ) { _pJoint = pJoint; }
+	void setFlapsDrag( double fg ) { _flapsDrag = fg; }
+	void setFlapsLift( double fl ) { _flapsLift = fl; }
 	
-	void setTolerance( double t ) { _tolerance = t; }
+	void setFlaps( double f );
+	double flaps() const { return _flaps; }
 
-private:
+protected:
+	virtual QPointF calculateForce ( double velocity, double sinAttack ) const;
+	
+	// config
+	double	_flapsDrag;			///< Extra drag when flaps are at max
+	double	_flapsLift;			///< Extra lift when flaps are at max
+	
+	
+	// variables
+	double _flaps;				///< Flaps position 0-1
+	double _currentFlapsMax;
+	double _currentFlapsMin;
 
-	double	_tolerance;		///< Damage tolerance threshold
-	Joint*	_pJoint;		///< Attached joint
-	double _damageReceived;	///< Damage received so far
 };
 
 }
 
-#endif // FLYERMOUNTING_H
+#endif // FLYERWING_H
 
 // EOF
 

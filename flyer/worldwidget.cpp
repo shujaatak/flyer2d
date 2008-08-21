@@ -308,8 +308,8 @@ void WorldWidget::initializeGL()
 	//if ( format().sampleBuffers() )
 	//{
 		glEnable( GL_LINE_SMOOTH );
-		glEnable( GL_POINT_SMOOTH );
-		glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
+	//	glEnable( GL_POINT_SMOOTH );
+	//	glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
 	//}
 }
 

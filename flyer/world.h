@@ -21,6 +21,7 @@
 #include <QList>
 
 #include "worldobject.h"
+#include "environment.h"
 
 class b2World;
 class b2Body;
@@ -58,6 +59,9 @@ public:
 	/// Returns player's plane
 	Plane* playerPlane() const { return _pPlayerPlane; }
 	
+	/// Return environment
+	const Environment* environment() const { return & _environment; }
+	
 	
 private:
 	
@@ -69,6 +73,7 @@ private:
 	Plane*	_pPlayerPlane;			///< Player's plane
 	Ground*	_pGround;				///< Ground body
 	QRectF	_boundary;				///< World boundary
+	Environment	_environment;		///< Encironment data
 };
 
 }

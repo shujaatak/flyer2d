@@ -98,7 +98,7 @@ void MainWindow::on_buttonFlip_clicked()
 // Flaps handler.
 void MainWindow::on_sliderFlaps_valueChanged( int value )
 {
-	worldWidget->plane()->setFlaps( value / 4.0 );
+	worldWidget->plane()->setFlaps( value / 3.0 );
 }
 
 // ============================================================================

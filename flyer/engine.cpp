@@ -20,18 +20,21 @@
 
 #include "engine.h"
 #include "body.h"
+#include "plane.h"
+#include "world.h"
 
 namespace Flyer
 {
 
 // ============================================================================
 // Constructor
-Engine::Engine ( const QString& name, double thrust, const QPointF& normal /* = QPointF( 1.0, 0.0 )*/ )
-	 : System ( name )
+Engine::Engine ( Plane* pParent, const QString& name, double thrust, const QPointF& normal /* = QPointF( 1.0, 0.0 )*/ )
+	 : System ( pParent, name )
 {
 	setMaxThrust( thrust );
 	_throttle	= 0.0;
 	_normal		= normal;
+	_propellerBladeLength = 0;
 }
 
 // ============================================================================
@@ -95,14 +98,15 @@ void Engine::simulate ( double dt )
 QPointF Engine::thrustForce()
 {
 	double angle = body()->b2body()->GetAngle();
-	
+	b2Vec2 pos = body()->b2body()->GetPosition();
 	double thrust = _throttle * _currentMaxThrust;
+	double airDensity = parent()->world()->environment()->relativeDensity( QPointF( pos.x, pos.y ) );
 	
 	// thrust along the normal vector
 	QTransform t;
 	t.rotateRadians( angle ); 
 	
-	return t.map( _normal*thrust );
+	return t.map( _normal*thrust*airDensity );
 }
 
 // ============================================================================
@@ -114,6 +118,12 @@ void Engine::render( QPainter& painter, const QRectF& rect )
 	// render body
 	renderBody( painter );
 
+	// render propeller
+	painter.save();
+		painter.setTransform( body()->transform(), true );
+		renderPropeller( painter );
+	painter.restore();
+
 	// render force (debug )
 	double fs = 50 ; // force scale
 	QPointF tf = thrustForce() / fs;
@@ -122,6 +132,27 @@ void Engine::render( QPainter& painter, const QRectF& rect )
 	painter.setPen( Qt::red );
 	painter.drawLine( QLineF( pos.x, pos.y, pos.x + tf.x(), pos.y + tf.y() ) );
 	
+}
+
+
+// ============================================================================
+/// Renders propeller. Assumes that painter is transformed to engine body cooridnates
+void Engine::renderPropeller( QPainter& painter )
+{
+	// axis
+	if ( ! _propellerAxis.isNull() )
+	{
+		painter.setPen( Qt::black );
+		painter.drawLine( _propellerAxis );
+	}
+	
+	// rotating blades
+	if ( _propellerBladeLength > 0 && ! _propellerCenter.isNull() )
+	{
+		QPointF bladeVector = QPointF( - _normal.y(), _normal.x() ) * _propellerBladeLength;
+		painter.setPen( QColor( 0, 0, 0, 128 ) );
+		painter.drawLine( QLineF( _propellerCenter - bladeVector, _propellerCenter + bladeVector ) );
+	}
 }
 
 

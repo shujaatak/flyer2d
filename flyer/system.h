@@ -28,6 +28,7 @@ namespace Flyer
 {
 
 class Body;
+class Plane;
 
 /**
 	Base class for all aircraft (and other) systems.
@@ -38,7 +39,7 @@ class Body;
 class System
 {
 public:
-	System( const QString& name = "" );
+	System( Plane* pParent, const QString& name = "" );
 	virtual ~System();
 	
 	// properties
@@ -51,6 +52,8 @@ public:
 	
 	void setDamageCapacity( double dc ) { _damageCapacity = dc; }
 	double damageCapacity() const { return _damageCapacity; }
+	
+	Plane* parent() const { return _pParent; }
 	
 	// actions
 	
@@ -69,6 +72,7 @@ private:
 	QString _name;				///< System's name
 	Body*	_pBody;				///< _body associated with system
 	double	_damageCapacity;	///< Amount of damage system can sustain before being comlletely useless
+	Plane*	_pParent;			///< Parent
 };
 
 }
