@@ -20,6 +20,7 @@
 #include <QList>
 #include <QPainterPath>
 #include <QTransform>
+class QPainter;
 
 #include "Box2D.h"
 
@@ -47,6 +48,9 @@ public:
 	
 	/// Returns body shape as painter path
 	QPainterPath shape() const;
+	
+	/// Renders body in the simplest ways - draws it;s shape
+	void render( QPainter& painter );
 	
 	/// Returns body position and orientation as QTranform
 	QTransform transform() const;

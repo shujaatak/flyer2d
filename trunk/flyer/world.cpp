@@ -148,6 +148,7 @@ void World::initWorld()
 	_pPlayerPlane = new Plane( this, QPointF( 0, _pGround->height(300) + 2.5 ), 0.2 );
 	_objects.append( _pPlayerPlane );
 	
+	
 	// airfields
 	_objects.append( new Airfield( this, -50, 250, 300 ) );
 	_objects.append( new Airfield( this, 10050, 10300, 800 ) );
@@ -175,6 +176,13 @@ void World::simulate( double dt )
 			pObject->simulate( dt/iters );
 		}
 	}
+}
+
+// ============================================================================
+// Adds oject to the world
+void World::addObject( WorldObject* pObject )
+{
+	_objects.append( pObject );
 }
 
 }

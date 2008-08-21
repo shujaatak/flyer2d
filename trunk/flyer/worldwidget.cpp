@@ -236,6 +236,8 @@ void WorldWidget::wheelEvent( QWheelEvent* pEvent )
 // Handles key press
 void WorldWidget::keyPressEvent( QKeyEvent* pEvent )
 {
+	if ( pEvent->isAutoRepeat() ) return;
+	
 	switch( pEvent->key() )
 	{
 	// SPACE
@@ -264,6 +266,13 @@ void WorldWidget::keyPressEvent( QKeyEvent* pEvent )
 	case Qt::Key_A:
 		plane()->setAutopilot( ! plane()->autopilot() );
 		break;
+		
+	// ENTER
+	case Qt::Key_Return:
+		plane()->setFiring( true );
+		qDebug("start fire");
+		break;
+	
 	
 	default:
 		pEvent->ignore();
@@ -274,11 +283,24 @@ void WorldWidget::keyPressEvent( QKeyEvent* pEvent )
 // Handles key release
 void WorldWidget::keyReleaseEvent( QKeyEvent* pEvent )
 {
-	if( pEvent->key() == Qt::Key_B )
+	if ( pEvent->isAutoRepeat() ) return;
+	
+	switch( pEvent->key() )
 	{
+	// B
+	case Qt::Key_B:
 		plane()->applyWheelBrake( false );
-		pEvent->accept();
-	}
+		break;
+	
+	// ENTER
+	case Qt::Key_Return:
+		plane()->setFiring( false );
+		qDebug("stop fire");
+		break;
+		
+	default:
+		pEvent->ignore();
+	};
 
 }
 

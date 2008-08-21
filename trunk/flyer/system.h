@@ -64,9 +64,6 @@ public:
 
 protected:
 
-	/// renders system's body
-	void renderBody( QPainter& painter );
-	
 private:
 
 	QString _name;				///< System's name

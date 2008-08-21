@@ -14,34 +14,53 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#include <QPainter>
+#ifndef FLYERWHEELBRAKE_H
+#define FLYERWHEELBRAKE_H
 
 #include "system.h"
-#include "body.h"
-
 
 namespace Flyer
 {
 
-static const double DEFAULT_DAMAGE_CAPACITY = 5000;
+class Joint;
 
-
-// ============================================================================
-// Constructor
-System::System( Plane* pParent, const QString& name ):  _name( name )
+/**
+	Wheel brake. Applies braking torque to revolute joint.
+	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
+*/
+class WheelBrake : public System
 {
-	// init members
-	_pBody = NULL;
-	_pParent = pParent;
-	_damageCapacity = DEFAULT_DAMAGE_CAPACITY;
+public:
+	WheelBrake ( Plane* pParent, const QString& name = "" );
+
+	virtual ~WheelBrake();
+
+	virtual void damage ( double force );
+	virtual void simulate ( double dt );
+	
+	void setOn( bool on ) { _on = on; }
+	bool on() const { return _on; }
+	
+	void setBrakingTorque( double t ) { _brakingTorque = t; }
+	void setJoint( Joint* pJoint ) { _pJoint = pJoint; }
+
+private:
+
+	// variables
+	
+	bool	_on;			///< Is brake on
+	
+	// config
+	
+	double	_brakingTorque;	///< Braking torque
+	
+	Joint*	_pJoint;		///< Revolute joint to brake
+};
+
 }
 
-// ============================================================================
-// Destructor
-System::~System()
-{
-	// nope
-}
+#endif // FLYERWHEELBRAKE_H
+
+// EOF
 
 
-}
