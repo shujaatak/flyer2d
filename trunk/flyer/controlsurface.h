@@ -1,58 +1,63 @@
 // Copyright (C) 2008 Maciej Gajewski <maciej.gajewski0@gmail.com>
-//
+//  
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation; either version 2 of the License, or
 // (at your option) any later version.
-//
+//  
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-//
+//  
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#ifndef FLYERMOUNTING_H
-#define FLYERMOUNTING_H
+#ifndef FLYERCONTROLSURFACE_H
+#define FLYERCONTROLSURFACE_H
 
-#include "system.h"
+#include "surface.h"
 
 namespace Flyer
 {
 
-class Joint;
-
 /**
-	It's a pseudo system, which - when attached to joint - breaks it when too big force
-	acts upon for too long time;
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class Mounting : public System
+class ControlSurface : public Surface
 {
 public:
-	Mounting ( Plane* pParent, const QString& name = "", Joint* pJoint = NULL, double tolerance = 0.0, double capacity = 0.0 );
-	virtual ~Mounting();
-
-	virtual void damage ( double force );
-	virtual void simulate ( double dt );
+	ControlSurface(Plane* pParent, const QString& name = "" );
+	virtual ~ControlSurface();
 	
-	// properties
-	void setJoint( Joint* pJoint ) { _pJoint = pJoint; }
+	virtual void damage(double force);
+	virtual void render(QPainter& painter, const QRectF& rect);
 	
-	void setTolerance( double t ) { _tolerance = t; }
+	void setValue( double a );
+	double angle() const { return _value * _step; }	///< Current angle [radians]
+	double value() const { return _value; }
+	
+	void setStep( double s ) { _step = s; }
 
-private:
+protected:
 
-	double	_tolerance;		///< Damage tolerance threshold
-	Joint*	_pJoint;		///< Attached joint
-	double _damageReceived;	///< Damage received so far
+	virtual QPointF aerodynamicForce() const;
+	virtual QPointF calculateForce(double velocity, double sinAttack) const;
+
+	// config
+	double	_step;	///< Actual max angle [radians]
+	
+	// variables
+	double _value;			///< Current position [-1 - 1 ]
+	double _currentMaxValue;
+	double _currentMinValue;
+
 };
 
 }
 
-#endif // FLYERMOUNTING_H
+#endif // FLYERCONTROLSURFACE_H
 
 // EOF
 

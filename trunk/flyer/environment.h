@@ -14,45 +14,32 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#ifndef FLYERMOUNTING_H
-#define FLYERMOUNTING_H
+#ifndef FLYERENVIRONMENT_H
+#define FLYERENVIRONMENT_H
 
-#include "system.h"
+#include <QPointF>
 
 namespace Flyer
 {
 
-class Joint;
-
 /**
-	It's a pseudo system, which - when attached to joint - breaks it when too big force
-	acts upon for too long time;
+	This class provides environment data - pressure, air density, temperature etc.
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class Mounting : public System
+class Environment
 {
 public:
-	Mounting ( Plane* pParent, const QString& name = "", Joint* pJoint = NULL, double tolerance = 0.0, double capacity = 0.0 );
-	virtual ~Mounting();
-
-	virtual void damage ( double force );
-	virtual void simulate ( double dt );
+	Environment();
+	virtual ~Environment();
 	
-	// properties
-	void setJoint( Joint* pJoint ) { _pJoint = pJoint; }
-	
-	void setTolerance( double t ) { _tolerance = t; }
-
-private:
-
-	double	_tolerance;		///< Damage tolerance threshold
-	Joint*	_pJoint;		///< Attached joint
-	double _damageReceived;	///< Damage received so far
+	double pressure( const QPointF& location ) const;				///< Pressure [Pa]
+	double relativeDensity( const QPointF& location ) const;		///< Desnity [relative units, 1->0]
+	double temperature( const QPointF& location ) const;			///< Temperature [k]
 };
 
 }
 
-#endif // FLYERMOUNTING_H
+#endif // FLYERENVIRONMENT_H
 
 // EOF
 

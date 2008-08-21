@@ -18,6 +18,7 @@
 #define FLYERENGINE_H
 
 #include <QPointF>
+#include <QLineF>
 
 #include "system.h"
 
@@ -32,7 +33,7 @@ namespace Flyer
 class Engine : public System
 {
 public:
-	Engine ( const QString& name = "", double thrust = 0.0, const QPointF& normal = QPointF( 1.0, 0.0 ) );
+	Engine ( Plane* pParent, const QString& name = "", double thrust = 0.0, const QPointF& normal = QPointF( 1.0, 0.0 ) );
 	virtual ~Engine();
 
 	virtual void damage ( double force );
@@ -47,9 +48,14 @@ public:
 	/// Sets engine's max thrust
 	void setMaxThrust( double thrust );
 	
+	void setPropellerCenter( const QPointF& center ) { _propellerCenter = center; }
+	void setPropellerBladeLength( double length ) { _propellerBladeLength = length; }
+	void setPropllerAxis( const QLineF& axis ) { _propellerAxis = axis; }
+	
 
 private:
 
+	void renderPropeller( QPainter& painter );
 	QPointF thrustForce();	///< calculates thrust force
 	
 	// variables
@@ -59,6 +65,10 @@ private:
 	// params
 	double	_maxThrust;		///< Max engine thrust
 	QPointF	_normal;		///< _normal vector
+
+	QPointF	_propellerCenter;		///< Propeller mounting point
+	double	_propellerBladeLength;	///< Blade lenght
+	QLineF	_propellerAxis;			///< Propeller axis 
 };
 
 }

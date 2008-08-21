@@ -36,7 +36,6 @@ DamageManager::~DamageManager()
 // Contact callback
 void DamageManager::contact( double force )
 {
-	qDebug("contact force: %g", force );
 	if ( force > _tolerance && _systems.size() > 0 )
 	{
 		double damage = force - _tolerance;

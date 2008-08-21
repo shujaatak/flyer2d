@@ -14,55 +14,47 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#include "mounting.h"
-#include "joint.h"
+#include "environment.h"
 
 namespace Flyer
 {
 
 // ============================================================================
 // Constructor
-Mounting::Mounting ( Plane* pParent, const QString& name, Joint* pJoint /*= NULL*/, double tolerance /*= 0.0*/, double capacity /*= 0.0*/ )
-	: System ( pParent, name )
+Environment::Environment()
 {
-	_tolerance = tolerance;
-	_pJoint = pJoint;
-	setDamageCapacity( capacity );
-	
-	_damageReceived = 0;
-	
+	// nope
 }
 
 // ============================================================================
 // Destructor
-Mounting::~Mounting()
+Environment::~Environment()
 {
+	// nope
 }
 
 // ============================================================================
-/// Handles damage
-void Mounting::damage ( double damage )
+/// Returns athmospheric pressure in Pa at secified location.
+double Environment::pressure( const QPointF& location ) const
 {
-	_damageReceived += damage;
-	//qDebug("damage left: %g", damageCapacity() - _damageReceived );
-	if ( _damageReceived > damageCapacity() && _pJoint )
-	{
-		_pJoint->breakJoint();
-	}
+	return 101.3E3 - 7.18E3 * ( location.y() / 1000.0 ); // assumin 101.3 kPa at 0, and loss of 7.18 kPa per km
 }
 
 // ============================================================================
-/// Handles simulation step
-void Mounting::simulate ( double dt )
+/// Returns relative density. 1.0 at sea level, decreasing with height. Used to calculating drag, lift and thrust.
+double Environment::relativeDensity( const QPointF& location ) const
 {
-	if ( _pJoint && _pJoint->b2joint() )
-	{
-		double forceTime = dt * _pJoint->b2joint()->GetReactionForce().Length();
-		if ( forceTime > _tolerance*dt )
-		{
-			damage( forceTime );
-		}
-	}
+	return 1.0 - 0.08 * ( location.y() / 1000.0 );
+}
+
+// ============================================================================
+/// Returns temperature in K at specified world point.
+double Environment::temperature( const QPointF& location ) const
+{
+	return 300 - 10 * ( location.y() / 1000.0 ); // assuming 300 at 0 and 10 less per kilometer
 }
 
 }
+
+// EOF
+

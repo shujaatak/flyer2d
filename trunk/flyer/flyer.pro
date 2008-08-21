@@ -14,7 +14,13 @@ SOURCES = main.cpp worldwidget.cpp \
  engine.cpp \
  body.cpp \
  joint.cpp \
- mounting.cpp
+ mounting.cpp \
+ environment.cpp \
+ surface.cpp \
+ wing.cpp \
+ controlsurface.cpp
+
+
 HEADERS = worldwidget.h Box2D.h \
  mainwindow.h \
  plane.h \
@@ -28,7 +34,12 @@ HEADERS = worldwidget.h Box2D.h \
  engine.h \
  body.h \
  joint.h \
- mounting.h
+ mounting.h \
+ environment.h \
+ surface.h \
+ b2dqt.h \
+ wing.h \
+ controlsurface.h
 
 FORMS += mainwindow.ui
 

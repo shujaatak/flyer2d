@@ -28,6 +28,8 @@ class QPainter;
 #include "joint.h"
 #include "mounting.h"
 #include "engine.h"
+#include "wing.h"
+#include "controlsurface.h"
 
 
 namespace Flyer
@@ -58,12 +60,15 @@ public:
 	
 	double airspeed();		///< Claculates airspeed
 	
+	/// Returns current orientation (flip) sign
+	double orientation() const { return _orientation; }
+	
 	QPointF pos() const; ///< Plane position
 	
 	void applyWheelBrake( bool on );
 	bool wheelBrake() const { return _wheelBrake; }
 	
-	double flaps() const { return _flaps; }
+	double flaps() const { return _sysWing.flaps(); }
 	void setFlaps( double f );
 	
 	void flip();		///< Flips plane to the other side
@@ -91,10 +96,6 @@ private:
 	
 	// simulation calculations
 	
-	QPointF wingsForce();	///< Calculates wings force
-	QPointF elevatorForce();	///< Calculates elevator force
-	QPointF elevatorPos();		///< Calculates elevator position
-	
 	void simulateAutopilot( double dt );
 
 	// bodies 
@@ -112,19 +113,18 @@ private:
 	// systems
 	Engine			_sysEngine;
 	Mounting		_sysWheelMounting;
+	Wing			_sysWing;
+	ControlSurface	_sysElevator;
 	
 	// damage managers
 	DamageManager* _pEngineDamageManager;
 	
 	// settings
-	double _elevator;	///< Elevator angle (0-1)
-	
 	bool _wheelBrake;	//!< Flag - is whele brake on
 	
 	// TODO remove
 	double _orientation;	//!< Orientation - 1 - normal, -1 - mirrored. 
 	
-	double _flaps;		///< Flaps: 0 - 1
 	bool	_autopilot;	///< FLag - is autopilot on
 	
 	// autopilot params
