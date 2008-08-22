@@ -28,7 +28,7 @@ namespace Flyer
 class ControlSurface : public Surface
 {
 public:
-	ControlSurface(Plane* pParent, const QString& name = "" );
+	ControlSurface(Machine* pParent, const QString& name = "" );
 	virtual ~ControlSurface();
 	
 	virtual void damage(double force);

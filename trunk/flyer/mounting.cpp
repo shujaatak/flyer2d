@@ -22,7 +22,7 @@ namespace Flyer
 
 // ============================================================================
 // Constructor
-Mounting::Mounting ( Plane* pParent, const QString& name, Joint* pJoint /*= NULL*/, double tolerance /*= 0.0*/, double capacity /*= 0.0*/ )
+Mounting::Mounting ( Machine* pParent, const QString& name, Joint* pJoint /*= NULL*/, double tolerance /*= 0.0*/, double capacity /*= 0.0*/ )
 	: System ( pParent, name )
 {
 	_tolerance = tolerance;

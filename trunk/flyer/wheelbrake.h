@@ -31,7 +31,7 @@ class Joint;
 class WheelBrake : public System
 {
 public:
-	WheelBrake ( Plane* pParent, const QString& name = "" );
+	WheelBrake ( Machine* pParent, const QString& name = "" );
 
 	virtual ~WheelBrake();
 

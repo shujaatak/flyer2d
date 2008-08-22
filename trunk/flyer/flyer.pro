@@ -24,7 +24,8 @@ SOURCES = main.cpp worldwidget.cpp \
  machine.cpp \
  b2dqt.cpp \
  bullet.cpp \
- gun.cpp
+ gun.cpp \
+ spotlight.cpp
 
 
 HEADERS = worldwidget.h Box2D.h \
@@ -50,7 +51,8 @@ HEADERS = worldwidget.h Box2D.h \
  autopilot.h \
  machine.h \
  bullet.h \
- gun.h
+ gun.h \
+ spotlight.h
 
 FORMS += mainwindow.ui
 

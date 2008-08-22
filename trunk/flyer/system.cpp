@@ -28,7 +28,7 @@ static const double DEFAULT_DAMAGE_CAPACITY = 5000;
 
 // ============================================================================
 // Constructor
-System::System( Plane* pParent, const QString& name ):  _name( name )
+System::System( Machine* pParent, const QString& name ):  _name( name )
 {
 	// init members
 	_pBody = NULL;

@@ -25,7 +25,7 @@ namespace Flyer {
 
 // ============================================================================
 // Constructor
-Surface::Surface(Plane* pParent, const QString& name): System(pParent, name)
+Surface::Surface(Machine* pParent, const QString& name): System(pParent, name)
 {
 	// nope
 }

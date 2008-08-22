@@ -24,7 +24,7 @@ namespace Flyer
 
 // ============================================================================
 // Constructor
-Wing::Wing ( Plane* pParent, const QString& name ) : Surface ( pParent, name )
+Wing::Wing ( Machine* pParent, const QString& name ) : Surface ( pParent, name )
 {
 	_flaps = 0.0;
 	_currentFlapsMax = 1.0;

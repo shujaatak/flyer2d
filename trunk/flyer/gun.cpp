@@ -25,7 +25,7 @@ namespace Flyer
 
 // ============================================================================
 // Constructor
-Gun::Gun ( Plane* pParent, const QString& name ) : System ( pParent, name )
+Gun::Gun ( Machine* pParent, const QString& name ) : System ( pParent, name )
 {
 	_firing = false;
 	_timeFromLastFiring = 0;
@@ -53,7 +53,7 @@ void Gun::simulate( double dt )
 	if ( body()->b2body() )
 	{
 		// it's time for firing?
-		if ( _firing && _timeFromLastFiring > _interval )
+		if ( _firing && ( _timeFromLastFiring > _interval ) )
 		{
 			b2Body* pBody = body()->b2body();
 			
@@ -85,7 +85,7 @@ void Gun::simulate( double dt )
 			pBody->ApplyImpulse( -reaction*normal, startPoint );
 			
 			// reset timer
-			_timeFromLastFiring -= _interval;
+			_timeFromLastFiring = 0;
 			
 		}
 		

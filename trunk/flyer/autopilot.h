@@ -31,7 +31,7 @@ class ControlSurface;
 class Autopilot : public System
 {
 public:
-	Autopilot ( Plane* pParent, const QString& name = "" );
+	Autopilot ( Machine* pParent, const QString& name = "" );
 	virtual ~Autopilot();
 
 	virtual void damage ( double force );

@@ -37,6 +37,12 @@ Body::~Body()
 	{
 		delete pShapeDef;
 	}
+	
+	// destroy body
+	if ( _pBody )
+	{
+		_pBody->GetWorld()->DestroyBody( _pBody );
+	}
 }
 
 // ============================================================================

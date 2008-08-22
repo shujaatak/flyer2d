@@ -20,6 +20,7 @@
 class QPainter;
 #include <QMap>
 #include <QList>
+#include <QPointF>
 
 #include "worldobject.h"
 
@@ -72,6 +73,15 @@ public:
 	// damage managers
 	void addDamageManager( DamageManager* pManager );
 	void removeDamageManager( DamageManager* pManager );
+	
+	// geometrical operations
+	
+	/// Flip machine around axis of symmetry
+	void flip( const QPointF& p1, const QPointF& p2 );
+	
+	/// Returns current orientation (flip) sign
+	double orientation() const { return _orientation; }
+	
 
 protected:
 
@@ -90,6 +100,10 @@ protected:
 	
 	// damage managers
 	QList<DamageManager*> _allDamageManagers;
+	
+	// variables
+	
+	double _orientation;	//!< Orientation - 1 - normal, -1 - mirrored. 
 };
 
 }

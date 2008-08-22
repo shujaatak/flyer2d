@@ -17,7 +17,10 @@
 #ifndef FLYERLANDINGLIGHT_H
 #define FLYERLANDINGLIGHT_H
 
-#include "worldobject.h"
+#include "machine.h"
+#include "spotlight.h"
+#include "body.h"
+#include "damagemanager.h"
 
 class b2Body;
 
@@ -27,7 +30,7 @@ namespace Flyer {
 	Landing light which aids pilot in approaching airport.
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class LandingLight : public WorldObject
+class LandingLight : public Machine
 {
 public:
 	LandingLight( World* pWorld, double x, double y, double angle );
@@ -38,7 +41,10 @@ public:
 
 private:
 
-	b2Body* _pBody;
+	Spotlight _sysLight;	///< Actual light system
+	DamageManager _damageManager;	///< Light damage manager
+
+	Body _body;
 
 	double _x, _y, _angle; ///< Coordinates and angle [radians]
 	double _range;	///< Light range

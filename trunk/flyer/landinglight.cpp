@@ -26,24 +26,42 @@
 namespace Flyer {
 
 LandingLight::LandingLight(World* pWorld, double x, double y, double angle )
-	: WorldObject(pWorld)
+	: Machine(pWorld)
+	, _sysLight( this )
 {
 	_x = x;
 	_y = y;
 	_angle = angle;
 	
+	// init manager
+	_damageManager.addSystem( & _sysLight, 1 ); // 50/50
+	_damageManager.addSystem( NULL, 1 );
+	_damageManager.setTolerance( 100 );
+	
 	// create body
 	b2PolygonDef shape;
-	shape.SetAsBox( 0.5, 0.5 );
+	shape.SetAsBox( 0.5, 5 ); // was 0.5
+	shape.restitution = 0.5;
+	shape.userData = &_damageManager;
 	
 	b2BodyDef def;
-	def.position.Set( x, y + 0.5 );
+	def.position.Set( x, y + 5 ); // was 05.  , made larger for testing
 	
-	_pBody = pWorld->b2world()->CreateBody( & def );
-	_pBody->CreateShape( & shape );
+	_body.create( def, pWorld->b2world() );
+	_body.addShape( & shape );
 	
 	_range = 1000;// 1 km
 	_width = 0.1;
+	
+	// init spotlight
+	_sysLight.setAngle( angle );
+	_sysLight.setRange( _range );
+	_sysLight.setColor( Qt::yellow );
+	_sysLight.setWidth( _width );
+	_sysLight.setOn( true );
+	_sysLight.setBody( & _body );
+	addSystem( & _sysLight, SystemRendered1 );
+	
 }
 
 // ============================================================================
@@ -63,18 +81,11 @@ QRectF LandingLight::boundingRect()
 //  Renders object.
 void LandingLight::render(QPainter& painter, const QRectF& rect)
 {
+	Machine::render( painter, rect ); // this will render light cone
+	
 	QTransform t;
 	t.translate( _x, _y + 0.5 );
 	t.rotateRadians( _angle );
-	
-	QPolygonF lightShape;
-	lightShape.append( QPointF( 0,0 ) );
-	lightShape.append( QPointF( _range, _range*_width/2 ) );
-	lightShape.append( QPointF( _range, -_range*_width/2 ) );
-	
-	QLinearGradient gradient( QPointF(0,0), QPointF( _range, 0 ) );
-	gradient.setColorAt( 0, QColor( 255, 255, 0, 120) );
-	gradient.setColorAt( 1, QColor( 255, 255, 0, 0) );
 	
 	QPolygonF standShape;
 	standShape.append( QPointF( _x-0.4, _y ) );
@@ -84,11 +95,6 @@ void LandingLight::render(QPainter& painter, const QRectF& rect)
 	painter.save();
 		
 		painter.setTransform( t, true );
-		
-		// draw light
-		painter.setPen( Qt::NoPen );
-		painter.setBrush( gradient );
-		painter.drawPolygon( lightShape );
 		
 		// draw box
 		painter.setPen( Qt::black );

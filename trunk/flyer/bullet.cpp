@@ -21,6 +21,8 @@
 namespace Flyer
 {
 
+static const double MINIMAL_MOMENTUM	= 0.2; ///< elow this momentum bullet is removed
+
 // ============================================================================
 // Constructor
 Bullet::Bullet ( World* pWorld ) : WorldObject ( pWorld )
@@ -61,13 +63,23 @@ void Bullet::render ( QPainter& painter, const QRectF& )
 {
 	if ( _body.b2body() )
 	{
-		// bullet fired, return rect
-		b2Vec2 pos = _body.b2body()->GetPosition();
-		painter.setPen( Qt::black );
-		painter.setBrush( Qt::black );
+		// bullet fired, paint
+		b2Vec2 pos = _body.b2body()->GetPosition(); // position
+		b2Vec2 vel = _body.b2body()->GetLinearVelocity();
 		
-		QRectF r( pos.x - _size/2, pos.y - _size/2, _size, _size );
-		painter.drawEllipse( r );
+		double timespan = 0.05; // flame tail lifespan
+		
+		if ( qrand() % 2 == 0 )
+		{
+			painter.setPen( Qt::red );
+		}
+		else
+		{
+			painter.setPen( QColor( 255, 128, 0 ) );
+		}
+		
+		QPointF endPos = vec2point( pos + timespan* vel );
+		painter.drawLine( vec2point( pos ), endPos );
 	}
 }
 
@@ -75,10 +87,22 @@ void Bullet::render ( QPainter& painter, const QRectF& )
 // Simulates
 void Bullet::simulate ( double dt )
 {
+	// update and check age
 	_age += dt;
 	if ( _age > _lifespan )
 	{
-		// TODO delete here
+		world()->removeObject( this );
+		delete this; // TODO denagerous!
+		return;
+	}
+	
+	// check momentum
+	if ( _body.b2body() && _body.b2body()->GetLinearVelocity().Length() * _mass < MINIMAL_MOMENTUM )
+	{
+		qDebug("bullet removed - moving too slow");
+		world()->removeObject( this );
+		delete this; // TODO denagerous!
+		return;
 	}
 }
 // ============================================================================
@@ -89,6 +113,7 @@ void Bullet::fire( const QPointF& point, const QPointF& velocity )
 	b2BodyDef def;
 	def.position = point2vec( point );
 	def.massData.mass = _mass;
+	def.isBullet = true;
 	
 	_body.create( def, world()->b2world() );
 	
@@ -96,6 +121,8 @@ void Bullet::fire( const QPointF& point, const QPointF& velocity )
 	b2CircleDef shape;
 	shape.localPosition.SetZero();
 	shape.radius = _size/2;
+	shape.restitution = 0.1;
+	shape.friction = 0.1; // quite slippery
 	
 	_body.addShape( & shape );
 	

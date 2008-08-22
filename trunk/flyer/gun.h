@@ -31,7 +31,7 @@ namespace Flyer
 class Gun : public System
 {
 public:
-	Gun ( Plane* pParent, const QString& name = "" );
+	Gun ( Machine* pParent, const QString& name = "" );
 	virtual ~Gun();
 
 	virtual void damage ( double force );

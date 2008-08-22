@@ -30,7 +30,7 @@ namespace Flyer {
 class Surface : public System
 {
 public:
-	Surface( Plane* pParent, const QString& name = "" );
+	Surface( Machine* pParent, const QString& name = "" );
 	virtual ~Surface();
 	
 	// system duties
