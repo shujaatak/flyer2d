@@ -220,8 +220,38 @@ void WorldWidget::mouseMoveEvent( QMouseEvent* pEvent )
 // Handles mouse press.
 void WorldWidget::mousePressEvent( QMouseEvent* pEvent )
 {
-	pEvent->ignore();
+	switch ( pEvent->button() )
+	{
+	
+	// Left
+	case Qt::LeftButton:
+		plane()->setFiring( true );
+		break;
+		
+	
+	default:
+		pEvent->ignore();
+	}
 }
+
+// ============================================================================
+// Handles mouse release.
+void WorldWidget::mouseReleaseEvent( QMouseEvent* pEvent )
+{
+	switch ( pEvent->button() )
+	{
+	
+	// Left
+	case Qt::LeftButton:
+		plane()->setFiring( false );
+		break;
+		
+	
+	default:
+		pEvent->ignore();
+	}
+}
+
 // ============================================================================
 // Handles wheel. controls thrtottle
 void WorldWidget::wheelEvent( QWheelEvent* pEvent )
@@ -242,7 +272,7 @@ void WorldWidget::keyPressEvent( QKeyEvent* pEvent )
 	{
 	// SPACE
 	case Qt::Key_Space:
-		plane()->flip();
+		plane()->flipPlane();
 		break;
 		
 	// V
@@ -270,7 +300,6 @@ void WorldWidget::keyPressEvent( QKeyEvent* pEvent )
 	// ENTER
 	case Qt::Key_Return:
 		plane()->setFiring( true );
-		qDebug("start fire");
 		break;
 	
 	
@@ -295,7 +324,6 @@ void WorldWidget::keyReleaseEvent( QKeyEvent* pEvent )
 	// ENTER
 	case Qt::Key_Return:
 		plane()->setFiring( false );
-		qDebug("stop fire");
 		break;
 		
 	default:

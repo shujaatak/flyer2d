@@ -32,7 +32,7 @@ class Joint;
 class Mounting : public System
 {
 public:
-	Mounting ( Plane* pParent, const QString& name = "", Joint* pJoint = NULL, double tolerance = 0.0, double capacity = 0.0 );
+	Mounting ( Machine* pParent, const QString& name = "", Joint* pJoint = NULL, double tolerance = 0.0, double capacity = 0.0 );
 	virtual ~Mounting();
 
 	virtual void damage ( double force );

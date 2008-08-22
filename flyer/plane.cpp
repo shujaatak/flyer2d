@@ -119,10 +119,10 @@ Plane::Plane( World* pWorld, const QPointF& pos, double angle ) : Machine( pWorl
 	_sysGun.setMuzzle( QPointF( 2.0, 0.0 ) );
 	_sysGun.setNormal( QPointF( 1.0, 0.0 ) );
 	_sysGun.setBulletMass( 7.91E-3 ); 
-	//_sysGun.setBulletVelocity( 735 ); // NOTE too fast to see
-	_sysGun.setBulletVelocity( 60 );
-	//_sysGun.setBulletSize( 7.85E-3 ); NOTE: too smnal, cant see // all values from kalashnikov ;)
-	_sysGun.setBulletSize( 0.1 ); // ridicoulously big, but i need to see them :)
+	_sysGun.setBulletVelocity( 735 ); // NOTE too fast to see
+	//_sysGun.setBulletVelocity( 60 );
+	_sysGun.setBulletSize( 7.85E-3 ); //NOTE: too smnal, cant see // all values from kalashnikov ;)
+	//_sysGun.setBulletSize( 0.1 ); // ridicoulously big, but i need to see them :)
 	_sysGun.setFiringInterval( 0.4 ); // 2.5 shots/sec
 	_sysGun.setBulletLifespan( 2.0 ); // TODO experimantal
 	addSystem( & _sysGun, SystemSimulated );
@@ -421,7 +421,7 @@ double Plane::airspeed()
 
 // ============================================================================
 // flips plane to the other side. destroys all shapes and creates them ab ovo
-void Plane::flip()
+void Plane::flipPlane()
 {
 	// first - ckeck airspeed
 	if ( airspeed() < MIN_FLIP_SPEED && airspeed() > MAX_TURN_SPEED )
@@ -432,8 +432,6 @@ void Plane::flip()
 	
 	// flip or turn?
 	bool turn = airspeed() <= MAX_TURN_SPEED; // turn otherwise
-	
-	_orientation = _orientation * -1;
 	
 	// find axis of flip
 	QPointF p1, p2;
@@ -457,17 +455,7 @@ void Plane::flip()
 		p2 = QPointF ( pos.x + vel.x, pos.y + vel.y );
 	}
 	
-	// flip bodies
-	foreach( Body* pBody, _allBodies )
-	{
-		pBody->flip( p1, p2 );
-	}
-	
-	// flip joints
-	foreach( Joint* pJoint, _allJoints )
-	{
-		pJoint->flip( p1, p2 );
-	}
+	flip( p1, p2 );
 }
 
 // ============================================================================

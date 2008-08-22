@@ -33,7 +33,7 @@ namespace Flyer
 class Engine : public System
 {
 public:
-	Engine ( Plane* pParent, const QString& name = "", double thrust = 0.0, const QPointF& normal = QPointF( 1.0, 0.0 ) );
+	Engine ( Machine* pParent, const QString& name = "", double thrust = 0.0, const QPointF& normal = QPointF( 1.0, 0.0 ) );
 	virtual ~Engine();
 
 	virtual void damage ( double force );

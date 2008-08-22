@@ -22,7 +22,7 @@ namespace Flyer
 
 // ============================================================================
 // Constructor
-WheelBrake::WheelBrake ( Plane* pParent, const QString& name ) : System ( pParent, name )
+WheelBrake::WheelBrake ( Machine* pParent, const QString& name ) : System ( pParent, name )
 {
 	_pJoint = NULL;
 	_on = false;

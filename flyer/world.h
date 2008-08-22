@@ -65,6 +65,9 @@ public:
 	/// Adds object to the world
 	void addObject( WorldObject* pObject );
 	
+	/// Removes object from world
+	void removeObject( WorldObject* pObject );
+	
 private:
 	
 	void initWorld();

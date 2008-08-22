@@ -25,7 +25,7 @@ namespace Flyer {
 
 // ============================================================================
 // Constructor
-ControlSurface::ControlSurface( Plane* pParent, const QString& name ): Surface(pParent, name)
+ControlSurface::ControlSurface( Machine* pParent, const QString& name ): Surface(pParent, name)
 {
 	_value = 0;
 	_currentMaxValue = 1.0;

@@ -28,7 +28,7 @@ namespace Flyer
 
 // ============================================================================
 // Constructor
-Engine::Engine ( Plane* pParent, const QString& name, double thrust, const QPointF& normal /* = QPointF( 1.0, 0.0 )*/ )
+Engine::Engine ( Machine* pParent, const QString& name, double thrust, const QPointF& normal /* = QPointF( 1.0, 0.0 )*/ )
 	 : System ( pParent, name )
 {
 	setMaxThrust( thrust );

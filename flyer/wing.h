@@ -29,7 +29,7 @@ namespace Flyer
 class Wing : public Surface
 {
 public:
-	Wing ( Plane* pParent, const QString& name = "" );
+	Wing ( Machine* pParent, const QString& name = "" );
 	virtual ~Wing();
 
 	virtual void damage ( double force );

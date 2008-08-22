@@ -185,4 +185,11 @@ void World::addObject( WorldObject* pObject )
 	_objects.append( pObject );
 }
 
+// ============================================================================
+// Removes object from world
+void World::removeObject( WorldObject* pObject )
+{
+	_objects.removeAll( pObject );
+}
+
 }

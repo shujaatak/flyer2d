@@ -25,7 +25,7 @@ static const double AP_MIN_AIRSPEED = 10;	// m/s
 
 // ============================================================================
 // Constructor
-Autopilot::Autopilot ( Plane* pParent, const QString& name ) : System ( pParent, name )
+Autopilot::Autopilot ( Machine* pParent, const QString& name ) : System ( pParent, name )
 {
 	_previousError = 0;
 	_errorIntegral = 0;

@@ -17,6 +17,7 @@
 #include "machine.h"
 #include "system.h"
 #include "body.h"
+#include "joint.h"
 
 namespace Flyer
 {
@@ -162,6 +163,26 @@ void Machine::addDamageManager( DamageManager* pManager )
 void Machine::removeDamageManager( DamageManager* pManager )
 {
 	_allDamageManagers.removeAll( pManager );
+}
+
+// ============================================================================
+/// Flips machine aronud axis defined by p1 and p2.
+/// Each flip changes the _orientation sign.
+void Machine::flip( const QPointF& p1, const QPointF& p2 )
+{
+	_orientation = _orientation * -1;
+	
+	// flip bodies
+	foreach( Body* pBody, _allBodies )
+	{
+		pBody->flip( p1, p2 );
+	}
+	
+	// flip joints
+	foreach( Joint* pJoint, _allJoints )
+	{
+		pJoint->flip( p1, p2 );
+	}
 }
 
 }

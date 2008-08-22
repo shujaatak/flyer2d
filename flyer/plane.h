@@ -61,9 +61,6 @@ public:
 	
 	double airspeed();		///< Claculates airspeed
 	
-	/// Returns current orientation (flip) sign
-	double orientation() const { return _orientation; }
-	
 	QPointF pos() const; ///< Plane position
 	
 	void applyWheelBrake( bool on ){ _sysBrake.setOn( on ); }
@@ -72,7 +69,7 @@ public:
 	double flaps() const { return _sysWing.flaps(); }
 	void setFlaps( double f );
 	
-	void flip();		///< Flips plane to the other side
+	void flipPlane();		///< Flips plane to the other side or turns around
 	
 	void setAutopilot( bool on );
 	bool autopilot() const { return _sysAutopilot.on(); }
@@ -123,9 +120,6 @@ private:
 	Autopilot*		_pAutopilot;
 	ControlSurface*	_pElevator;
 	
-	// variables
-	
-	double _orientation;	//!< Orientation - 1 - normal, -1 - mirrored. 
 };
 
 }

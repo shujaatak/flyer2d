@@ -91,7 +91,7 @@ void MainWindow::on_buttonBrake_released()
 // Flips plane
 void MainWindow::on_buttonFlip_clicked()
 {
-	worldWidget->plane()->flip();
+	worldWidget->plane()->flipPlane();
 }
 
 // ============================================================================
