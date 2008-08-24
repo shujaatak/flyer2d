@@ -14,58 +14,56 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#ifndef FLYERBULLET_H
-#define FLYERBULLET_H
+#ifndef FLYERSHRAPNEL_H
+#define FLYERSHRAPNEL_H
 
-#include "worldobject.h"
-#include "body.h"
-#include "damagemanager.h"
+#include <worldobject.h>
 
 namespace Flyer
 {
 
+class Body;
+
 /**
-	This is a bullet. Small, simple object with short lifespan.
+	Shrapnel is an short-lived objects that is created as a result of bodies being
+	detached or destroyen in explosion.
+	Shrapnel maintains list of it's bodies.
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class Bullet : public WorldObject
+
+class Shrapnel : public WorldObject
 {
+
 public:
-	Bullet ( World* pWorld );
-	virtual ~Bullet();
-
-	virtual QRectF boundingRect() const;
-	virtual void render ( QPainter& painter, const QRectF& rect );
-	virtual void simulate ( double dt );
-
-	// properties
+	Shrapnel( World* pWorld );
+	~Shrapnel();
 	
-	void setMass( double m ) { _mass = m; }
-	void setSize( double s ) { _size = s; }
+	/// Renders object
+	virtual void render( QPainter& painter, const QRectF& rect );
+	
+	/// Simualtes object
+	virtual void simulate( double dt );
+	
+	// config
+	
 	void setLifespan( double l ) { _lifespan = l; }
-	
-	// actions
-	
-	/// Fires bullet from given point with given velocity
-	void fire( const QPointF& point, const QPointF& velocity );
+	void addBody( Body* pBody ){ _bodies.append( pBody ); }
 
-public:
-
-	DamageManager _damageManager;
+private:
 
 	// config
-	double _mass;		///< Mass [kg]
-	double _size;		///< Size [m]
-	double _lifespan;	///< Lifespan [seconds]
-	
+	double _lifespan;	///< Maximum lifespan
+
 	// variables
-	Body	_body;		///< Bullet's body
-	double	_age;		///< Bullet's age
+	QList<Body*> _bodies;
+	
+	double	_age;
+
 };
 
 }
 
-#endif // FLYERBULLET_H
+#endif // FLYERSHRAPNEL_H
 
 // EOF
 

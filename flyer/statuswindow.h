@@ -14,53 +14,43 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#ifndef FLYERWING_H
-#define FLYERWING_H
+#ifndef FLYERSTATUSWINDOW_H
+#define FLYERSTATUSWINDOW_H
 
-#include "surface.h"
+#include <QWidget>
+#include <QTimer>
+#include "ui_statuswindow.h"
 
 namespace Flyer
 {
+class Machine;
 
 /**
-	Wing. Aerodynamic surfasce with flaps.
+	Windows showing status of plane systems
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class Wing : public Surface
+class StatusWindow : public QWidget, private Ui::StatusWindow
 {
+	Q_OBJECT
 public:
-	Wing ( Machine* pParent, const QString& name = "" );
-	virtual ~Wing();
+	StatusWindow();
+	~StatusWindow();
 
-	virtual void damage ( double force );
-	virtual void render( QPainter& painter, const QRectF& rect );
-	virtual double status() const;
-	
-	// properties
-	void setFlapsDrag( double fg ) { _flapsDrag = fg; }
-	void setFlapsLift( double fl ) { _flapsLift = fl; }
-	
-	void setFlaps( double f );
-	double flaps() const { return _flaps; }
+	void setMachine( Machine* pMachine );
 
-protected:
-	virtual QPointF calculateForce ( double velocity, double sinAttack ) const;
-	
-	// config
-	double	_flapsDrag;			///< Extra drag when flaps are at max
-	double	_flapsLift;			///< Extra lift when flaps are at max
-	
-	
-	// variables
-	double _flaps;				///< Flaps position 0-1
-	double _currentFlapsMax;
-	double _currentFlapsMin;
+private slots:
 
+	void refresh();
+	
+private:
+
+	QTimer	_timer;
+	Machine *_pMachine;
 };
 
 }
 
-#endif // FLYERWING_H
+#endif // FLYERSTATUSWINDOW_H
 
 // EOF
 

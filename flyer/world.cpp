@@ -17,14 +17,23 @@
 #include "Box2D.h"
 
 #include "world.h"
-#include "plane.h"
+#include "planebumblebee.h"
 #include "ground.h"
 #include "airfield.h"
 #include "landinglight.h"
 #include "damagemanager.h"
+#include "antiairbattery.h"
+#include "explosion.h"
 
 
 namespace Flyer {
+
+// Costants
+
+static const double TIMESTEP = 1.0/60.0; 	// [s]
+
+
+
 
 /// Contact listener. Internal class which implements listenrr interface and 
 /// propagates contact information to system.
@@ -36,47 +45,31 @@ class WorldContactListener : public b2ContactListener
 		// apply damage to directly involved shapes
 		void *pData1 = pPoint->shape1->GetUserData();
 		void *pData2 = pPoint->shape2->GetUserData();
+		double force = pPoint->normalImpulse / TIMESTEP;
 		
-		if ( pData1 )
-		{
-			static_cast<DamageManager*>( pData1 )->contact( pPoint->normalImpulse );
-		}
-		if ( pData2 )
-		{
-			static_cast<DamageManager*>( pData2 )->contact( pPoint->normalImpulse );
-		}
+		DamageManager* pDM1 = static_cast<DamageManager*>( pData1 );
+		DamageManager* pDM2 = static_cast<DamageManager*>( pData2 );
+		 
+		double multiplier1 = 1.0;
+		double multiplier2 = 1.0;
 		
-		// propagate damage
-		propagateDamage( pPoint->shape1->GetBody(), pPoint->normalImpulse );
-		// propagate damage
-		propagateDamage( pPoint->shape2->GetBody(), pPoint->normalImpulse );
+		if ( pDM1 ) multiplier1 = pDM1->damageMultiplier();
+		if ( pDM2 ) multiplier2 = pDM2->damageMultiplier();
+		
+		// DEBUG
+		//if ( multiplier1 * multiplier2 > 1 && pDM2 && pDM1  ) qDebug("bullet contact, force: %g", force );
+		
+		if ( pDM1 )
+		{
+			pDM1->contact( multiplier2 * force );
+		}
+		if ( pDM2 )
+		{
+			pDM2->contact(multiplier1 * force );
+		}
 	}
 	
-	// Propagates damage to other bodies connected with joints
-	void propagateDamage( b2Body* pBody, double force )
-	{
-		/* TODO loops infinitely
-		b2JointEdge* pJointEdge = pBody->GetJointList();
-		while( pJointEdge )
-		{
-			b2Body* pOtherBody	= pJointEdge->other;
-			double force		= pJointEdge->joint->GetReactionForce().Length();
-			
-			b2Shape* pShape = pOtherBody->GetShapeList();
-			while( pShape )
-			{
-				void *pData = pShape->GetUserData();
-				if ( pData )
-				{
-					static_cast<DamageManager*>( pData )->contact( force / 2 ); // propagate half the force
-				}
-				
-				pShape = pShape->GetNext();
-			}
-			// TODO maybe propagate further here
-		}
-			*/
-	}
+	
 };
 	
 
@@ -98,12 +91,19 @@ World::~World()
 // Renders region of the world on painter. Region is defined in world coorindates.
 void World::render( QPainter& painter, const QRectF& rect )
 {
-	foreach( WorldObject* pObject, _objects )
+	QList<int> layers;
+	layers << ObjectRenderedSky << ObjectRenderedBackground << ObjectRenderedBuildings
+		<< ObjectRenderedVehicles << ObjectRenderedForeground;
+	
+	foreach ( int layer, layers )
 	{
-		QRectF br = pObject->boundingRect();
-		if( br.isNull() || rect.intersects( br ) )
+		foreach( WorldObject* pObject, _objects[layer] )
 		{
-			pObject->render( painter, rect );
+			QRectF br = pObject->boundingRect();
+			if( br.isNull() || rect.intersects( br ) )
+			{
+				pObject->render( painter, rect );
+			}
 		}
 	}
 }
@@ -112,7 +112,7 @@ void World::render( QPainter& painter, const QRectF& rect )
 // Renders mini-map of region
 void World::renderMap( QPainter& painter, const QRectF& rect )
 {
-	foreach( WorldObject* pObject, _objects )
+	foreach( WorldObject* pObject, _objects[ObjectRenderedMap] )
 	{
 		if( pObject->boundingRect().isNull() || rect.intersects( pObject->boundingRect() ) )
 		{
@@ -142,36 +142,54 @@ void World::initWorld()
 	
 	// init ground
 	_pGround = new Ground( this );
-	_objects.append( _pGround );
+	addObject( _pGround, ObjectRenderedForeground | ObjectRenderedMap );
 	
 	// init plane
-	_pPlayerPlane = new Plane( this, QPointF( 0, _pGround->height(300) + 2.5 ), 0.2 );
-	_objects.append( _pPlayerPlane );
+	_pPlayerPlane = new PlaneBumblebee( this, QPointF( 0, _pGround->height(300) + 2.5 ), 0.2 );
+	addObject( _pPlayerPlane, ObjectRenderedVehicles | ObjectSide1 | ObjectSimulated | ObjectPlane | ObjectRenderedMap );
 	
 	
 	// airfields
-	_objects.append( new Airfield( this, -50, 250, 300 ) );
-	_objects.append( new Airfield( this, 10050, 10300, 800 ) );
+	addObject( new Airfield( this, -50, 250, 300 ), ObjectRenderedForeground | ObjectAirfield | ObjectSide1 | ObjectRenderedMap  );
+	addObject( new Airfield( this, 10050, 10300, 800 ), ObjectRenderedForeground | ObjectAirfield | ObjectSide1 | ObjectRenderedMap  );
 	
 	// landing lights
-	_objects.append( new LandingLight( this, -50, 300, M_PI-0.25 ) );
-	_objects.append( new LandingLight( this, 250, 300, 0.25 ) );
+	addObject( new LandingLight( this, -50, 300, M_PI-0.25 ),  ObjectRenderedBuildings | ObjectSimulated );
+	addObject( new LandingLight( this, 250, 300, 0.25 ),  ObjectRenderedBuildings | ObjectSimulated  );
 	
-	_objects.append( new LandingLight( this, 10050, 800, M_PI-0.25 ) );
-	_objects.append( new LandingLight( this, 10300, 800, 0.25 ) );
+	addObject( new LandingLight( this, 10050, 800, M_PI-0.25 ),  ObjectRenderedBuildings | ObjectSimulated  );
+	addObject( new LandingLight( this, 10300, 800, 0.25 ),  ObjectRenderedBuildings | ObjectSimulated  );
+	
+	// AA batteries
+	addObject( new AntiAirBattery( this, 1000, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRenderedBuildings | ObjectSide2 | ObjectRenderedMap   );
+	addObject( new AntiAirBattery( this, 1050, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRenderedBuildings | ObjectSide2 | ObjectRenderedMap  );
+	addObject( new AntiAirBattery( this, 1100, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRenderedBuildings | ObjectSide2 | ObjectRenderedMap  );
+	addObject( new AntiAirBattery( this, -2000, 1.2 ), ObjectInstallation | ObjectSimulated | ObjectRenderedBuildings | ObjectSide2 | ObjectRenderedMap   );
+	
+	// sample explosion
+	/*
+	Explosion* pExpl = new Explosion( this );
+	pExpl->setEnergy( 10E6 );
+	pExpl->setCenter( QPointF( 1, 301 ) );
+	addObject( pExpl, ObjectSimulated | ObjectRenderedForeground );
+	*/
 }
 
 // ============================================================================
 // Simulation step
 void World::simulate( double dt )
 {
-	double timestep = 1.0/60.0;	// desired simulation step
+	// destroy objects from queue
+	while( ! _objectsToDestroy.isEmpty() )
+	{
+		delete _objectsToDestroy.takeFirst();
+	}
 	
-	int iters = dt/timestep; // sub iterations here
+	int iters = dt/TIMESTEP; // sub iterations here
 	for( int i = 0; i < iters; i++ )
 	{
 		_pb2World->Step( dt/iters, 20 );
-		foreach ( WorldObject* pObject, _objects )
+		foreach ( WorldObject* pObject, _objects[ ObjectSimulated] )
 		{
 			pObject->simulate( dt/iters );
 		}
@@ -180,16 +198,46 @@ void World::simulate( double dt )
 
 // ============================================================================
 // Adds oject to the world
-void World::addObject( WorldObject* pObject )
+void World::addObject( WorldObject* pObject, int objectClass )
 {
-	_objects.append( pObject );
+	_allObjects.append( pObject );
+	
+	// add to specific lists
+	for( int i =0 ;i < 32; i++ )
+	{
+		int bit = 1 << i;
+		if ( objectClass & bit )
+		{
+			_objects[bit].append( pObject );
+		}
+	}
 }
 
 // ============================================================================
 // Removes object from world
-void World::removeObject( WorldObject* pObject )
+void World::removeObject( WorldObject* pObject, bool destroy )
 {
-	_objects.removeAll( pObject );
+	_allObjects.removeAll( pObject );
+	
+	// remove from specific lists
+	for( int i =0 ;i < 32; i++ )
+	{
+		int bit = 1 << i;
+		_objects[bit].removeAll( pObject );
+	}
+	
+	// add to destruction queue, if desired
+	if ( destroy )
+	{
+		_objectsToDestroy.append( pObject );
+	}
+}
+
+// ============================================================================
+// Returns timestep
+double World::timestep() const
+{
+	return TIMESTEP;
 }
 
 }

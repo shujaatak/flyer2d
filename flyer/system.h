@@ -50,8 +50,13 @@ public:
 	void setBody( Body* pBody ) { _pBody = pBody; }
 	Body* body() const { return _pBody; }
 	
+	// damage mamagement
+	
 	void setDamageCapacity( double dc ) { _damageCapacity = dc; }
 	double damageCapacity() const { return _damageCapacity; }
+	
+	virtual double status() const { return 1.0; }	///< Returns status: 0-1
+	virtual void repair() {}						///< Repairs system
 	
 	Machine* parent() const { return _pParent; }
 	

@@ -40,7 +40,21 @@ Spotlight::~Spotlight()
 // Damages spotlight
 void Spotlight::damage( double force )
 {
-	qDebug("TODO: damage spotlight: force: %g", force );
+	if ( _currentRange > 0 )
+	{
+		double rangeRemoved = _range * ( force / damageCapacity() );
+	
+		double propOfDestruction = 5 * rangeRemoved / _currentRange ; // prob of total destruction
+		if ( ( qrand() % 1000 ) < ( propOfDestruction * 1000 ) )
+		{
+			_currentRange = 0;
+		}
+		else
+		{
+			_currentRange = qMax( 0.0, _currentRange - rangeRemoved );
+		}
+		
+	}
 }
 
 // ============================================================================

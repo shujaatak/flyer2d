@@ -40,6 +40,7 @@ public:
 	virtual void simulate ( double dt );
 	virtual void render( QPainter& painter, const QRectF& rect );
 	
+	virtual double status() const;
 	// properties
 	
 	void setThrottle( double throttle ); /// Sets throttle (0-1)

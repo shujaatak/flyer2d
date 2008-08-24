@@ -25,7 +25,15 @@ SOURCES = main.cpp worldwidget.cpp \
  b2dqt.cpp \
  bullet.cpp \
  gun.cpp \
- spotlight.cpp
+ spotlight.cpp \
+ objects/planebumblebee.cpp \
+ statuswindow.cpp \
+ objects/antiairbattery.cpp \
+ antiairgunoperator.cpp \
+ shrapnel.cpp \
+ explosion.cpp \
+ objects/ironbomb.cpp \
+ contactfuse.cpp
 
 
 HEADERS = worldwidget.h Box2D.h \
@@ -52,9 +60,18 @@ HEADERS = worldwidget.h Box2D.h \
  machine.h \
  bullet.h \
  gun.h \
- spotlight.h
+ spotlight.h \
+ objects/planebumblebee.h \
+ statuswindow.h \
+ objects/antiairbattery.h \
+ antiairgunoperator.h \
+ shrapnel.h \
+ explosion.h \
+ objects/ironbomb.h \
+ contactfuse.h
 
-FORMS += mainwindow.ui
+FORMS += mainwindow.ui \
+ statuswindow.ui
 
 LIBS += -L. \
   -lbox2d
@@ -68,3 +85,6 @@ QT += opengl
 HEADERS -= object.h
 
 #DEFINES += FLYER_NO_OPENGL
+INCLUDEPATH += objects/ \
+  ..
+

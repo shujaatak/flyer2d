@@ -14,56 +14,45 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#include "damagemanager.h"
-#include "system.h"
+#include "contactfuse.h"
+#include "explosion.h"
+#include "world.h"
+#include "machine.h"
 
 namespace Flyer
 {
 
 // ============================================================================
 // Constructor
-DamageManager::DamageManager( double tolerance ) : _tolerance( tolerance )
+ContactFuse::ContactFuse ( Machine* pParent, const QString& name ) : System ( pParent, name )
 {
-	_damageMultiplier = 1.0;
+	_energy = 0;
+	_damageReceived = 0;
+	_destroyed = false;
 }
 
 // ============================================================================
 // Destructor
-DamageManager::~DamageManager()
+ContactFuse::~ContactFuse()
 {
 }
 
 // ============================================================================
-// Contact callback
-void DamageManager::contact( double force )
+// Handles damage
+void ContactFuse::damage ( double force )
 {
-	if ( force > _tolerance && _systems.size() > 0 )
+	_damageReceived += force;
+	qDebug("fuse damaged to %g. limit is %g", _damageReceived,  damageCapacity() );
+	if ( ! _destroyed && _damageReceived >= damageCapacity() )
 	{
-		double damage = force - _tolerance;
-		//qDebug("damage: %g, force: %g", damage, force );
-		// propagate damage to systems 
-		for ( int i = 0; i < _systems.size(); i++ )
-		{
-			int systemIndex = qrand() % _systems.size();
-			
-			System* pSystem = _systems[systemIndex];
-			
-			if ( pSystem )
-			{
-				pSystem->damage( damage/_systems.size() );
-			}
-		}
-	}
-}
-
-// ============================================================================
-/// Adds system to damage manager. Propability ogf getting damage is proportional to
-/// system weight. You can add NULL system with non-ero weight to tune propability distribution.
-void DamageManager::addSystem( System* pSystem, int weight )
-{
-	for ( int i = 0; i < weight; i++ )
-	{
-		_systems.append( pSystem );
+		Explosion* pExplosion = new Explosion( parent()->world() );
+		pExplosion->setEnergy( _energy );
+		pExplosion->setCenter( parent()->pos() );
+	
+		//add explosion to the world, remove parent
+		parent()->world()->addObject( pExplosion, World::ObjectSimulated | World::ObjectRenderedForeground );
+		parent()->world()->removeObject( parent() );
+		_destroyed = true;
 	}
 }
 

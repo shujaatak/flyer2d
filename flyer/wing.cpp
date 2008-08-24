@@ -18,9 +18,13 @@
 #include "plane.h"
 #include "world.h"
 #include "b2dqt.h"
+#include "body.h"
 
 namespace Flyer
 {
+
+static const double DAMAGED_LIFT	= 0.5;	///< lift value when fully damaged
+static const double DAMAGED_DRAG	= 1.5;	///< Drag value when fully damaged
 
 // ============================================================================
 // Constructor
@@ -86,15 +90,40 @@ void Wing::render( QPainter& painter, const QRectF& rect )
 	
 	painter.setPen( Qt::blue );
 	painter.drawLine( QLineF( pos.x, pos.y, pos.x + wf.x(), pos.y + wf.y() ) );
-		
+	
 }
 
 // ============================================================================
 // Implements damage
 void Wing::damage ( double force )
 {
-	// TODO
-	qDebug("TODO: Implement wing damage");
+	double reduce = force / damageCapacity(); // how much reduce capabilities
+	
+	switch( qrand() % 3 )
+	{
+		// damage flaps
+		case 0:
+		{
+			_currentFlapsMax -= ( _currentFlapsMax - _flaps  ) * reduce;
+			_currentFlapsMin += ( _flaps - _currentFlapsMin ) * reduce;
+			qDebug("flaps range reduced to %g - %g", _currentFlapsMin, _currentFlapsMax );
+			break;
+		}
+		// reduce lift
+		case 1:
+		{
+			_currentLift -= reduce * _liftCoeff * ( 1.0 - DAMAGED_LIFT );
+			qDebug("lift reducedfrom %g  to %g",_liftCoeff,  _currentLift );
+			break;
+		}
+		// increase drag
+		case 2:
+		{
+			_currentDragH += reduce * _dragCoeffH * ( DAMAGED_DRAG - 1.0 );
+			qDebug("Drag increased to %g from %g", _currentDragH, _dragCoeffH );
+			break;
+		}
+	}
 }
 
 // ============================================================================
@@ -107,6 +136,17 @@ void Wing::setFlaps( double f )
 		_flaps = _currentFlapsMin;
 	else
 		_flaps = f;
+}
+
+// ============================================================================
+/// Estimates wing damage status
+double Wing::status() const
+{
+	double dragDamage = 1.0 - ( 1.0 - _currentDragH / _dragCoeffH  ) / ( DAMAGED_DRAG - 1.0 );
+	double liftDamage = 1.0 - ( 1.0 - _currentLift / _liftCoeff ) / ( 1.0 - DAMAGED_LIFT ); 
+	double flapsDamage = _currentFlapsMax - _currentFlapsMin;
+	
+	return ( dragDamage + liftDamage + flapsDamage ) / 3.0;
 }
 
 }

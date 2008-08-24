@@ -16,6 +16,7 @@
 
 #include "mounting.h"
 #include "joint.h"
+#include "machine.h"
 
 namespace Flyer
 {
@@ -30,6 +31,7 @@ Mounting::Mounting ( Machine* pParent, const QString& name, Joint* pJoint /*= NU
 	setDamageCapacity( capacity );
 	
 	_damageReceived = 0;
+	_broken = false;
 	
 }
 
@@ -45,10 +47,19 @@ void Mounting::damage ( double damage )
 {
 	_damageReceived += damage;
 	//qDebug("damage left: %g", damageCapacity() - _damageReceived );
-	if ( _damageReceived > damageCapacity() && _pJoint )
+	if ( ! _broken &&  _damageReceived > damageCapacity() && _pJoint && parent() )
 	{
-		_pJoint->breakJoint();
+		parent()->breakJoint( _pJoint );
+		_broken = true;
+		
 	}
+}
+
+// ============================================================================
+/// Retuens mounting status
+double Mounting::status() const
+{
+	return qMax( 0.0, 1.0 - _damageReceived/ damageCapacity() );
 }
 
 // ============================================================================

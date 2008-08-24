@@ -36,6 +36,7 @@ public:
 
 	virtual void damage ( double force );
 	virtual void simulate( double dt );
+	virtual double status() const;
 	
 	// config
 	void setBulletMass( double m ) { _mass = m; }
@@ -43,9 +44,11 @@ public:
 	void setBulletLifespan( double l ) { _lifespan = l; }
 	
 	void setMuzzle( const QPointF& m ) { _muzzle = m; }
+	QPointF muzzle() const { return _muzzle; }
 	void setNormal( const QPointF& n ) { _normal = n; }
-	void setBulletVelocity( double v ) { _velocity = v; }
-	void setFiringInterval( double i ) { _interval = i; }
+	QPointF normal() const { return _normal; }
+	void setBulletVelocity( double v ) { _velocity = v; _currentVelocity = v;}
+	void setFiringInterval( double i ) { _interval = i; _currentnInterval = i;}
 	
 	// actions
 	void setFiring( bool firing ) { _firing = firing; }
@@ -66,6 +69,9 @@ private:
 	// variables
 	bool	_firing;	///< Is currently firing
 	double	_timeFromLastFiring;
+	double	_currentVelocity;	///< Current velocity
+	double	_currentnInterval;	///< Current interval
+	bool	_broken;			///< If is totally broken
 };
 
 }

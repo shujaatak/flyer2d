@@ -14,56 +14,51 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#include "damagemanager.h"
-#include "system.h"
+#include "body.h"
+#include "world.h"
+#include "shrapnel.h"
 
 namespace Flyer
 {
 
 // ============================================================================
 // Constructor
-DamageManager::DamageManager( double tolerance ) : _tolerance( tolerance )
+Shrapnel::Shrapnel( World* pWorld )
+		: WorldObject(pWorld)
 {
-	_damageMultiplier = 1.0;
+	_lifespan = 30; // resonable default
+	_age = 0;
 }
 
 // ============================================================================
 // Destructor
-DamageManager::~DamageManager()
+Shrapnel::~Shrapnel()
 {
-}
-
-// ============================================================================
-// Contact callback
-void DamageManager::contact( double force )
-{
-	if ( force > _tolerance && _systems.size() > 0 )
+	// destriyo bodies
+	foreach( Body* pBody, _bodies )
 	{
-		double damage = force - _tolerance;
-		//qDebug("damage: %g, force: %g", damage, force );
-		// propagate damage to systems 
-		for ( int i = 0; i < _systems.size(); i++ )
-		{
-			int systemIndex = qrand() % _systems.size();
-			
-			System* pSystem = _systems[systemIndex];
-			
-			if ( pSystem )
-			{
-				pSystem->damage( damage/_systems.size() );
-			}
-		}
+		delete pBody;
 	}
 }
 
 // ============================================================================
-/// Adds system to damage manager. Propability ogf getting damage is proportional to
-/// system weight. You can add NULL system with non-ero weight to tune propability distribution.
-void DamageManager::addSystem( System* pSystem, int weight )
+/// Renders shrapnel
+void Shrapnel::render( QPainter& painter, const QRectF& )
 {
-	for ( int i = 0; i < weight; i++ )
+	foreach( Body* pBody, _bodies )
 	{
-		_systems.append( pSystem );
+		pBody->render( painter );
+	}
+}
+
+// ============================================================================
+// Simulates shrapnel
+void Shrapnel::simulate( double dt )
+{
+	_age += dt;
+	if ( _age >= _lifespan )
+	{
+		world()->removeObject( this );
 	}
 }
 

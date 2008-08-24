@@ -63,11 +63,11 @@ Ground::Ground ( World* pWorld ) : WorldObject ( pWorld )
 	// fourth section - smooth flats gently going up to 10km
 	section.x = 300; // this gives 400m for runway
 	section.y = 300; // flat runway
-	section.maxSlope = 0.2;
+	section.maxSlope = 0.1;
 	section.canBeDividedRight = true;
 	section.minSectionSize = 100;
 	section.maxSectionSize = 400;
-	section.maxHeight = 1000;
+	section.maxHeight = 850;
 	section.minHeight = 250;
 	seed.append( section );
 	
@@ -395,8 +395,6 @@ double Ground::rand( double start, double end )
 // =========================== create shape ============================
 QList<b2PolygonDef*> Ground::createShape()
 {
-	const double MIN_PRODUCT = 0.001;
-	
 	QList<b2PolygonDef*> list;
 	
 	// create two triangles for each point (trapezoid) in height map

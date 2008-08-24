@@ -23,6 +23,7 @@
 
 namespace Flyer
 {
+class StatusWindow;
 
 /**
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
@@ -50,7 +51,12 @@ private slots:
 	void elevatorChanged( double e );
 	void throttleChanged( double t );
 	void flapsChanged( double f );
+	
+	virtual void closeEvent( QCloseEvent* );
 
+private:
+
+	StatusWindow* _pStatusWindow;
 };
 
 }

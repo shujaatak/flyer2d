@@ -49,6 +49,12 @@ public:
 	
 	/// Makes joint broken
 	void breakJoint();
+	
+	/// Retuns associated body
+	Body* body1() const { return _pBody1; }
+	
+	/// Retuns associated body
+	Body* body2() const { return _pBody2; }
 
 private:
 
