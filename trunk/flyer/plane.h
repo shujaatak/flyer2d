@@ -21,23 +21,17 @@
 #include "Box2D.h"
 
 #include "machine.h"
-#include "body.h"
-#include "joint.h"
-#include "mounting.h"
-#include "engine.h"
-#include "wing.h"
-#include "controlsurface.h"
-#include "wheelbrake.h"
-#include "autopilot.h"
-#include "gun.h"
-
-
 namespace Flyer
 {
 
 class System;
 class Engine;
 class DamageManager;
+class Wing;
+class WheelBrake;
+class Autopilot;
+class ControlSurface;
+class Gun;
 
 /**
 	Plane is a special machine, that has fed designated, aircraft-specific systems,
@@ -50,8 +44,7 @@ public:
 	Plane( World* pWorld, const QPointF& pos, double angle );
 	virtual ~Plane();
 	
-	void render( QPainter& painter, const QRectF& rect );
-	void renderOnMap( QPainter& painter, const QRectF& rect );
+	virtual void renderOnMap( QPainter& painter, const QRectF& rect );
 	
 	void setThrottle( double t );
 	double throttle() const;
@@ -61,20 +54,21 @@ public:
 	
 	double airspeed();		///< Claculates airspeed
 	
-	QPointF pos() const; ///< Plane position
+	void applyWheelBrake( bool on );
+	bool wheelBrake() const;
 	
-	void applyWheelBrake( bool on ){ _sysBrake.setOn( on ); }
-	bool wheelBrake() const { return _sysBrake.on(); }
-	
-	double flaps() const { return _sysWing.flaps(); }
+	double flaps() const;
 	void setFlaps( double f );
 	
 	void flipPlane();		///< Flips plane to the other side or turns around
 	
 	void setAutopilot( bool on );
-	bool autopilot() const { return _sysAutopilot.on(); }
+	bool autopilot() const;
 	
-	void setFiring( bool on ) { _sysGun.setFiring( on ); }
+	void setFiring( bool on );
+	
+	// temporry bomb interface
+	virtual void releaseBomb(){}
 	
 	// systems
 	void setAutopilot( Autopilot* pAutopilot ){ _pAutopilot = pAutopilot; }
@@ -82,43 +76,17 @@ public:
 	void setWheelBrake( WheelBrake* pBrake ) { _pBrake = pBrake; }
 	void setWing( Wing* pWing ) { _pWing = pWing; }
 	void setElevator( ControlSurface* pElevator ) { _pElevator = pElevator; }
-	
+	void setGun( Gun* pGun ) { _pGun = pGun; }
 	
 private:
 
-	void createBodies( const QPointF& pos, double angle );
-	void createShapes( const QPointF& pos, double angle );
-
-	
-	// bodies 
-	Body _bodyHull;
-	Body _bodyEngine;
-	Body _bodyLeg;
-	Body _bodyWheel;
-	
-	// joints
-	Joint _jointWheel;
-	Joint _jointEngine;
-	Joint _jointLeg;
-	
-	// systems
-	Engine			_sysEngine;
-	Mounting		_sysWheelMounting;
-	Wing			_sysWing;
-	ControlSurface	_sysElevator;
-	WheelBrake		_sysBrake;
-	Autopilot		_sysAutopilot;
-	Gun				_sysGun;
-	
-	// damage managers
-	DamageManager* _pEngineDamageManager;
-	
-	// special systems
+	// special designated systems
 	Engine* 		_pEngine;
 	Wing*			_pWing;
 	WheelBrake*		_pBrake;
 	Autopilot*		_pAutopilot;
 	ControlSurface*	_pElevator;
+	Gun*			_pGun;
 	
 };
 

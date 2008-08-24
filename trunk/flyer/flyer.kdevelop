@@ -98,8 +98,8 @@
       <designerpluginpaths/>
     </qt>
     <references>
-      <pcs>Box2D</pcs>
       <pcs>Qt4</pcs>
+      <pcs>Box2D%202.0.1</pcs>
     </references>
     <codecompletion>
       <automaticCodeCompletion>false</automaticCodeCompletion>
@@ -157,10 +157,10 @@
     </general>
     <run>
       <directoryradio>executable</directoryradio>
-      <mainprogram>./flyer</mainprogram>
+      <mainprogram>/home/maciek/projekty/flyer/flyer/flyer</mainprogram>
       <programargs></programargs>
       <globaldebugarguments></globaldebugarguments>
-      <globalcwd>/home/gajewskim/src/b2d/flyer</globalcwd>
+      <globalcwd>/home/maciek/projekty/flyer/flyer</globalcwd>
       <useglobalprogram>true</useglobalprogram>
       <terminal>false</terminal>
       <autocompile>false</autocompile>

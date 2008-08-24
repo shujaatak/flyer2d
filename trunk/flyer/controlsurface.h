@@ -33,6 +33,7 @@ public:
 	
 	virtual void damage(double force);
 	virtual void render(QPainter& painter, const QRectF& rect);
+	virtual double status() const;
 	
 	void setValue( double a );
 	double angle() const { return _value * _step; }	///< Current angle [radians]

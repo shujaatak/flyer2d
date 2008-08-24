@@ -96,9 +96,23 @@ QPointF ControlSurface::calculateForce( double velocity, double sinAttack ) cons
 
 // ============================================================================
 /// Damages control surface.
-void ControlSurface::damage(double arg1)
+void ControlSurface::damage(double force)
 {
-	qDebug("TODO: implement elevator damage");
+	// simplified - just reduce range
+	double rangeReduce = force / damageCapacity();
+	if ( qrand() % 2 )
+	{
+		_currentMaxValue = qMax( _currentMaxValue - rangeReduce, _currentMinValue );
+		if ( _value > _currentMaxValue ) _value = _currentMaxValue;
+	}
+	else
+	{
+		_currentMinValue = qMin( _currentMinValue + rangeReduce, _currentMaxValue );
+		if ( _value < _currentMinValue ) _value = _currentMinValue;
+	}
+	
+	qDebug("control surface range reduced to: %g - %g", _currentMinValue, _currentMaxValue );
+	
 }
 
 // ============================================================================
@@ -136,6 +150,13 @@ void ControlSurface::setValue( double v )
 		_value = _currentMinValue;
 	else
 		_value = v;
+}
+
+// ============================================================================
+/// Returns estimated status - 1 for OK, 0 for total breakage
+double ControlSurface::status() const
+{
+	return ( _currentMaxValue - _currentMinValue )  / 2.0;
 }
 
 }

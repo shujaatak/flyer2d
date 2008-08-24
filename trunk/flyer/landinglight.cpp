@@ -27,41 +27,47 @@ namespace Flyer {
 
 LandingLight::LandingLight(World* pWorld, double x, double y, double angle )
 	: Machine(pWorld)
-	, _sysLight( this )
 {
 	_x = x;
 	_y = y;
 	_angle = angle;
 	
 	// init manager
-	_damageManager.addSystem( & _sysLight, 1 ); // 50/50
-	_damageManager.addSystem( NULL, 1 );
-	_damageManager.setTolerance( 100 );
+	_damageManager = new DamageManager();
+	_damageManager->setTolerance( 1E4 ); // 1t 
+
 	
 	// create body
 	b2PolygonDef shape;
-	shape.SetAsBox( 0.5, 5 ); // was 0.5
+	shape.SetAsBox( 0.5, 0.5 );
 	shape.restitution = 0.5;
-	shape.userData = &_damageManager;
+	shape.userData = _damageManager;
 	
 	b2BodyDef def;
-	def.position.Set( x, y + 5 ); // was 05.  , made larger for testing
+	def.position.Set( x, y + 0.5 );
 	
-	_body.create( def, pWorld->b2world() );
-	_body.addShape( & shape );
+	_body = new Body("Main");
+	_body->create( def, pWorld->b2world() );
+	_body->addShape( & shape );
+	addBody( _body, 0 );
+	setMainBody( _body );
 	
 	_range = 1000;// 1 km
 	_width = 0.1;
 	
 	// init spotlight
-	_sysLight.setAngle( angle );
-	_sysLight.setRange( _range );
-	_sysLight.setColor( Qt::yellow );
-	_sysLight.setWidth( _width );
-	_sysLight.setOn( true );
-	_sysLight.setBody( & _body );
-	addSystem( & _sysLight, SystemRendered1 );
+	_sysLight = new Spotlight( this, "Spotlight" );
+	_sysLight->setAngle( angle );
+	_sysLight->setRange( _range );
+	_sysLight->setColor( Qt::yellow );
+	_sysLight->setWidth( _width );
+	_sysLight->setOn( true );
+	_sysLight->setBody( _body );
+	_sysLight->setDamageCapacity( 10E4 ); // 10t
+	addSystem( _sysLight, SystemRendered1 );
 	
+	_damageManager->addSystem( _sysLight, 1 ); // 50/50
+	_damageManager->addSystem( NULL, 1 );
 }
 
 // ============================================================================
@@ -72,7 +78,7 @@ LandingLight::~LandingLight()
 
 // ============================================================================
 // Bounding rect
-QRectF LandingLight::boundingRect()
+QRectF LandingLight::boundingRect() const
 {
 	return QRectF( _x -_range*1.1, _y -_range*1.1, _range*2.2, _range*2.2 );
 }

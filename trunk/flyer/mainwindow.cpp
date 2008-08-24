@@ -19,6 +19,7 @@
 
 #include "mainwindow.h"
 #include "plane.h"
+#include "statuswindow.h"
 
 namespace Flyer
 {
@@ -36,6 +37,10 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags f): QWidget(parent, f)
 	connect( worldWidget, SIGNAL(elevatorChanged(double)), SLOT(elevatorChanged(double)) );
 	connect( worldWidget, SIGNAL(throttleChanged(double)), SLOT(throttleChanged(double)) );
 	connect( worldWidget, SIGNAL(flapsChanged(double)), SLOT(flapsChanged(double)) );
+
+	_pStatusWindow = new StatusWindow();
+	_pStatusWindow->show();
+	_pStatusWindow->setMachine( worldWidget->plane() );
 }
 
 // ============================================================================
@@ -126,6 +131,13 @@ void MainWindow::flapsChanged( double f )
 	sliderFlaps->blockSignals( true );
 	sliderFlaps->setValue( f * 4 );
 	sliderFlaps->blockSignals( false );
+}
+
+// ============================================================================
+// Quits app on close
+void MainWindow::closeEvent( QCloseEvent* )
+{
+	qApp->quit();
 }
 
 }

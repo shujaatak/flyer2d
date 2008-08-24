@@ -23,12 +23,16 @@
 namespace Flyer
 {
 
+static const double DAMAGED_INTERVAL	= 10.0;	///< Firing interval when damaged
+static const double DAMAGED_VELOCITY	= 0.5;	///< Bullet velocity when damaged
+
 // ============================================================================
 // Constructor
 Gun::Gun ( Machine* pParent, const QString& name ) : System ( pParent, name )
 {
 	_firing = false;
 	_timeFromLastFiring = 0;
+	_broken = false;
 }
 
 // ============================================================================
@@ -41,7 +45,36 @@ Gun::~Gun()
 // Damages gun
 void Gun::damage ( double force )
 {
-	qDebug("TODO: implement gun damage");
+	if ( ! _broken )
+	{
+		double reduce = force / damageCapacity();
+		
+		switch ( qrand() % 2 )
+		{
+			// reduce fire rate
+			case 0:
+			{
+				_currentnInterval += _interval * reduce * ( DAMAGED_INTERVAL - 1.0 );
+				qDebug("GUN: firing interval extended to %g from %g", _currentnInterval, _interval );
+				break;
+			}
+			// reduce velocity
+			case 1:
+			{
+				_currentVelocity -= _velocity * reduce * ( 1.0 - DAMAGED_VELOCITY );
+				qDebug("GUN: Velocity reduced to %g form %g",  _currentVelocity, _velocity );
+			}
+			// TODO add deflection
+		}
+		
+		// and maybe is totally borken?
+		if ( ( qrand() % 1000 ) < ( reduce * 1000 ) )
+		{
+			_broken = true;
+			qDebug("Gun totally broken (chances where %g)", reduce);
+		}
+	}
+	
 }
 
 // ============================================================================
@@ -53,13 +86,13 @@ void Gun::simulate( double dt )
 	if ( body()->b2body() )
 	{
 		// it's time for firing?
-		if ( _firing && ( _timeFromLastFiring > _interval ) )
+		if ( ! _broken && _firing && ( _timeFromLastFiring > _currentnInterval ) )
 		{
 			b2Body* pBody = body()->b2body();
 			
 			// create bullet
 			Bullet* pBullet = new Bullet( parent()->world() );
-			parent()->world()->addObject( pBullet );
+			parent()->world()->addObject( pBullet, World::ObjectSimulated | World::ObjectRenderedForeground );
 			
 			pBullet->setMass( _mass );
 			pBullet->setLifespan( _lifespan );
@@ -71,7 +104,7 @@ void Gun::simulate( double dt )
 			
 			b2Vec2 normal = endPoint - startPoint;
 			
-			QPointF velocity = vec2point( normal ) * _velocity;
+			QPointF velocity = vec2point( normal ) * _currentVelocity;
 			
 			pBullet->fire( vec2point( startPoint ), velocity );
 			
@@ -91,6 +124,23 @@ void Gun::simulate( double dt )
 		
 	}
 	
+}
+
+// ============================================================================
+/// Estimates damage status, from 1.0 - fully operational to 0.1 - fully damaged.
+double Gun::status() const
+{
+	if ( _broken )
+	{
+		return 0.0;
+	}
+	else
+	{
+		double intervalDamage = 1.0 - ( 1.0 - _interval / _currentnInterval ) / ( DAMAGED_INTERVAL - 1.0 );
+		double velocityDamage = 1.0 - ( 1.0 - _currentVelocity / _velocity ) / ( 1.0 - DAMAGED_VELOCITY ); 
+		
+		return 0.5 * ( intervalDamage + velocityDamage );
+	}
 }
 
 }

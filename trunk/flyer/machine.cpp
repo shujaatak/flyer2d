@@ -18,6 +18,10 @@
 #include "system.h"
 #include "body.h"
 #include "joint.h"
+#include "damagemanager.h"
+#include "b2dqt.h"
+#include "shrapnel.h"
+#include "world.h"
 
 namespace Flyer
 {
@@ -26,12 +30,28 @@ namespace Flyer
 // Constructor
 Machine::Machine ( World* pWorld ) : WorldObject ( pWorld )
 {
+	_orientation = 1.0;
 }
 
 // ============================================================================
 // Destructor
 Machine::~Machine()
 {
+	// delete all
+	foreach( DamageManager* pDM, _allDamageManagers )
+	{
+		delete pDM;
+	}
+	
+	foreach( System* pSystem, _allSystems )
+	{
+		delete pSystem;
+	}
+	
+	foreach ( Body* pBody, _allBodies )
+	{
+		delete pBody;
+	}
 }
 
 // ============================================================================
@@ -74,7 +94,13 @@ void Machine::render ( QPainter& painter, const QRectF& rect )
 // Simulates machine
 void Machine::simulate ( double dt )
 {
-	// simul;ate sustrem (only this should be left here)
+	// proceed with scheduled joint breakages
+	while ( ! _jointsToBreak.isEmpty() )
+	{
+		doBreakJoint( _jointsToBreak.takeFirst() );
+	}
+	
+	// simulate systems
 	foreach ( System* pSystem, _systems[ SystemSimulated ] )
 	{
 		pSystem->simulate( dt );
@@ -182,6 +208,62 @@ void Machine::flip( const QPointF& p1, const QPointF& p2 )
 	foreach( Joint* pJoint, _allJoints )
 	{
 		pJoint->flip( p1, p2 );
+	}
+}
+
+// ============================================================================
+/// Returns machine position in world coorindates, using main body position. Returns null pointif ther's no main body.
+QPointF Machine::pos() const
+{
+	if ( _pMainBody && _pMainBody->b2body() )
+	{
+		return vec2point( _pMainBody->b2body()->GetPosition() );
+	}
+	
+	return QPointF();
+}
+
+// ============================================================================
+/// Breaks specified joint. Detaches part of machine if needed.
+void Machine::breakJoint( Joint* pJoint )
+{
+	_jointsToBreak.append( pJoint );
+	qDebug("Joint broken");
+}
+
+// ============================================================================
+/// Actually breaks joint. Detaches parts of machine if neccesary.
+void Machine::doBreakJoint( Joint* pJoint )
+{
+	// get connected bodies
+	Body* pBody1 = pJoint->body1();
+	Body* pBody2 = pJoint->body2();
+	
+	// break joint itself
+	pJoint->breakJoint();
+	
+	// check whcih bodies are detached
+	if ( pBody1 && ! pBody1->isConnectedTo( mainBody() ) )
+	{
+		Body*		pCopy = pBody1->createCopy();
+		Shrapnel*	pShrapnel = new Shrapnel( world() );
+		pShrapnel->addBody( pCopy );
+		world()->addObject( pShrapnel, World::ObjectSimulated | World::ObjectRenderedForeground );
+		pBody1->destroy();
+		qDebug("Body %s detached", qPrintable( pBody1->name() ) );
+	}
+	else if ( pBody2 && ! pBody2->isConnectedTo( mainBody() ) )
+	{
+		Body*		pCopy = pBody2->createCopy();
+		Shrapnel*	pShrapnel = new Shrapnel( world() );
+		pShrapnel->addBody( pCopy );
+		world()->addObject( pShrapnel, World::ObjectSimulated | World::ObjectRenderedForeground );
+		pBody2->destroy();
+		qDebug("Body %s detached", qPrintable( pBody1->name() ) );
+	}
+	else
+	{
+		qFatal("Machine bodies not connected to main body");
 	}
 }
 

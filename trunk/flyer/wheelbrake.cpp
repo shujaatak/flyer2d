@@ -36,9 +36,11 @@ WheelBrake::~WheelBrake()
 
 // ============================================================================
 // Damages brake
-void WheelBrake::damage ( double firce )
+void WheelBrake::damage ( double force )
 {
-	qDebug("TODO implement wheel brake damage");
+	double reduce = force/ damageCapacity();
+	
+	_currentTorque = qMax( 0.0, _currentTorque - _brakingTorque * reduce );
 }
 
 // ============================================================================
@@ -58,6 +60,13 @@ void WheelBrake::simulate ( double dt )
 			pRevoluteJoint->SetMaxMotorTorque( 0.0 );
 		}
 	}
+}
+
+// ============================================================================
+// Estimates status
+double WheelBrake::status() const
+{
+	return _currentTorque / _brakingTorque;
 }
 
 }

@@ -299,9 +299,9 @@ void WorldWidget::keyPressEvent( QKeyEvent* pEvent )
 		
 	// ENTER
 	case Qt::Key_Return:
-		plane()->setFiring( true );
+		plane()->releaseBomb();
 		break;
-	
+		
 	
 	default:
 		pEvent->ignore();
@@ -321,11 +321,6 @@ void WorldWidget::keyReleaseEvent( QKeyEvent* pEvent )
 		plane()->applyWheelBrake( false );
 		break;
 	
-	// ENTER
-	case Qt::Key_Return:
-		plane()->setFiring( false );
-		break;
-		
 	default:
 		pEvent->ignore();
 	};

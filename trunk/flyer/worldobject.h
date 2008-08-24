@@ -40,7 +40,7 @@ public:
 	virtual void renderOnMap( QPainter& painter, const QRectF& rect ){};
 	
 	/// Returns object's bounding rect
-	virtual QRectF boundingRect() { return QRectF(); }
+	virtual QRectF boundingRect() const { return QRectF(); }
 	
 	/// Simualtes object
 	virtual void simulate( double dt ){}

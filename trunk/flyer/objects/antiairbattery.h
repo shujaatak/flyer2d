@@ -14,58 +14,47 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#ifndef FLYERBULLET_H
-#define FLYERBULLET_H
+#ifndef FLYERANTIAIRBATTERY_H
+#define FLYERANTIAIRBATTERY_H
 
-#include "worldobject.h"
-#include "body.h"
-#include "damagemanager.h"
+#include "machine.h"
 
 namespace Flyer
 {
 
+class Gun;
+class Body;
+class DamageManager;
+class AntiAirGunOperator;
+
 /**
-	This is a bullet. Small, simple object with short lifespan.
+	Simple anti-air gun which fires kalashnikov shells constantly
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class Bullet : public WorldObject
+class AntiAirBattery : public Machine
 {
 public:
-	Bullet ( World* pWorld );
-	virtual ~Bullet();
+	AntiAirBattery ( World* pWorld, double location, double angle );
+	~AntiAirBattery();
 
-	virtual QRectF boundingRect() const;
 	virtual void render ( QPainter& painter, const QRectF& rect );
-	virtual void simulate ( double dt );
+	virtual void renderOnMap( QPainter& painter, const QRectF& rect );
+	/// Returns object's bounding rect
+	virtual QRectF boundingRect() const;
 
-	// properties
-	
-	void setMass( double m ) { _mass = m; }
-	void setSize( double s ) { _size = s; }
-	void setLifespan( double l ) { _lifespan = l; }
-	
-	// actions
-	
-	/// Fires bullet from given point with given velocity
-	void fire( const QPointF& point, const QPointF& velocity );
+private:
 
-public:
-
-	DamageManager _damageManager;
-
-	// config
-	double _mass;		///< Mass [kg]
-	double _size;		///< Size [m]
-	double _lifespan;	///< Lifespan [seconds]
+	// components
+	Body*	_bodyMain;
+	Gun*	_sysGun;
+	DamageManager* _dmMain;
+	AntiAirGunOperator* _sysOperator;
 	
-	// variables
-	Body	_body;		///< Bullet's body
-	double	_age;		///< Bullet's age
 };
 
 }
 
-#endif // FLYERBULLET_H
+#endif // FLYERANTIAIRBATTERY_H
 
 // EOF
 

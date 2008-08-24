@@ -21,7 +21,8 @@
 namespace Flyer
 {
 
-static const double MINIMAL_MOMENTUM	= 0.2; ///< elow this momentum bullet is removed
+static const double MINIMAL_MOMENTUM	= 0.2; ///< below this momentum bullet is removed
+static const double DAMAGE_MULTIPLIER	= 500;	///< Damage multiplier
 
 // ============================================================================
 // Constructor
@@ -31,6 +32,7 @@ Bullet::Bullet ( World* pWorld ) : WorldObject ( pWorld )
 	_mass = 0;
 	_size = 0;
 	_age = 0;
+	_damageManager.setDamageMultiplier( DAMAGE_MULTIPLIER );
 }
 
 // ============================================================================
@@ -41,7 +43,7 @@ Bullet::~Bullet()
 
 // ============================================================================
 // Returns bullet's boundong rect
-QRectF Bullet::boundingRect()
+QRectF Bullet::boundingRect() const
 {
 	if ( _body.b2body() )
 	{
@@ -92,16 +94,13 @@ void Bullet::simulate ( double dt )
 	if ( _age > _lifespan )
 	{
 		world()->removeObject( this );
-		delete this; // TODO denagerous!
 		return;
 	}
 	
 	// check momentum
 	if ( _body.b2body() && _body.b2body()->GetLinearVelocity().Length() * _mass < MINIMAL_MOMENTUM )
 	{
-		qDebug("bullet removed - moving too slow");
 		world()->removeObject( this );
-		delete this; // TODO denagerous!
 		return;
 	}
 }
@@ -123,6 +122,7 @@ void Bullet::fire( const QPointF& point, const QPointF& velocity )
 	shape.radius = _size/2;
 	shape.restitution = 0.1;
 	shape.friction = 0.1; // quite slippery
+	shape.userData = & _damageManager;
 	
 	_body.addShape( & shape );
 	

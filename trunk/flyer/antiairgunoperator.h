@@ -14,47 +14,56 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#ifndef FLYERMOUNTING_H
-#define FLYERMOUNTING_H
+#ifndef FLYERANTIAIRGUNOPERATOR_H
+#define FLYERANTIAIRGUNOPERATOR_H
 
 #include "system.h"
 
 namespace Flyer
 {
-
-class Joint;
+class Gun;
 
 /**
-	It's a pseudo system, which - when attached to joint - breaks it when too big force
-	acts upon for too long time;
+	This is a AA gun operator. It operates AA gun to target neares enemy, and also
+	simluates gun rotation
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class Mounting : public System
+class AntiAirGunOperator : public System
 {
 public:
-	Mounting ( Machine* pParent, const QString& name = "", Joint* pJoint = NULL, double tolerance = 0.0, double capacity = 0.0 );
-	virtual ~Mounting();
+	AntiAirGunOperator( Machine* pParent, const QString& name = "" );
+	virtual ~AntiAirGunOperator();
 
+	virtual double status() const;
 	virtual void damage ( double force );
 	virtual void simulate ( double dt );
-	virtual double status() const;
 	
-	// properties
-	void setJoint( Joint* pJoint ) { _pJoint = pJoint; }
+	// config
+	void setGun( Gun* pGun ){ _pGun = pGun; }
+	void setMinAngle( double a ) { _minAngle = a; }
+	void setMaxAngle( double a ) { _maxAngle = a; }
 	
-	void setTolerance( double t ) { _tolerance = t; }
-
+	
 private:
 
-	double	_tolerance;		///< Damage tolerance threshold
-	Joint*	_pJoint;		///< Attached joint
-	double _damageReceived;	///< Damage received so far
-	bool	_broken;		///< If joint broken
+	QPointF getEnemyPos(); ///< The Tricky Part(TM) - sekes for enemy
+
+	// variables
+	double _currentAngle;		///< Current gun angle
+	double _desiredGunAngle;	///< Desired gun angle
+
+	// config
+	double _minAngle;		///< Min angle from zenith
+	double _maxAngle;		///< Max angle from zenith
+	double _rotationSpeed;	///< Rotation [rad/s]
+	
+	Gun*	_pGun;			///< gun to operate
+
 };
 
 }
 
-#endif // FLYERMOUNTING_H
+#endif // FLYERANTIAIRGUNOPERATOR_H
 
 // EOF
 

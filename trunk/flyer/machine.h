@@ -55,6 +55,7 @@ public:
 
 	void addSystem( System* pSystem, int types );
 	void removeSystem( System* pSystem );
+	const QList<System*>& systems() const { return _allSystems; }
 	
 	// bodies classes and manipulation
 	enum BodyType {					/// Body type
@@ -66,6 +67,9 @@ public:
 	void addBody( Body* pBody, int types );
 	void removeBody( Body* pBody );
 	
+	void setMainBody( Body* pBody ) { _pMainBody = pBody; }
+	Body* mainBody() const { return _pMainBody; }
+	
 	// joints
 	void addJoint( Joint* pJoint );
 	void removeJoint( Joint* pJoint );
@@ -73,6 +77,9 @@ public:
 	// damage managers
 	void addDamageManager( DamageManager* pManager );
 	void removeDamageManager( DamageManager* pManager );
+	
+	// damage modifiacations
+	void breakJoint( Joint* pJoint );
 	
 	// geometrical operations
 	
@@ -82,11 +89,21 @@ public:
 	/// Returns current orientation (flip) sign
 	double orientation() const { return _orientation; }
 	
+	/// Returns estimated position, using main's body position.
+	QPointF pos() const;
+	
 
 protected:
 
-	// TODO dhouldn't all these share common base class?
-
+	
+	// operations
+	void doBreakJoint( Joint* pJoint );	///< Actually breaks joint
+	
+	// special designated items
+	/// Machines main body. Machine position is determined using it's pos, and destructicion of
+	/// the body destroys machine.
+	Body* _pMainBody;
+	
 	// systems
 	QMap<int, QList<System*> >	_systems;
 	QList<System*> _allSystems;
@@ -97,6 +114,7 @@ protected:
 	
 	// joints
 	QList<Joint*>	_allJoints;
+	QList<Joint*>	_jointsToBreak; ///< Temporary list of joints that are to be break during next sim step
 	
 	// damage managers
 	QList<DamageManager*> _allDamageManagers;

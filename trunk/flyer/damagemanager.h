@@ -44,12 +44,16 @@ public:
 	// properties
 	void setTolerance( double tol ) { _tolerance = tol; }
 	double tolerance() const { return _tolerance; }
+	
+	void setDamageMultiplier( double dm ) { _damageMultiplier = dm; }
+	double damageMultiplier() const { return _damageMultiplier; }
 
 private:
 
 	QList<System*> _systems;
 	
-	double _tolerance;	///< Tolerated force. all force above is propagated as damage to associated systems
+	double _tolerance;			///< Tolerated force. all force above is propagated as damage to associated systems
+	double _damageMultiplier;	///< Multiplier of damage caused by this body
 };
 
 }

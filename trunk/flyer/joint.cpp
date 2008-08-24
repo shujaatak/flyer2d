@@ -54,6 +54,7 @@ void Joint::create( b2JointDef* pDef, b2World* pWorld )
 	{
 		b2RevoluteJointDef* pRevoluteDef = (b2RevoluteJointDef*)pDef;
 		_pDefinition = new b2RevoluteJointDef( * pRevoluteDef );
+		_pDefinition->userData = this;
 	}
 	else
 	{
@@ -119,6 +120,7 @@ void Joint::breakJoint()
 	_broken = true;
 	if ( _pJoint && _pWorld )
 	{
+		// TODO check lock here somehow. Thi can't be called durig worl's simulation
 		_pWorld->DestroyJoint( _pJoint );
 		_pJoint = NULL;
 	}

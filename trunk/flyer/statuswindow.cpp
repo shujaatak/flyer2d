@@ -14,7 +14,8 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#include "damagemanager.h"
+#include "statuswindow.h"
+#include "machine.h"
 #include "system.h"
 
 namespace Flyer
@@ -22,48 +23,51 @@ namespace Flyer
 
 // ============================================================================
 // Constructor
-DamageManager::DamageManager( double tolerance ) : _tolerance( tolerance )
+StatusWindow::StatusWindow() : QWidget( NULL )
 {
-	_damageMultiplier = 1.0;
+	setupUi( this );
+	
+	table->setColumnCount( 2 );
+	_pMachine = NULL;
+	_timer.setInterval( 1000 );
+	connect( & _timer, SIGNAL(timeout()), SLOT(refresh()) );
+	_timer.start();
 }
 
 // ============================================================================
 // Destructor
-DamageManager::~DamageManager()
+StatusWindow::~StatusWindow()
 {
 }
 
 // ============================================================================
-// Contact callback
-void DamageManager::contact( double force )
+// Sets machein to be monitored
+void StatusWindow::setMachine( Machine* pMachine )
 {
-	if ( force > _tolerance && _systems.size() > 0 )
+	_pMachine = pMachine;
+	refresh();
+}
+
+// ============================================================================
+// Refreshes display
+void StatusWindow::refresh()
+{
+	if ( _pMachine )
 	{
-		double damage = force - _tolerance;
-		//qDebug("damage: %g, force: %g", damage, force );
-		// propagate damage to systems 
-		for ( int i = 0; i < _systems.size(); i++ )
+		const QList<System*>& systems = _pMachine->systems();
+		
+		table->setRowCount( systems.size() );
+		
+		int r = 0;
+		foreach( System* s, systems )
 		{
-			int systemIndex = qrand() % _systems.size();
+			QString name = s->name();
+			QString status = QString("%1%").arg( int( s->status() * 100 ) );
 			
-			System* pSystem = _systems[systemIndex];
-			
-			if ( pSystem )
-			{
-				pSystem->damage( damage/_systems.size() );
-			}
+			table->setItem( r, 0, new QTableWidgetItem( name ) );
+			table->setItem( r, 1, new QTableWidgetItem( status ) );
+			r++;
 		}
-	}
-}
-
-// ============================================================================
-/// Adds system to damage manager. Propability ogf getting damage is proportional to
-/// system weight. You can add NULL system with non-ero weight to tune propability distribution.
-void DamageManager::addSystem( System* pSystem, int weight )
-{
-	for ( int i = 0; i < weight; i++ )
-	{
-		_systems.append( pSystem );
 	}
 }
 

@@ -77,7 +77,7 @@ void Engine::damage ( double force )
 	}
 	else
 	{
-		qDebug("Engine: max thrust reduced to %g", _currentMaxThrust );
+		qDebug("Engine: max thrust reduced to %g due to force %g", _currentMaxThrust, force );
 	}
 }
 
@@ -155,6 +155,13 @@ void Engine::renderPropeller( QPainter& painter )
 		painter.setPen( QColor( 0, 0, 0, 128 ) );
 		painter.drawLine( QLineF( _propellerCenter - bladeVector, _propellerCenter + bladeVector ) );
 	}
+}
+
+// ============================================================================
+/// Returns engine operation status.
+double Engine::status() const
+{
+	return _currentMaxThrust / _maxThrust;
 }
 
 

@@ -23,8 +23,9 @@ namespace Flyer
 
 // ============================================================================
 // Constructor
-Body::Body()
+Body::Body( const QString& name )
 {
+	_name = name;
 	_pBody = NULL;
 }
 
@@ -50,8 +51,9 @@ Body::~Body()
 void Body::create( const b2BodyDef& def, b2World* pWorld )
 {
 	Q_ASSERT( pWorld );
-	_pBody = pWorld->CreateBody( & def );
 	_definition = def;
+	_definition.userData = this;
+	_pBody = pWorld->CreateBody( & _definition );
 	
 	// if shapes added - create them
 	foreach( b2ShapeDef* pShapeDef, _shapeDefinitions )
@@ -68,9 +70,14 @@ void Body::create( const b2BodyDef& def, b2World* pWorld )
 
 // ============================================================================
 // Adds shape to body
-void Body::addShape( b2ShapeDef* pShapeDef )
+void Body::addShape( b2ShapeDef* pShapeDef, bool removeUserData )
 {
 	Q_ASSERT( pShapeDef );
+	if ( removeUserData )
+	{
+		pShapeDef->userData = NULL;
+	}
+	
 	// copy shape
 	if ( pShapeDef->type == e_polygonShape )
 	{
@@ -134,6 +141,12 @@ QPainterPath Body::shape() const
 				b2Vec2 center = pCircle->GetLocalPosition();
 				double r = pCircle->GetRadius();
 				path.addEllipse( center.x - r, center.y - r, 2*r, 2*r );
+				
+				// also, add line across the circle
+				path.closeSubpath();
+				path.moveTo( center.x - r, 0 );
+				path.lineTo( center.x + r, 0 );
+				path.closeSubpath();
 			}
 			else
 			{
@@ -265,5 +278,79 @@ void Body::render( QPainter& painter )
 	}
 }
 
+// ============================================================================
+/// Checks if body is connected to another through joints.
+bool Body::isConnectedTo( Body* pBody ) const
+{
+	if ( ! pBody ) return false;
+	if ( ! _pBody ) return false;
+	
+	QList<Body*> visited ;
+	return doIsConnectedTo( pBody, visited );
+}
+// ============================================================================
+/// Checks if body is connected to another through joints.
+/// List of visited bodies prevents infinite reccursion.
+bool Body::doIsConnectedTo( Body* pBody, QList<Body*>& visited ) const
+{
+	visited.append( this );
+	
+	b2JointEdge* pJointEdge = _pBody->GetJointList();
+	while( pJointEdge )
+	{
+		Body* pOtherBody = static_cast<Body*>( pJointEdge->other->GetUserData() );
+		
+		if ( pOtherBody == pBody )
+		{
+			return true;
+		}
+		else if ( pOtherBody && ! visited.contains( pOtherBody ) && pOtherBody->doIsConnectedTo( pBody, visited ) )
+		{
+			return true;
+		}
+		
+		pJointEdge = pJointEdge->next;
+	}
+	
+	return false;
+}
+
+// ============================================================================
+/// Destroys phisical representation
+void Body::destroy()
+{
+	if ( _pBody )
+	{
+		_pBody->GetWorld()->DestroyBody( _pBody );
+		_pBody = NULL;
+	}
+}
+
+// ============================================================================
+/// Creates exact copy
+Body* Body::createCopy() const
+{
+	Body* pCopy = new Body(); // TODO different types here
+	
+	// copy shapes
+	foreach( b2ShapeDef* pShapeDef, _shapeDefinitions )
+	{
+		pCopy->addShape( pShapeDef, true );
+	}
+	
+	// create
+	if ( _pBody )
+	{
+		b2BodyDef definition = _definition;
+		definition.position = _pBody->GetPosition();
+		definition.angle = _pBody->GetAngle();
+		
+		pCopy->create( definition, _pBody->GetWorld() );
+		pCopy->b2body()->SetLinearVelocity( _pBody->GetLinearVelocity() );
+		pCopy->b2body()->SetAngularVelocity( _pBody->GetAngularVelocity() );
+	}
+	
+	return pCopy;
+}
 
 }

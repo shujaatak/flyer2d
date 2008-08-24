@@ -14,53 +14,43 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#ifndef FLYERWING_H
-#define FLYERWING_H
+#ifndef FLYERCONTACTFUSE_H
+#define FLYERCONTACTFUSE_H
 
-#include "surface.h"
+#include "system.h"
 
 namespace Flyer
 {
 
 /**
-	Wing. Aerodynamic surfasce with flaps.
-	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
+	Sinplest fuse. Causes explosion when recieves certan amount of damage
+ @author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class Wing : public Surface
+
+class ContactFuse : public System
 {
+
 public:
-	Wing ( Machine* pParent, const QString& name = "" );
-	virtual ~Wing();
+	ContactFuse ( Machine* pParent, const QString& name = "" );
+	virtual ~ContactFuse();
 
 	virtual void damage ( double force );
-	virtual void render( QPainter& painter, const QRectF& rect );
-	virtual double status() const;
 	
-	// properties
-	void setFlapsDrag( double fg ) { _flapsDrag = fg; }
-	void setFlapsLift( double fl ) { _flapsLift = fl; }
-	
-	void setFlaps( double f );
-	double flaps() const { return _flaps; }
+	void setEnergy( double e ) { _energy = e; }
 
-protected:
-	virtual QPointF calculateForce ( double velocity, double sinAttack ) const;
-	
+private:
+
 	// config
-	double	_flapsDrag;			///< Extra drag when flaps are at max
-	double	_flapsLift;			///< Extra lift when flaps are at max
-	
+	double _energy;	///< energy of explosion
 	
 	// variables
-	double _flaps;				///< Flaps position 0-1
-	double _currentFlapsMax;
-	double _currentFlapsMin;
-
+	double _damageReceived;	///< damage recived so far
+	bool	_destroyed;		///< flag raised if destroyed. PRevents multiple destruction
 };
 
 }
 
-#endif // FLYERWING_H
+#endif // FLYERCONTACTFUSE_H
 
 // EOF
 

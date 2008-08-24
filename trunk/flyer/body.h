@@ -20,6 +20,7 @@
 #include <QList>
 #include <QPainterPath>
 #include <QTransform>
+#include <QString>
 class QPainter;
 
 #include "Box2D.h"
@@ -34,17 +35,23 @@ namespace Flyer
 class Body
 {
 public:
-	Body();
+	Body( const QString& name = "" );
 	virtual ~Body();
 	
 	/// Creates body
 	void create( const b2BodyDef& def, b2World* pWorld );
 	
-	/// Retruns unrlying box2d body
+	/// Destroys physical representation
+	void destroy();
+	
+	/// Creates copy of body
+	virtual Body* createCopy() const;
+	
+	/// Retruns underlying box2d body
 	b2Body* b2body() const { return _pBody; }
 	
 	/// Adds shape to body
-	void addShape( b2ShapeDef* pShapeDef );
+	void addShape( b2ShapeDef* pShapeDef, bool removeUserData  = false );
 	
 	/// Returns body shape as painter path
 	QPainterPath shape() const;
@@ -57,9 +64,18 @@ public:
 	
 	/// Flips body along defined axis
 	void flip( const QPointF& p1, const QPointF& p2 );
+	
+	/// Checks if body is connected to antoher through joints
+	bool isConnectedTo( Body* pBody ) const;
+	
+	QString name() const { return _name; }
 
 private:
 
+	// opoerations
+	bool doIsConnectedTo( Body* pBody, QList<Body*>& visited ) const;
+
+	QString		_name;			///< Body name
 	b2Body*		_pBody;
 	b2BodyDef	_definition;
 	QList< b2ShapeDef*>	_shapeDefinitions;

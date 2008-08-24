@@ -64,7 +64,6 @@ void Surface::render( QPainter& painter, const QRectF& rect )
 	
 	painter.setPen( Qt::blue );
 	painter.drawLine( QLineF( pos.x, pos.y, pos.x + wf.x(), pos.y + wf.y() ) );
-		
 }
 
 // ============================================================================

@@ -37,11 +37,12 @@ public:
 
 	virtual void damage ( double force );
 	virtual void simulate ( double dt );
+	virtual double status() const;
 	
 	void setOn( bool on ) { _on = on; }
 	bool on() const { return _on; }
 	
-	void setBrakingTorque( double t ) { _brakingTorque = t; }
+	void setBrakingTorque( double t ) { _brakingTorque = t; _currentTorque = t; }
 	void setJoint( Joint* pJoint ) { _pJoint = pJoint; }
 
 private:
@@ -49,6 +50,7 @@ private:
 	// variables
 	
 	bool	_on;			///< Is brake on
+	double _currentTorque;
 	
 	// config
 	
