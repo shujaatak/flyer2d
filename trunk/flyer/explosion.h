@@ -53,9 +53,6 @@ public:
 private:
 
 	void actWithForce();	///< Pushes bodies, activates damage managers for current step
-	void findBodies();		///< Find bodies to act upon
-	/// Calculates force vector for point
-	b2Vec2 forceForPoint( const b2Vec2& point );
 
 	// config
 	double _speed;			///< Speed of expansions [m/s], defaults to speed of sound
@@ -66,17 +63,8 @@ private:
 	
 	// variables
 	double	_radius;		///< Current radius
-	bool	_intialized;	///< If is initialized
 	int		_currentStep;	///< Current simulation step
 
-	struct DamageInfo
-	{
-		DamageManager* damageManager;
-		b2Vec2	position;
-	};
-
-	QVector< QList< b2Body*> >	_bodiesAffected;	///< List of bins oith bodies to act force upon.
-	QVector< QList< DamageInfo> >	_damageManagers;	///< List of bins with damage managers 
 };
 
 }

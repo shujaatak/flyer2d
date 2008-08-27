@@ -30,13 +30,14 @@
 namespace Flyer
 {
 
+static const double DAMAGE_MULTIPLIER	= 10; ///< Explosion damage multiplier
+
 // ============================================================================
 // Constructor
 Explosion::Explosion ( World* pWorld ) : WorldObject ( pWorld )
 {
 	_radius = 0;
 	_maxFireRadius = 0;
-	_intialized = false;
 	_currentStep = 0;
 	
 	_speed = 85; // 1/4 the speed of sound
@@ -59,15 +60,14 @@ QRectF Explosion::boundingRect() const
 // Sets energy. Also - calculates maxima radius
 void Explosion::setEnergy( double e )
 {
-	// Force will be equal e/(r*r+1),
+	// Force will be equal e/(r+1),
 	// soe at zero this will be e.
 	// Let minimal sensible force is 100N
-	// f = e/(r2+1)
-	// f*r2+f = e
-	// r2 = (e-f)/f
-	// r = sqrt( (e-f)/f )
-	double minForce = 10000;
-	_maxRadius = sqrt( (e-minForce)/minForce );
+	// f = e/(r+1)
+	// f*r+f = e
+	// r = (e-f)/f
+	double minForce = 10E3;
+	_maxRadius = (e-minForce)/minForce;
 	_maxFireRadius = _maxRadius/4; // dumb guess
 	_energy = e;
 	
@@ -100,13 +100,6 @@ void Explosion::render ( QPainter& painter, const QRectF& )
 // Simulates
 void Explosion::simulate ( double dt )
 {
-	// inti itialize
-	if ( ! _intialized )
-	{
-		findBodies();
-		_intialized = true;
-	}
-	
 	// affect bodies, spread damage
 	actWithForce();
 	
@@ -122,92 +115,59 @@ void Explosion::simulate ( double dt )
 }
 
 // ============================================================================
-// Finds boieds in explosion area
-void Explosion::findBodies()
+/// Acts with a force on body
+void Explosion::actWithForce()
 {
-	// find out how much simulation steps explosion will last
-	double timestep = world()->timestep();
-	int steps = int( ceil( (_maxRadius/_speed) / timestep ) );
-	_bodiesAffected.resize( steps );
-	_damageManagers.resize( steps );
+	// find range of force in current step
+	double minRange = _radius; // current radius
+	double maxRange = qMin( _radius + _speed * world()->timestep(), _maxRadius );
 	
-	// find box2d bodies of interest
+	// find bodies within range
 	b2AABB aabb;
-	aabb.lowerBound.Set( _center.x()-_maxRadius, _center.y()-_maxRadius );
-	aabb.upperBound.Set( _center.x()+_maxRadius, _center.y()+_maxRadius );
+	aabb.lowerBound.Set( _center.x()-maxRange, _center.y()-maxRange );
+	aabb.upperBound.Set( _center.x()+maxRange, _center.y()+maxRange );
 	
 	const int bufsize = 100; // firs 100 lucky ibjects. rest will go untouched. Maybe use some heuristiv value basing on radius?
 	b2Shape* shapes[ bufsize ];
 	int count = world()->b2world()->Query(aabb, shapes, bufsize);
 	
-	// ok, now i have 'count' shapes. Prepare list of bodies affected
+	// ok, now i have 'count' shapes. Acti with force on bodies and damage managers
+	
+	QList<b2Body*> bodiesTouched; // to not repeat
 	b2Vec2 center = point2vec( _center );
+	
 	for( int i = 0; i < count; i++ )
 	{
 		// get body
 		b2Body* pBody = shapes[i]->GetBody();
-		// find in which simulation step it will be reached by shockwave
-		double distance = ( pBody->GetPosition() - center ).Length();
-		int step = int( floor( distance / ( _speed*timestep ) ) );
 		
-		if ( step < steps )
+		// find distance, normal vector and force value
+		double distance = ( pBody->GetPosition() - center ).Length();
+
+		if ( distance < maxRange &&  distance >= minRange )
 		{
-			// store body
-			if ( ! _bodiesAffected[step].contains(pBody) )
+			b2Vec2 diff = pBody->GetPosition() - center;
+			b2Vec2 normal = diff;
+			normal.Normalize();
+			
+			double force = _energy / ( distance+1);
+		
+			// act with force on body (but only once)
+			if ( ! bodiesTouched.contains( pBody ) )
 			{
-				_bodiesAffected[step].append( pBody );
+				pBody->ApplyForce( force*normal, pBody->GetPosition() );
+				bodiesTouched.append( pBody );
 			}
-			// store DM
+			
+			// damge DM
 			if ( shapes[i]->GetUserData() )
 			{
-				DamageInfo info;
-				info.damageManager = static_cast<DamageManager*>( shapes[i]->GetUserData() );
-				info.position = pBody->GetPosition();
-				_damageManagers[step].append( info );
+				DamageManager* pDM = static_cast<DamageManager*>( shapes[i]->GetUserData() );
+				pDM->contact( force * DAMAGE_MULTIPLIER );
 			}
 			
 		}
 	}
-	// we have list of bodies now
-	// TODO pray that no one of the bodiues will be removed during simulation steps!
-}
-
-// ============================================================================
-/// Acts with a force on body
-void Explosion::actWithForce()
-{
-	// act on bodies
-	foreach( b2Body* pBody, _bodiesAffected[ _currentStep ] )
-	{
-		b2Vec2 force = forceForPoint( pBody->GetPosition() );
-		pBody->ApplyForce( force, pBody->GetPosition() );
-		qDebug("Acting with force %g on body %s", force.Length(),
-			qPrintable( static_cast<Body*>(pBody->GetUserData())->name() )
-			);
-	}
-	
-	// act on damage managers
-	foreach( DamageInfo info, _damageManagers[ _currentStep ] )
-	{
-		double force = forceForPoint( info.position ).Length();
-		info.damageManager->contact( force );
-	}
-}
-
-// ============================================================================
-/// Calculates force vector for point
-b2Vec2 Explosion::forceForPoint( const b2Vec2& point )
-{
-	b2Vec2 center = point2vec( _center );
-	b2Vec2 diff = point - center;
-		
-	double distance = diff.Length();
-	b2Vec2 normal = diff;
-	normal.Normalize();
-	
-	double force = _energy / ( distance*distance+1);
-	
-	return force*normal;
 }
 
 }

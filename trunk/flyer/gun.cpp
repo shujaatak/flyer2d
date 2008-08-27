@@ -55,14 +55,14 @@ void Gun::damage ( double force )
 			case 0:
 			{
 				_currentnInterval += _interval * reduce * ( DAMAGED_INTERVAL - 1.0 );
-				qDebug("GUN: firing interval extended to %g from %g", _currentnInterval, _interval );
+				//qDebug("GUN: firing interval extended to %g from %g, force: %g", _currentnInterval, _interval, force );
 				break;
 			}
 			// reduce velocity
 			case 1:
 			{
 				_currentVelocity -= _velocity * reduce * ( 1.0 - DAMAGED_VELOCITY );
-				qDebug("GUN: Velocity reduced to %g form %g",  _currentVelocity, _velocity );
+				//qDebug("GUN: Velocity reduced to %g form %g, force %g",  _currentVelocity, _velocity, force );
 			}
 			// TODO add deflection
 		}
@@ -71,7 +71,7 @@ void Gun::damage ( double force )
 		if ( ( qrand() % 1000 ) < ( reduce * 1000 ) )
 		{
 			_broken = true;
-			qDebug("Gun totally broken (chances where %g)", reduce);
+			//qDebug("Gun totally broken (chances where %g)", reduce);
 		}
 	}
 	

@@ -42,6 +42,14 @@ Body::~Body()
 	// destroy body
 	if ( _pBody )
 	{
+		// remove all user data fiorst, to not interact with the body
+		b2Shape* pShape = _pBody->GetShapeList();
+		while ( pShape )
+		{
+			pShape->SetUserData( NULL );
+			pShape = pShape->GetNext();
+		}
+		_pBody->SetUserData( NULL );
 		_pBody->GetWorld()->DestroyBody( _pBody );
 	}
 }

@@ -91,6 +91,10 @@ World::~World()
 // Renders region of the world on painter. Region is defined in world coorindates.
 void World::render( QPainter& painter, const QRectF& rect )
 {
+	// render athmosphere
+	renderAthmosphere( painter, rect );
+	
+	// render objectts
 	QList<int> layers;
 	layers << ObjectRenderedSky << ObjectRenderedBackground << ObjectRenderedBuildings
 		<< ObjectRenderedVehicles << ObjectRenderedForeground;
@@ -106,6 +110,13 @@ void World::render( QPainter& painter, const QRectF& rect )
 			}
 		}
 	}
+}
+
+// ============================================================================
+/// Renders world's athmosphere
+void World::renderAthmosphere( QPainter& painter, const QRectF& )
+{
+	painter.fillRect( _boundary, _skyGradient );
 }
 
 // ============================================================================
@@ -166,13 +177,11 @@ void World::initWorld()
 	addObject( new AntiAirBattery( this, 1100, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRenderedBuildings | ObjectSide2 | ObjectRenderedMap  );
 	addObject( new AntiAirBattery( this, -2000, 1.2 ), ObjectInstallation | ObjectSimulated | ObjectRenderedBuildings | ObjectSide2 | ObjectRenderedMap   );
 	
-	// sample explosion
-	/*
-	Explosion* pExpl = new Explosion( this );
-	pExpl->setEnergy( 10E6 );
-	pExpl->setCenter( QPointF( 1, 301 ) );
-	addObject( pExpl, ObjectSimulated | ObjectRenderedForeground );
-	*/
+	// sky gradient
+	_skyGradient.setStart( _boundary.left() + _boundary.width()/ 2, _boundary.top() );
+	_skyGradient.setFinalStop( _boundary.left() + _boundary.width()/ 2, _boundary.bottom() );
+	_skyGradient.setColorAt( 0.0, QColor("#99B0F4"));
+	_skyGradient.setColorAt( 1.0, QColor("#0D47F4"));
 }
 
 // ============================================================================

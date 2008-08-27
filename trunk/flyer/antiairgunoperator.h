@@ -51,6 +51,9 @@ private:
 	// variables
 	double _currentAngle;		///< Current gun angle
 	double _desiredGunAngle;	///< Desired gun angle
+	
+	double	_damageReceived;	///< damage received
+	bool	_broken;			///< broken (or "killed" )
 
 	// config
 	double _minAngle;		///< Min angle from zenith

@@ -22,6 +22,8 @@ class QPainter;
 #include <QList>
 #include <QPointF>
 
+#include "Box2D.h"
+
 #include "worldobject.h"
 
 namespace Flyer
@@ -91,6 +93,9 @@ public:
 	
 	/// Returns estimated position, using main's body position.
 	QPointF pos() const;
+	
+	/// Returns linear velocity
+	b2Vec2 linearVelocity() const;
 	
 
 protected:

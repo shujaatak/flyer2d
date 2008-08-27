@@ -89,6 +89,7 @@ private:
 	
 	QTransform _transform;
 	QTimer _timer;
+	QPointF	_planePos;			///< Current displayed plane pos in pixels
 	
 	int _frames;				///< Frame counter
 };

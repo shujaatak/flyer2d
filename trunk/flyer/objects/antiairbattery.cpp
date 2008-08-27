@@ -37,7 +37,7 @@ AntiAirBattery::AntiAirBattery ( World* pWorld, double location, double angle  )
 	double locationY = world()->ground()->height( location );
 	
 	// create damage manager
-	_dmMain = new DamageManager( 50E3 );
+	_dmMain = new DamageManager( 30E3 );
 	addDamageManager( _dmMain );
 	
 	// create body
@@ -65,7 +65,7 @@ AntiAirBattery::AntiAirBattery ( World* pWorld, double location, double angle  )
 	_sysGun->setBulletSize( 7.85E-3 ); // NOTE all data taken from kalashnikov ;)
 	_sysGun->setFiringInterval( 0.4 ); // 2.5 shots/sec
 	_sysGun->setBulletLifespan( 4.0 );
-	_sysGun->setDamageCapacity( 200E3 );
+	_sysGun->setDamageCapacity( 100E3 );
 	addSystem( _sysGun, SystemSimulated );
 	
 	// create operator
@@ -73,10 +73,12 @@ AntiAirBattery::AntiAirBattery ( World* pWorld, double location, double angle  )
 	_sysOperator->setGun( _sysGun );
 	_sysOperator->setMinAngle( 0.5 );
 	_sysOperator->setMaxAngle( M_PI/2 );
+	_sysOperator->setDamageCapacity( 100E3 );
 	addSystem( _sysOperator, SystemSimulated );
 	
 	// add systems to damage manager
 	_dmMain->addSystem( _sysGun, 1 );
+	_dmMain->addSystem( _sysOperator, 1 );
 	_dmMain->addSystem( NULL, 2 );
 	
 }

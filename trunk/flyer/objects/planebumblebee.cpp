@@ -39,7 +39,7 @@ static const QPointF ENGINE_POS = QPointF( 1.5, 0.0 );
 
 static const double ELEVATOR_LIFT = 10.0;
 static const double ELEVATOR_LENGTH = 1.0;
-static const double MAX_THRUST = 500; // kg force
+static const double MAX_THRUST = 600; // kg force
 static const double WHEEL_BRAKE_TORQUE = 1000; // not too big, to have nice effects
 static const double ELEVATOR_STEP = 0.2;	/// elevator movement - in radians
 
@@ -79,7 +79,7 @@ PlaneBumblebee::PlaneBumblebee( World* pWorld, const QPointF& pos, double angle 
 	_pBomb->setLength( 1.0 );
 	_pBomb->setDiameter( 0.3 );
 	_pBomb->setMass( 100 );
-	_pBomb->setEnergy( 10E6 );
+	_pBomb->setEnergy( 1E6 );
 	
 	QPointF bombPos = QPointF( -1.0, -0.9 );
 	QTransform t = mainBody()->transform();
@@ -95,7 +95,8 @@ PlaneBumblebee::PlaneBumblebee( World* pWorld, const QPointF& pos, double angle 
 	bj.upperAngle = 0;
 	bj.lowerAngle = 0;
 	_jointBomb->create( & bj, pWorld->b2world() );
-	//_jointBomb->setBodies( _pBomb->mainBody(), mainBody() );
+	_jointBomb->setBodies( _pBomb->mainBody(), mainBody() );
+	//_jointBomb = NULL;
 }
 
 // ============================================================================
@@ -177,6 +178,7 @@ void PlaneBumblebee::createSystems()
 	addSystem( _sysAutopilot, SystemSimulated );
 	setAutopilot( _sysAutopilot );
 	
+	// gun
 	_sysGun = new Gun( this, "kalashnikov" );
 	_sysGun->setBody( _bodyHull );
 	_sysGun->setMuzzle( QPointF( 2.0, 0.0 ) );
@@ -186,7 +188,7 @@ void PlaneBumblebee::createSystems()
 	_sysGun->setBulletSize( 7.85E-3 ); // NOTE all data taken from kalashnikov ;)
 	_sysGun->setFiringInterval( 0.4 ); // 2.5 shots/sec
 	_sysGun->setBulletLifespan( 4.0 );
-	_sysGun->setDamageCapacity( 200E3 );
+	_sysGun->setDamageCapacity( 100E3 );
 	addSystem( _sysGun, SystemSimulated );
 	setGun( _sysGun );
 }
@@ -359,7 +361,7 @@ void PlaneBumblebee::createShapes()
 	shapeLeg.append( QPointF( 0.7, -1.6) );
 	shapeLeg.append( QPointF( 0.2, -0.2) );
 	b2PolygonDef legShape = shapeToDef( shapeLeg, false );
-	legShape.friction = 0;
+	legShape.friction = 0.9;
 	legShape.restitution = 0.1;
 	legShape.density = 20;
 	legShape.userData = _dmLeg;
@@ -406,7 +408,7 @@ void PlaneBumblebee::createDamageManagers()
 	addDamageManager( _dmWheel );
 	
 	// leg
-	_dmLeg = new DamageManager( 5E4 );
+	_dmLeg = new DamageManager( 4E4 );
 	
 	// same as wheel
 	_dmLeg->addSystem( _sysBrake, 1 );
@@ -415,7 +417,7 @@ void PlaneBumblebee::createDamageManagers()
 	addDamageManager( _dmLeg );
 	
 	// hull
-	_dmHull = new DamageManager( 5E4 );
+	_dmHull = new DamageManager( 4E4 );
 	_dmHull->addSystem( _sysGun, 1 );
 	_dmHull->addSystem( _sysWing, 5 );
 	_dmHull->addSystem( _sysElevator, 1 );
@@ -425,7 +427,7 @@ void PlaneBumblebee::createDamageManagers()
 	addDamageManager( _dmHull );
 	
 	// tail
-	_dmTail = new DamageManager( 5E4 );
+	_dmTail = new DamageManager( 3E4 );
 	_dmTail->addSystem( _sysElevator, 1 );
 	_dmTail->addSystem( NULL, 2 );
 	addDamageManager( _dmTail );

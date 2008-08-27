@@ -34,7 +34,7 @@ LandingLight::LandingLight(World* pWorld, double x, double y, double angle )
 	
 	// init manager
 	_damageManager = new DamageManager();
-	_damageManager->setTolerance( 1E4 ); // 1t 
+	_damageManager->setTolerance( 5E4 ); // 1t 
 
 	
 	// create body
@@ -63,7 +63,7 @@ LandingLight::LandingLight(World* pWorld, double x, double y, double angle )
 	_sysLight->setWidth( _width );
 	_sysLight->setOn( true );
 	_sysLight->setBody( _body );
-	_sysLight->setDamageCapacity( 10E4 ); // 10t
+	_sysLight->setDamageCapacity( 100E3 ); // 10t
 	addSystem( _sysLight, SystemRendered1 );
 	
 	_damageManager->addSystem( _sysLight, 1 ); // 50/50

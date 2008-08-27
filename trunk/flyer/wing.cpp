@@ -106,7 +106,7 @@ void Wing::damage ( double force )
 		{
 			_currentFlapsMax -= ( _currentFlapsMax - _flaps  ) * reduce;
 			_currentFlapsMin += ( _flaps - _currentFlapsMin ) * reduce;
-			qDebug("flaps range reduced to %g - %g", _currentFlapsMin, _currentFlapsMax );
+			//qDebug("flaps range reduced to %g - %g", _currentFlapsMin, _currentFlapsMax );
 			break;
 		}
 		// reduce lift
@@ -120,7 +120,7 @@ void Wing::damage ( double force )
 		case 2:
 		{
 			_currentDragH += reduce * _dragCoeffH * ( DAMAGED_DRAG - 1.0 );
-			qDebug("Drag increased to %g from %g", _currentDragH, _dragCoeffH );
+			//qDebug("Drag increased to %g from %g", _currentDragH, _dragCoeffH );
 			break;
 		}
 	}

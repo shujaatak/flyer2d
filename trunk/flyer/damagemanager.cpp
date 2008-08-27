@@ -14,6 +14,8 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+#include <math.h>
+
 #include "damagemanager.h"
 #include "system.h"
 
@@ -40,9 +42,15 @@ void DamageManager::contact( double force )
 	if ( force > _tolerance && _systems.size() > 0 )
 	{
 		double damage = force - _tolerance;
+		
+		// how many times repeat damage spreading.
+		// This is used to inflict smaller damage on multiple system instead of one big damage on single system
+		// i case of single big contacs, like in explosion
+		int repeats = qMin( int( ceil( force / _tolerance ) ), 10 ); // with some sane limit
+		
 		//qDebug("damage: %g, force: %g", damage, force );
 		// propagate damage to systems 
-		for ( int i = 0; i < _systems.size(); i++ )
+		for ( int i = 0; i < ( _systems.size() * repeats ); i++ )
 		{
 			int systemIndex = qrand() % _systems.size();
 			
@@ -50,7 +58,7 @@ void DamageManager::contact( double force )
 			
 			if ( pSystem )
 			{
-				pSystem->damage( damage/_systems.size() );
+				pSystem->damage( damage/(_systems.size()*repeats) );
 			}
 		}
 	}

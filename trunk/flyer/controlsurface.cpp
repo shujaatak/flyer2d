@@ -111,7 +111,7 @@ void ControlSurface::damage(double force)
 		if ( _value < _currentMinValue ) _value = _currentMinValue;
 	}
 	
-	qDebug("control surface range reduced to: %g - %g", _currentMinValue, _currentMaxValue );
+	//qDebug("control surface range reduced to: %g - %g", _currentMinValue, _currentMaxValue );
 	
 }
 

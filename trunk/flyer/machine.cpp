@@ -40,11 +40,13 @@ Machine::~Machine()
 	// delete all
 	foreach( DamageManager* pDM, _allDamageManagers )
 	{
+		//qDebug("deleting dm: %p", pDM );
 		delete pDM;
 	}
 	
 	foreach( System* pSystem, _allSystems )
 	{
+		//qDebug("deleting system: %p (%s)", pSystem, qPrintable( pSystem->name() ) );
 		delete pSystem;
 	}
 	
@@ -265,6 +267,18 @@ void Machine::doBreakJoint( Joint* pJoint )
 	{
 		qFatal("Machine bodies not connected to main body");
 	}
+}
+
+// ============================================================================
+/// Returns machine's linear velocity, or 0 if none
+b2Vec2 Machine::linearVelocity() const
+{
+	if ( _pMainBody && _pMainBody->b2body() )
+	{
+		return _pMainBody->b2body()->GetLinearVelocity();
+	}
+	
+	return b2Vec2(0,0);
 }
 
 }

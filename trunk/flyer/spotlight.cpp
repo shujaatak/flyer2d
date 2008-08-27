@@ -44,9 +44,11 @@ void Spotlight::damage( double force )
 	{
 		double rangeRemoved = _range * ( force / damageCapacity() );
 	
+		//qDebug("spotlight damaged with: %g", force );
 		double propOfDestruction = 5 * rangeRemoved / _currentRange ; // prob of total destruction
 		if ( ( qrand() % 1000 ) < ( propOfDestruction * 1000 ) )
 		{
+			//qDebug("spotlight destroyed, propability was: %g", propOfDestruction);
 			_currentRange = 0;
 		}
 		else
@@ -75,7 +77,7 @@ void Spotlight::render(QPainter& painter, const QRectF& )
 		QLinearGradient gradient( QPointF(0,0), QPointF( _range, 0 ) );
 		
 		QColor colorStart = _color;
-		colorStart.setAlpha( 120 );
+		colorStart.setAlpha( 255 );
 		QColor colorEnd = _color;
 		colorEnd.setAlpha( 0 );
 		
