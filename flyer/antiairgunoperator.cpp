@@ -36,6 +36,8 @@ AntiAirGunOperator::AntiAirGunOperator( Machine* pParent, const QString& name ) 
 	_rotationSpeed = DEFAULT_ROTATION_SPEED;
 	_desiredGunAngle = 0.0;
 	_currentAngle = 0.0;
+	_damageReceived	= 0.0;
+	_broken = false;
 }
 
 // ============================================================================
@@ -49,22 +51,34 @@ AntiAirGunOperator::~AntiAirGunOperator()
 double AntiAirGunOperator::status() const
 {
 	// TODO implement damage
-	return 1.0;
+	return 1.0 - qMax( 1.0, ( _damageReceived / damageCapacity() ) );
 }
 
 // ============================================================================
 /// Damages operator
-void AntiAirGunOperator::damage ( double arg1 )
+void AntiAirGunOperator::damage ( double force )
 {
-	// TODO implement damage
-	qDebug("TODO implement AA gun operator damage");
+	if ( ! _broken )
+	{
+		if ( _damageReceived < damageCapacity() )
+		{
+			_damageReceived += force;
+		}
+		
+		if ( _damageReceived >= damageCapacity() )
+		{
+			_damageReceived = damageCapacity();
+			_broken = true;
+			if ( _pGun ) _pGun->setFiring( false );
+		}
+	}
 }
 
 // ============================================================================
 // Simulates
 void AntiAirGunOperator::simulate ( double dt )
 {
-	if ( _pGun )
+	if ( _pGun && ! _broken )
 	{
 		bool shoot = false;
 		QPointF enemy = getEnemyPos();

@@ -21,6 +21,7 @@
 #include <QList>
 #include <QMap>
 #include <QLinkedList>
+#include <QLinearGradient>
 
 #include "worldobject.h"
 #include "environment.h"
@@ -66,7 +67,6 @@ public:
 		
 		// TODO others here
 	};
-
 
 	World();
 	virtual ~World();
@@ -121,6 +121,10 @@ private:
 	
 	/// List of objects to be destroyed during next simulation stet
 	QLinkedList<WorldObject*> _objectsToDestroy;
+	
+	void renderAthmosphere( QPainter& painter, const QRectF& rect );
+	QLinearGradient	_skyGradient;	///< sky gradient (experimental)
+	
 };
 
 }

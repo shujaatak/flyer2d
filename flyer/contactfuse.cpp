@@ -42,7 +42,6 @@ ContactFuse::~ContactFuse()
 void ContactFuse::damage ( double force )
 {
 	_damageReceived += force;
-	qDebug("fuse damaged to %g. limit is %g", _damageReceived,  damageCapacity() );
 	if ( ! _destroyed && _damageReceived >= damageCapacity() )
 	{
 		Explosion* pExplosion = new Explosion( parent()->world() );

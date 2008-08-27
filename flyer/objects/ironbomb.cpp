@@ -53,8 +53,8 @@ void IronBomb::init( const QPointF& position, double angle )
 	setMainBody( _bodyMain );
 	
 	// create dm
-	_dmFuse = new DamageManager( 3E3 ); // small value
-	// TODO add system here
+	_dmFuse = new DamageManager( 5E3 ); // small value
+	addDamageManager( _dmFuse );
 	
 	// create shape
 	b2PolygonDef shapeDef;

@@ -21,6 +21,7 @@
 
 #include "worldwidget.h"
 #include "plane.h"
+#include "b2dqt.h"
 
 namespace Flyer
 {
@@ -54,24 +55,36 @@ WorldWidget::~WorldWidget()
 
 
 // ============================================================================
-// Paints event.
-/*
-void WorldWidget::paintEvent( QPaintEvent* pEvent )
-{
-	QPainter painter( this );
-	
-	render( painter );
-}
-*/
-// ============================================================================
 // Renders widget
 void WorldWidget::render( QPainter& painter )
 {
 	painter.setRenderHint( QPainter::Antialiasing, true );
 	painter.setRenderHint( QPainter::HighQualityAntialiasing, true );
 	
-	// white background
-	painter.fillRect( rect(), Qt::white );
+	painter.save();
+		painter.setTransform( _transform );
+		
+		_pWorld->render( painter, _transform.inverted().mapRect( rect() ) );
+		
+		// render map
+		QRectF worldRect = _pWorld->boundary();
+		
+		QTransform mapTransform;
+		mapTransform.translate( 10, height() - 10 );
+		double mapScale = 40.0 / worldRect.height();
+		mapTransform.scale( mapScale, - mapScale );
+		mapTransform.translate( -worldRect.left(), -worldRect.top() );
+		
+		//painter.setTransform( mapTransform, false );
+		QRectF mapRect = mapTransform.mapRect( worldRect );
+		
+		painter.setTransform( mapTransform, false );
+		painter.setPen( Qt::black );
+		painter.setBrush( Qt::yellow );
+		painter.drawRect( worldRect );
+		
+		_pWorld->renderMap( painter, worldRect );
+	painter.restore();
 	
 	// airpseed
 	QString airspeed;
@@ -94,29 +107,6 @@ void WorldWidget::render( QPainter& painter )
 		painter.drawText( 10, 55, "autopilot" );
 	}
 	
-	
-	painter.setTransform( _transform );
-	
-	_pWorld->render( painter, _transform.inverted().mapRect( rect() ) );
-	
-	// render map
-	QRectF worldRect = _pWorld->boundary();
-	
-	QTransform mapTransform;
-	mapTransform.translate( 10, height() - 10 );
-	double mapScale = 40.0 / worldRect.height();
-	mapTransform.scale( mapScale, - mapScale );
-	mapTransform.translate( -worldRect.left(), -worldRect.top() );
-	
-	//painter.setTransform( mapTransform, false );
-	QRectF mapRect = mapTransform.mapRect( worldRect );
-	
-	painter.setTransform( mapTransform, false );
-	painter.setPen( Qt::black );
-	painter.setBrush( Qt::yellow );
-	painter.drawRect( worldRect );
-	
-	_pWorld->renderMap( painter, worldRect );
 }
 
 // ============================================================================
@@ -174,7 +164,9 @@ void WorldWidget::adjustTransform()
 {
 	QPointF pos = plane()->pos();
 	double airspeed = plane()->airspeed();
+	b2Vec2 velocity = plane()->linearVelocity();
 	
+	// calculate zoom from airspeed
 	double zoomMax = 10.0; // pixels per meter
 	double zoomMin = 1.0;
 	
@@ -185,13 +177,31 @@ void WorldWidget::adjustTransform()
 		if ( zoom > zoomMax ) zoom = zoomMax;
 		if ( zoom < zoomMin ) zoom = zoomMin;
 	}
-	QTransform t;
+	// calculate position from velocity vector
+	double velMax = 30.0;
+	double relPosX = qMax( -1.0, qMin( 1.0, velocity.x / velMax ) );
+	double relPosY = qMax( -0.5, qMin( 1.0, velocity.y / velMax ) );
+	
 	int w = width();
 	int h = height();
 	
+	// desired plane position, in pixels
+	double posX = w * ( 0.5 - 0.3*relPosX );
+	double posY = h * ( 0.5 + 0.4*relPosY );
 	
+	// modify _planePos to make it closer to 
+	double maxSpeed = 50 * _pWorld->timestep(); /// max speed in pixels/per second * timestep
+	double ex = qMax( -maxSpeed, qMin( maxSpeed, _planePos.x() - posX ));
+	double ey = qMax( -maxSpeed, qMin( maxSpeed, _planePos.y() - posY ));
+	
+	_planePos.rx()  -= ex;
+	_planePos.ry()  -= ey;
+	//qDebug("ex: %g, ey: %g. desired pos: %g,%g, current pos: %g,%g", ex, ey, posX, posY,  _planePos.x(), _planePos.y() );
+	
+	
+	QTransform t;
 	t.scale( zoom, -zoom );
-	t.translate( -pos.x() + w/(zoom*2), -pos.y()- h/zoom/2 );
+	t.translate( -pos.x() + _planePos.x()/zoom, -pos.y()- _planePos.y()/zoom );
 	
 	_transform = t;
 }
@@ -200,6 +210,7 @@ void WorldWidget::adjustTransform()
 // Resize event - handles resizing.
 void WorldWidget::resizeEvent( QResizeEvent* )
 {
+	_planePos = QPointF( width()/2.0, height() / 2.0 );
 	adjustTransform();
 }
 
