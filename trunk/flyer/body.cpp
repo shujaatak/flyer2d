@@ -236,6 +236,7 @@ void Body::flip( const QPointF& p1, const QPointF& p2 )
 		
 		//transform position
 		
+		// NOTE similar code used in autopilot
 		double axisAngle = atan2( p2.y() - p1.y(), p2.x() - p1.x() );
 		double ds = (p2.y() - p1.y())*(p2.y() - p1.y()) + (p2.x() - p1.x())*(p2.x() - p1.x()); // distance squared between p1 nad p2
 		double u = ( ( pos.x - p1.x() ) * (p2.x() - p1.x()) + (pos.y - p1.y()) * (p2.y() - p1.y())) / ds; // helper value

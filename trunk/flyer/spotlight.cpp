@@ -74,7 +74,7 @@ void Spotlight::render(QPainter& painter, const QRectF& )
 		lightShape.append( QPointF( _currentRange, _currentRange*_width/2 ) );
 		lightShape.append( QPointF( _currentRange, -_currentRange*_width/2 ) );
 		
-		QLinearGradient gradient( QPointF(0,0), QPointF( _range, 0 ) );
+		QLinearGradient gradient( QPointF(0,0), QPointF( _currentRange, 0 ) );
 		
 		QColor colorStart = _color;
 		colorStart.setAlpha( 255 );

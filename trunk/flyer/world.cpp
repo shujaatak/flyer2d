@@ -172,9 +172,9 @@ void World::initWorld()
 	addObject( new LandingLight( this, 10300, 800, 0.25 ),  ObjectRenderedBuildings | ObjectSimulated  );
 	
 	// AA batteries
-	addObject( new AntiAirBattery( this, 1000, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRenderedBuildings | ObjectSide2 | ObjectRenderedMap   );
-	addObject( new AntiAirBattery( this, 1050, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRenderedBuildings | ObjectSide2 | ObjectRenderedMap  );
-	addObject( new AntiAirBattery( this, 1100, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRenderedBuildings | ObjectSide2 | ObjectRenderedMap  );
+	addObject( new AntiAirBattery( this, 3000, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRenderedBuildings | ObjectSide2 | ObjectRenderedMap   );
+	addObject( new AntiAirBattery( this, 3050, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRenderedBuildings | ObjectSide2 | ObjectRenderedMap  );
+	addObject( new AntiAirBattery( this, 3100, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRenderedBuildings | ObjectSide2 | ObjectRenderedMap  );
 	addObject( new AntiAirBattery( this, -2000, 1.2 ), ObjectInstallation | ObjectSimulated | ObjectRenderedBuildings | ObjectSide2 | ObjectRenderedMap   );
 	
 	// sky gradient
