@@ -40,7 +40,7 @@ static const QPointF ENGINE_POS = QPointF( 1.5, 0.0 );
 static const double ELEVATOR_LIFT = 10.0;
 static const double ELEVATOR_LENGTH = 1.0;
 static const double MAX_THRUST = 600; // kg force
-static const double WHEEL_BRAKE_TORQUE = 1000; // not too big, to have nice effects
+static const double WHEEL_BRAKE_TORQUE = 1200; // not too big, to have nice effects
 static const double ELEVATOR_STEP = 0.2;	/// elevator movement - in radians
 
 static const QPointF ENGINE_JOINT_POS( 1.4, 0.0 );
@@ -171,12 +171,69 @@ void PlaneBumblebee::createSystems()
 	
 	// autopilot
 	_sysAutopilot = new Autopilot( this, "autopilot" );
-	_sysAutopilot->setPID( AP_P, AP_I, AP_D );
 	_sysAutopilot->setElevator( _sysElevator );
+	_sysAutopilot->setEngine( _sysEngine );
+	_sysAutopilot->setWing( _sysWing );
 	_sysAutopilot->setBody( _bodyHull );
 	_sysAutopilot->setDamageCapacity( 50E3 );
-	addSystem( _sysAutopilot, SystemSimulated );
+	addSystem( _sysAutopilot, SystemSimulated | SystemRendered1 );
 	setAutopilot( _sysAutopilot );
+	
+	Autopilot::Settings apsettings;
+	apsettings.minSpeed = 15.0;
+	apsettings.flapsOpenSpeed = 25.0;
+	apsettings.flapsCloseSpeed = 15.0;
+	apsettings.P = AP_P;
+	apsettings.I = AP_I;
+	apsettings.D = AP_D;
+	apsettings.maxClimbRate = 0.2;
+	apsettings.maxDescentRate = 0.5;
+	apsettings.VVP = 1;
+	apsettings.VVI = 0.5;
+	apsettings.safeAngle = 0.3;
+	
+	_sysAutopilot->setSettings( apsettings );
+	_sysAutopilot->setMode( Autopilot::FollowTrack );
+	
+	// add sample track - -from central airport to the far one
+	
+	// climb
+	Autopilot::TrackSegment s;
+	s.start.Set( 400, 400 );
+	s.end.Set( 3000, 700 );
+	s.airspeed = 80;
+	_sysAutopilot->track().append( s );
+	
+	// climb 2
+	s.start.Set( 3000, 700 );
+	s.end.Set( 5000, 1000 );
+	s.airspeed = 80;
+	_sysAutopilot->track().append( s );
+	
+	// route
+	s.start.Set( 5000, 1000 );
+	s.end.Set( 9300, 1000 );
+	s.airspeed = 80;
+	_sysAutopilot->track().append( s );
+	
+	// approach
+	s.start.Set( 9300, 1000 );
+	s.end.Set( 10050, 810 );
+	s.airspeed = 18;
+	_sysAutopilot->track().append( s );
+	
+	// touch down
+	s.start.Set( 10050, 810 );
+	s.end.Set( 10100, 802 );
+	s.airspeed = 12;
+	s.orders.insert( Autopilot::Land );
+	_sysAutopilot->track().append( s );
+	
+	// stop
+	s.start.Set( 10100, 802 );
+	s.end.Set( 10300, 800 );
+	s.airspeed = 0;
+	_sysAutopilot->track().append( s );
 	
 	// gun
 	_sysGun = new Gun( this, "kalashnikov" );

@@ -77,7 +77,7 @@ void Engine::damage ( double force )
 	}
 	else
 	{
-		qDebug("Engine: max thrust reduced to %g due to force %g", _currentMaxThrust, force );
+		//qDebug("Engine: max thrust reduced to %g due to force %g", _currentMaxThrust, force );
 	}
 }
 

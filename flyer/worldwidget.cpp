@@ -124,6 +124,11 @@ void WorldWidget::onTimer()
 	if ( plane()->autopilot() )
 	{
 		emit elevatorChanged( plane()->elevatorAngle() );
+		//if ( plane()->autopilot()->mode() == Autopilot::FollowTrack )
+		//{
+			emit flapsChanged( plane()->flaps() );
+			emit throttleChanged( plane()->throttle() );
+		//}
 	}
 }
 
@@ -168,17 +173,18 @@ void WorldWidget::adjustTransform()
 	
 	// calculate zoom from airspeed
 	double zoomMax = 10.0; // pixels per meter
-	double zoomMin = 1.0;
+	double zoomMin = 0.3;
+	double minZoomSpeed = 15.0; // speed below zom is always min
 	
 	double zoom = zoomMax;
-	if ( airspeed > 1 )
+	if ( airspeed > ( minZoomSpeed + 1 ) )
 	{
-		zoom = 100.0/airspeed;
+		zoom = 50.0/(airspeed - minZoomSpeed);
 		if ( zoom > zoomMax ) zoom = zoomMax;
 		if ( zoom < zoomMin ) zoom = zoomMin;
 	}
 	// calculate position from velocity vector
-	double velMax = 30.0;
+	double velMax = 50.0;
 	double relPosX = qMax( -1.0, qMin( 1.0, velocity.x / velMax ) );
 	double relPosY = qMax( -0.5, qMin( 1.0, velocity.y / velMax ) );
 	
@@ -186,13 +192,18 @@ void WorldWidget::adjustTransform()
 	int h = height();
 	
 	// desired plane position, in pixels
+	/* i'l lthink i'll withdraw all the motion
 	double posX = w * ( 0.5 - 0.3*relPosX );
-	double posY = h * ( 0.5 + 0.4*relPosY );
+	double posY = h * ( ( fabs( velocity.x ) > 20.0 ) ? ( 0.35 + 0.15*relPosY ) : 0.5 );
+	*/
+	double posX = w * 0.5;
+	double posY = h * ( ( fabs( velocity.x ) > 30.0 ) ? 0.35  : 0.5 );
 	
 	// modify _planePos to make it closer to 
-	double maxSpeed = 50 * _pWorld->timestep(); /// max speed in pixels/per second * timestep
-	double ex = qMax( -maxSpeed, qMin( maxSpeed, _planePos.x() - posX ));
-	double ey = qMax( -maxSpeed, qMin( maxSpeed, _planePos.y() - posY ));
+	double maxSpeedX = 300 * _pWorld->timestep(); /// max speed in pixels/per second * timestep
+	double maxSpeedY = 50 * _pWorld->timestep(); /// max speed in pixels/per second * timestep
+	double ex = qMax( -maxSpeedX, qMin( maxSpeedX, _planePos.x() - posX ));
+	double ey = qMax( -maxSpeedY, qMin( maxSpeedY, _planePos.y() - posY ));
 	
 	_planePos.rx()  -= ex;
 	_planePos.ry()  -= ey;
@@ -220,7 +231,9 @@ void WorldWidget::mouseMoveEvent( QMouseEvent* pEvent )
 {
 	if ( ! plane()->autopilot() )
 	{
-		double e = 2* ( - pEvent->y() / double(height()) + 0.5 );
+		double y = 2* ( - pEvent->y() / double(height()) + 0.5 );
+		//double e = y > 0 ? y*y : -y*y; // TODO expoeriment - use 2nd power as input function (3rd is too big, I've checked)
+		double e = y; // neeeeeeeeeey, linear is teh best!
 		plane()->setElevator( e );
 		emit elevatorChanged( e );
 	}
