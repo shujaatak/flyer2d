@@ -74,29 +74,7 @@ PlaneBumblebee::PlaneBumblebee( World* pWorld, const QPointF& pos, double angle 
 	createDamageManagers();
 	createShapes();
 	
-	// add bomb, temporary code
-	_pBomb = new IronBomb( pWorld );
-	_pBomb->setLength( 1.0 );
-	_pBomb->setDiameter( 0.3 );
-	_pBomb->setMass( 100 );
-	_pBomb->setEnergy( 1E6 );
-	
-	QPointF bombPos = QPointF( -1.0, -0.9 );
-	QTransform t = mainBody()->transform();
-	_pBomb->init( t.map( bombPos ), angle - 0.1 );
-	pWorld->addObject( _pBomb, World::ObjectSimulated | World::ObjectRenderedVehicles );
-	
-	// connect to bomb
-	_jointBomb = new Joint();
-	b2Vec2 bjpos = _pBomb->mainBody()->b2body()->GetWorldPoint( b2Vec2(0,0) );
-	b2RevoluteJointDef bj;
-	bj.Initialize( _pBomb->mainBody()->b2body(), mainBody()->b2body(), bjpos );
-	bj.enableLimit = true;
-	bj.upperAngle = 0;
-	bj.lowerAngle = 0;
-	_jointBomb->create( & bj, pWorld->b2world() );
-	_jointBomb->setBodies( _pBomb->mainBody(), mainBody() );
-	//_jointBomb = NULL;
+	_jointBomb = NULL;
 }
 
 // ============================================================================
@@ -130,14 +108,21 @@ void PlaneBumblebee::createSystems()
 	setEngine( _sysEngine );
 	
 	// wheel mounting
-	_sysWheelMounting = new Mounting( this, "wheel mounting" );
+	_sysWheelMounting = new Mounting( this, "Wheel mounting" );
 	_sysWheelMounting->setTolerance( 30E3 );
 	_sysWheelMounting->setDamageCapacity( 200E3 );
 	_sysWheelMounting->setJoint( _jointWheel );
 	addSystem( _sysWheelMounting, SystemSimulated );
 	
+	// leg mounting
+	Mounting* pLegMounting = new Mounting( this, "Leg mounting" );
+	pLegMounting->setTolerance( 30E3 );
+	pLegMounting->setDamageCapacity( 400E3 );
+	pLegMounting->setJoint( _jointLeg );
+	addSystem( pLegMounting, SystemSimulated );
+	
 	// wing
-	_sysWing = new Wing( this, "wing" );
+	_sysWing = new Wing( this, "Wing" );
 	_sysWing->setWidth( WING_WIDTH );
 	_sysWing->setDragCoeffH( WING_DRAG_H );
 	_sysWing->setDragCoeffV( WING_DRAG_V );
@@ -197,23 +182,29 @@ void PlaneBumblebee::createSystems()
 	
 	// add sample track - -from central airport to the far one
 	
-	// climb
+	// pre-climb
 	Autopilot::TrackSegment s;
+	s.start.Set( -400, 400 );
+	s.end.Set( 400, 400 );
+	s.airspeed = 60;
+	_sysAutopilot->track().append( s );
+	
+	// climb
 	s.start.Set( 400, 400 );
 	s.end.Set( 3000, 700 );
-	s.airspeed = 80;
+	s.airspeed = 40;
 	_sysAutopilot->track().append( s );
 	
 	// climb 2
 	s.start.Set( 3000, 700 );
 	s.end.Set( 5000, 1000 );
-	s.airspeed = 80;
+	s.airspeed = 40;
 	_sysAutopilot->track().append( s );
 	
 	// route
 	s.start.Set( 5000, 1000 );
 	s.end.Set( 9300, 1000 );
-	s.airspeed = 80;
+	s.airspeed = 40;
 	_sysAutopilot->track().append( s );
 	
 	// approach
@@ -236,16 +227,10 @@ void PlaneBumblebee::createSystems()
 	_sysAutopilot->track().append( s );
 	
 	// gun
-	_sysGun = new Gun( this, "kalashnikov" );
+	_sysGun = Gun::berezin( this, "Berezin" );
 	_sysGun->setBody( _bodyHull );
-	_sysGun->setMuzzle( QPointF( 2.0, 0.0 ) );
+	_sysGun->setMuzzle( QPointF( 3.0, 0.0 ) );
 	_sysGun->setNormal( QPointF( 1.0, 0.0 ) );
-	_sysGun->setBulletMass( 7.91E-3 ); 
-	_sysGun->setBulletVelocity( 735 );
-	_sysGun->setBulletSize( 7.85E-3 ); // NOTE all data taken from kalashnikov ;)
-	_sysGun->setFiringInterval( 0.4 ); // 2.5 shots/sec
-	_sysGun->setBulletLifespan( 4.0 );
-	_sysGun->setDamageCapacity( 100E3 );
 	addSystem( _sysGun, SystemSimulated );
 	setGun( _sysGun );
 }
@@ -483,10 +468,12 @@ void PlaneBumblebee::createDamageManagers()
 	_dmHull->addSystem( NULL, 10 ); // 50% unused
 	addDamageManager( _dmHull );
 	
-	// tail
+	// tail - wings and engin also could be damaged
 	_dmTail = new DamageManager( 3E4 );
-	_dmTail->addSystem( _sysElevator, 1 );
-	_dmTail->addSystem( NULL, 2 );
+	_dmTail->addSystem( _sysEngine, 1 );
+	_dmTail->addSystem( _sysWing, 3 );
+	_dmTail->addSystem( _sysElevator, 2 );
+	_dmTail->addSystem( NULL, 4 );
 	addDamageManager( _dmTail );
 	
 }

@@ -54,6 +54,11 @@ public:
 	void setFiring( bool firing ) { _firing = firing; }
 	bool firing() const { return _firing; }
 	
+	// predefined guns
+	
+	static Gun* kalashikov( Machine* pParent, const QString& name = "Kalashinkov" );
+	static Gun* berezin( Machine* pParent, const QString& name = "Berezin" );
+	
 private:
 
 	// config

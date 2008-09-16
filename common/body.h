@@ -21,9 +21,14 @@
 #include <QPainterPath>
 #include <QTransform>
 #include <QString>
+#include <QPixmap>
 class QPainter;
 
 #include "Box2D.h"
+
+#include "serializable.h"
+#include "shape.h"
+
 
 namespace Flyer
 {
@@ -32,7 +37,7 @@ namespace Flyer
 	Wrap around b2Body. It rembeers it's shapes and know how to re-create itself.
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class Body
+class Body : public Serializable
 {
 public:
 	Body( const QString& name = "" );
@@ -50,8 +55,17 @@ public:
 	/// Retruns underlying box2d body
 	b2Body* b2body() const { return _pBody; }
 	
+	/// Returns body definition. Usable only before creation.
+	b2BodyDef& def() { return _definition; }
+	
 	/// Adds shape to body
-	void addShape( b2ShapeDef* pShapeDef, bool removeUserData  = false );
+	Shape* addShape( const Shape& shape, bool removeUserData  = false );
+	
+	/// Returns list of shapes
+	const QList<Shape>& shapes() const { return _shapes; }
+	
+	/// Returns reference to internal list of shapes
+	QList<Shape>& shapes() { return _shapes; }
 	
 	/// Returns body shape as painter path
 	QPainterPath shape() const;
@@ -69,16 +83,50 @@ public:
 	bool isConnectedTo( Body* pBody ) const;
 	
 	QString name() const { return _name; }
+	void setName( const QString& s ) { _name = s; }
+	
+	/// Sets body's collision layers
+	void setLayers( int layers );
+	
+	/// Sets texture
+	void setTexture( const QString& path );
+	QString texture() const { return _texturePath; }
+	
+	/// Sets texture's corner position
+	void setTexturePosition( const QPointF& pos );
+	const QPointF& texturePosition() const { return _texturePosition; }
+	
+	/// Sets texture scale [meters per pixel]
+	void setTextureScale( double s );
+	double textureScale() const { return _textureScale; }
+	
+protected:
+
+	/// Puts object into stream
+	virtual void toStream( QDataStream& stream ) const;
+	/// Loads object from stream
+	virtual void fromStream( QDataStream& stream );
+	
+	/// Provides ID which identifies object type
+	virtual QString classId() const { return "Body"; }
 
 private:
 
 	// opoerations
-	bool doIsConnectedTo( Body* pBody, QList<Body*>& visited ) const;
+	bool doIsConnectedTo( Body* pBody, QList<const Body*>& visited ) const;
 
 	QString		_name;			///< Body name
 	b2Body*		_pBody;
 	b2BodyDef	_definition;
-	QList< b2ShapeDef*>	_shapeDefinitions;
+	QList<Shape>	_shapes;
+	int			_layers;		///< Collision layers
+	
+	// texturing support
+	
+	QPixmap		_texture;
+	QString		_texturePath;	///< Path to texture
+	QPointF		_texturePosition;
+	double		_textureScale;
 };
 
 }

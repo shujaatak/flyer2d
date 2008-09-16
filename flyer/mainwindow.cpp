@@ -20,6 +20,7 @@
 #include "mainwindow.h"
 #include "plane.h"
 #include "statuswindow.h"
+#include "world.h"
 
 namespace Flyer
 {
@@ -41,6 +42,11 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags f): QWidget(parent, f)
 	_pStatusWindow = new StatusWindow();
 	_pStatusWindow->show();
 	_pStatusWindow->setMachine( worldWidget->plane() );
+	
+	StatusWindow* pEnemy = new StatusWindow();
+	pEnemy->setMachine( worldWidget->world()->_pEnemyPlane );
+	pEnemy->show();
+	pEnemy->setWindowTitle( "Enemy plane" );
 }
 
 // ============================================================================

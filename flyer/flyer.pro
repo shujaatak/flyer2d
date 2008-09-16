@@ -12,7 +12,6 @@ SOURCES = main.cpp worldwidget.cpp \
  damagemanager.cpp \
  system.cpp \
  engine.cpp \
- body.cpp \
  joint.cpp \
  mounting.cpp \
  environment.cpp \
@@ -22,7 +21,6 @@ SOURCES = main.cpp worldwidget.cpp \
  wheelbrake.cpp \
  autopilot.cpp \
  machine.cpp \
- b2dqt.cpp \
  bullet.cpp \
  gun.cpp \
  spotlight.cpp \
@@ -33,10 +31,12 @@ SOURCES = main.cpp worldwidget.cpp \
  shrapnel.cpp \
  explosion.cpp \
  objects/ironbomb.cpp \
- contactfuse.cpp
+ contactfuse.cpp \
+ cloud.cpp \
+ building.cpp \
 
 
-HEADERS = worldwidget.h Box2D.h \
+HEADERS = worldwidget.h \
  mainwindow.h \
  plane.h \
  world.h \
@@ -47,12 +47,10 @@ HEADERS = worldwidget.h Box2D.h \
  damagemanager.h \
  system.h \
  engine.h \
- body.h \
  joint.h \
  mounting.h \
  environment.h \
  surface.h \
- b2dqt.h \
  wing.h \
  controlsurface.h \
  wheelbrake.h \
@@ -68,13 +66,13 @@ HEADERS = worldwidget.h Box2D.h \
  shrapnel.h \
  explosion.h \
  objects/ironbomb.h \
- contactfuse.h
+ contactfuse.h \
+ cloud.h \
+ building.h \
 
 FORMS += mainwindow.ui \
  statuswindow.ui
 
-LIBS += -L. \
-  -lbox2d
 
 CONFIG -= release
 
@@ -86,5 +84,11 @@ HEADERS -= object.h
 
 #DEFINES += FLYER_NO_OPENGL
 INCLUDEPATH += objects/ \
-  ..
+  ../include \
+  ../common
 
+LIBS += -L../lib/ \
+  -L. \
+  -lbox2d -lflyercommon
+
+POS_TARGETDESP = ../lib/libflyercommon.a

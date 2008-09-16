@@ -100,7 +100,9 @@ Ground::Ground ( World* pWorld ) : WorldObject ( pWorld )
 	b2BodyDef groundBodyDef;
 	groundBodyDef.position.SetZero();
 	
-	_pGround = pWorld->b2world()->CreateBody( & groundBodyDef );
+	_pGround = new Body("Ground");
+	_pGround->create( groundBodyDef, pWorld->b2world() );
+	_pGround->setLayers( 0xffff ); //alll!
 	
 	QList<b2PolygonDef*> shapes = createShape();
 	foreach( b2PolygonDef* pShape, shapes )
@@ -112,7 +114,7 @@ Ground::Ground ( World* pWorld ) : WorldObject ( pWorld )
 			, pShape->vertices[2].x, pShape->vertices[2].y
 			);
 		*/
-		_pGround->CreateShape( pShape );
+		_pGround->addShape( pShape );
 		delete pShape;
 	}
 	
@@ -134,7 +136,7 @@ void Ground::setHeightmap( const QPolygonF& heightMap )
 
 // ================================== height ========================
 /// Calculates y for specified x.
-double Ground::height( double x )
+double Ground::height( double x ) const
 {
 	// find line containing this coordinate
 	for( int i = 0; i < _heightmap.size() - 1; i++ )
@@ -433,7 +435,7 @@ b2PolygonDef* Ground::createTriangleB2Shape( const QPointF& a, const QPointF& b,
 
 // ============================================================================
 // Renders ground
-void Ground::render ( QPainter& painter, const QRectF& rect  )
+void Ground::render ( QPainter& painter, const QRectF& /*rect*/  )
 {
 	painter.setPen( Qt::black );
 	painter.setBrush( Qt::green );

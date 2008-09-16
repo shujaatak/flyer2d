@@ -43,13 +43,25 @@ public:
 
 	virtual ~WorldWidget();
 	
+	// world an it's elements
+	
 	Plane* plane() const;
+	World* world() const { return _pWorld; }
 	
 	// simulation control
 	
 	void start();
 	void stop();
 	void step();
+	
+	// zoom levels
+	enum Zoom
+	{
+		ZOOM1,	///< Level 1 - closeup
+		ZOOM2,	///< Level 2 - as usual
+		ZOOM3	///< Level 3 - far view
+	};
+	
 	
 signals:
 
@@ -92,6 +104,7 @@ private:
 	QPointF	_planePos;			///< Current displayed plane pos in pixels
 	
 	int _frames;				///< Frame counter
+	Zoom _zoom;					///< Current zoom level
 };
 
 }

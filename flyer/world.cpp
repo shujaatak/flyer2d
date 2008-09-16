@@ -24,6 +24,8 @@
 #include "damagemanager.h"
 #include "antiairbattery.h"
 #include "explosion.h"
+#include "joint.h"
+#include "building.h"
 
 
 namespace Flyer {
@@ -72,6 +74,23 @@ class WorldContactListener : public b2ContactListener
 	
 };
 	
+/// Destruction listener class.
+class DestructionListener: public b2DestructionListener
+{
+	/// Handles physical joint destruction
+	virtual void SayGoodbye( b2Joint* pb2Joint )
+	{
+		Joint* pJoint = static_cast<Joint*>( pb2Joint->GetUserData() );
+		if ( pJoint )
+		{
+			pJoint->jointDestroyed();
+		}
+	}
+	
+	/// Handles shape destruction. Unused.
+	virtual void SayGoodbye(b2Shape* ){}
+};
+
 
 
 // ============================================================================
@@ -98,6 +117,10 @@ void World::render( QPainter& painter, const QRectF& rect )
 	QList<int> layers;
 	layers << ObjectRenderedSky << ObjectRenderedBackground << ObjectRenderedBuildings
 		<< ObjectRenderedVehicles << ObjectRenderedForeground;
+	//layers << ObjectRenderedBackground << ObjectRenderedBuildings;
+	
+	// bug workartound ?  first pait something with vcectors
+	painter.drawLine( QPointF( 1, 1 ), QPointF( 2, 2 ) );
 	
 	foreach ( int layer, layers )
 	{
@@ -136,6 +159,7 @@ void World::renderMap( QPainter& painter, const QRectF& rect )
 // Initializes world
 void World::initWorld()
 {
+	_steps = 0;
 	_boundary = QRectF( -15000, -500, 30000, 3000 ); // 30x3 km box
 	// create world
 	b2AABB worldAABB;
@@ -150,6 +174,9 @@ void World::initWorld()
 	// add contact listener to detect damage
 	_pb2World->SetContactListener( new WorldContactListener() );
 	
+	// add destruction listener
+	_pb2World->SetDestructionListener( new DestructionListener() );
+	
 	
 	// init ground
 	_pGround = new Ground( this );
@@ -158,6 +185,13 @@ void World::initWorld()
 	// init plane
 	_pPlayerPlane = new PlaneBumblebee( this, QPointF( 0, _pGround->height(300) + 2.5 ), 0.2 );
 	addObject( _pPlayerPlane, ObjectRenderedVehicles | ObjectSide1 | ObjectSimulated | ObjectPlane | ObjectRenderedMap );
+	
+	// enemy plane (!)
+	PlaneBumblebee* pEnemy = new PlaneBumblebee( this, QPointF( -400, 400 ), 0.0 );
+	pEnemy->mainBody()->b2body()->SetLinearVelocity( b2Vec2( 30, 0 ) ); // some initial speed
+	pEnemy->setAutopilot( true ); // turn on autopilot
+	addObject( pEnemy, ObjectRenderedVehicles | ObjectSide2 | ObjectSimulated | ObjectPlane | ObjectRenderedMap );
+	_pEnemyPlane = pEnemy; // debug variable
 	
 	
 	// airfields
@@ -182,6 +216,18 @@ void World::initWorld()
 	_skyGradient.setFinalStop( _boundary.left() + _boundary.width()/ 2, _boundary.bottom() );
 	_skyGradient.setColorAt( 0.0, QColor("#99B0F4"));
 	_skyGradient.setColorAt( 1.0, QColor("#0D47F4"));
+	
+	// create towns
+	createTown( 400, 800, true ); // TODO teporarly disanled to torack down texture problems
+	createTown( 1300, 200, true );
+	
+	// add sample building at the runway
+	Building::createSmallBuilding( this, 30, true );
+	//for( int i = 0; i < 140; i++ )
+	//{
+	//	Building::createSmallBuilding( this, 220 + 5*i, false );
+	//}
+	
 }
 
 // ============================================================================
@@ -203,6 +249,14 @@ void World::simulate( double dt )
 			pObject->simulate( dt/iters );
 		}
 	}
+	_steps ++;
+}
+
+// ============================================================================
+/// Returns current simulation time - seconds since simulato started
+double World::time()
+{
+	return _steps * TIMESTEP;
 }
 
 // ============================================================================
@@ -247,6 +301,33 @@ void World::removeObject( WorldObject* pObject, bool destroy )
 double World::timestep() const
 {
 	return TIMESTEP;
+}
+
+// ============================================================================
+/// Creates town at specified locations
+void World::createTown( double start, double end, bool small )
+{
+	// foreground
+	double x = start;
+	while( x < end )
+	{
+		Building* pBuilding = Building::createSmallBuilding( this, x, false );
+		double spacing = 1.5 + ((qrand()%100)/100.0);
+		
+		x += spacing * pBuilding->width();
+	}
+	
+	// background
+	x = start + 20.0 * ((qrand()%100)/100.0);
+	while( x < end )
+	{
+		Building* pBuilding = Building::createSmallBuilding( this, x, true );
+		double spacing = 2.5 + 3.0*((qrand()%100)/100.0);
+		
+		x += spacing * pBuilding->width();
+	}
+	
+
 }
 
 }

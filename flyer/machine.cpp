@@ -31,6 +31,7 @@ namespace Flyer
 Machine::Machine ( World* pWorld ) : WorldObject ( pWorld )
 {
 	_orientation = 1.0;
+	_layers = 0;
 }
 
 // ============================================================================
@@ -151,6 +152,7 @@ void Machine::addBody( Body* pBody, int types )
 	}
 	
 	_allBodies.append( pBody );
+	pBody->setLayers( _layers );
 }
 
 // ============================================================================
@@ -215,7 +217,7 @@ void Machine::flip( const QPointF& p1, const QPointF& p2 )
 
 // ============================================================================
 /// Returns machine position in world coorindates, using main body position. Returns null pointif ther's no main body.
-QPointF Machine::pos() const
+QPointF Machine::position() const
 {
 	if ( _pMainBody && _pMainBody->b2body() )
 	{
@@ -247,25 +249,46 @@ void Machine::doBreakJoint( Joint* pJoint )
 	// check whcih bodies are detached
 	if ( pBody1 && ! pBody1->isConnectedTo( mainBody() ) )
 	{
-		Body*		pCopy = pBody1->createCopy();
-		Shrapnel*	pShrapnel = new Shrapnel( world() );
-		pShrapnel->addBody( pCopy );
-		world()->addObject( pShrapnel, World::ObjectSimulated | World::ObjectRenderedForeground );
-		pBody1->destroy();
-		qDebug("Body %s detached", qPrintable( pBody1->name() ) );
+		detachBody( pBody1 );
 	}
 	else if ( pBody2 && ! pBody2->isConnectedTo( mainBody() ) )
 	{
-		Body*		pCopy = pBody2->createCopy();
-		Shrapnel*	pShrapnel = new Shrapnel( world() );
-		pShrapnel->addBody( pCopy );
-		world()->addObject( pShrapnel, World::ObjectSimulated | World::ObjectRenderedForeground );
-		pBody2->destroy();
-		qDebug("Body %s detached", qPrintable( pBody1->name() ) );
+		detachBody( pBody2 );
 	}
 	else
 	{
 		qFatal("Machine bodies not connected to main body");
+	}
+}
+
+// ============================================================================
+/// Detaches body from machine, turning it into shrapnell
+void Machine::detachBody( Body* pBody )
+{
+	if ( pBody->b2body() )
+	{
+		Body*		pCopy = pBody->createCopy();
+		Shrapnel*	pShrapnel = new Shrapnel( world() );
+		pShrapnel->addBody( pCopy );
+		world()->addObject( pShrapnel, World::ObjectSimulated | World::ObjectRenderedForeground );
+		
+		QList<Body*> connectedBodies;
+		b2JointEdge* pJoint = pBody->b2body()->GetJointList();
+		while( pJoint )
+		{
+			Body* pOther =  static_cast<Body*>( pJoint->other->GetUserData() );
+			if ( pOther ) connectedBodies.append( pOther );
+			pJoint = pJoint->next;
+		}
+		
+		pBody->destroy();
+		qDebug("Body %s detached", qPrintable( pBody->name() ) );
+		
+		// detach connected bodies
+		foreach( Body* pConnected, connectedBodies )
+		{
+			detachBody( pConnected );
+		}
 	}
 }
 
@@ -280,5 +303,29 @@ b2Vec2 Machine::linearVelocity() const
 	
 	return b2Vec2(0,0);
 }
+
+// ============================================================================
+/// Returns mahcine orenitation.
+double Machine::angle() const
+{
+	if ( _pMainBody && _pMainBody->b2body() )
+	{
+		return _pMainBody->b2body()->GetAngle();
+	}
+	
+	return 0.0;
+}
+
+// ============================================================================
+/// Sets layer this machine lives in.
+void Machine::setLayers( int layers )
+{
+	_layers = layers;
+	foreach( Body* pBody, _allBodies )
+	{
+		pBody->setLayers( layers );
+	}	
+}
+
 
 }

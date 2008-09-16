@@ -21,8 +21,8 @@
 namespace Flyer
 {
 
-static const double MINIMAL_MOMENTUM	= 0.2; ///< below this momentum bullet is removed
-static const double DAMAGE_MULTIPLIER	= 500;	///< Damage multiplier
+static const double MINIMAL_MOMENTUM	= 1.0; ///< below this momentum bullet is removed
+static const double DAMAGE_MULTIPLIER	= 200;	///< Damage multiplier
 
 // ============================================================================
 // Constructor
@@ -113,15 +113,17 @@ void Bullet::fire( const QPointF& point, const QPointF& velocity )
 	def.position = point2vec( point );
 	def.massData.mass = _mass;
 	def.isBullet = true;
+	def.linearDamping = 0.001; // TODO experimental. simluates simple air drag
 	
+	_body.setLayers( World::ObjectRenderedVehicles | World::ObjectRenderedBuildings );
 	_body.create( def, world()->b2world() );
 	
 	// create shape
 	b2CircleDef shape;
 	shape.localPosition.SetZero();
 	shape.radius = _size/2;
-	shape.restitution = 0.1;
-	shape.friction = 0.1; // quite slippery
+	shape.restitution = 0.1; //small 'bounciness'
+	shape.friction = 0.9; // high firction
 	shape.userData = & _damageManager;
 	
 	_body.addShape( & shape );

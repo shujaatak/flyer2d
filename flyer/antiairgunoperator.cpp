@@ -135,7 +135,7 @@ QPointF AntiAirGunOperator::getEnemyPos()
 	const double SIGHT_RANGE = 1000; // 1km
 	
 	// player pos
-	QPointF playerPos = parent()->world()->playerPlane()->pos();
+	QPointF playerPos = parent()->world()->playerPlane()->position();
 	if ( _pGun && _pGun->body() && _pGun->body()->b2body() )
 	{
 		// own pos

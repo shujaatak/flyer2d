@@ -56,16 +56,10 @@ AntiAirBattery::AntiAirBattery ( World* pWorld, double location, double angle  )
 	addBody( _bodyMain, 0 );
 	
 	// create gun
-	_sysGun = new Gun( this, "gun" );
+	_sysGun = Gun::berezin( this, "Gun" );
 	_sysGun->setBody( _bodyMain );
 	_sysGun->setMuzzle( QPointF( 0.0, HEIGHT/2 + 0.1 ) );
 	_sysGun->setNormal( QPointF( cos( angle), sin(angle) ) );
-	_sysGun->setBulletMass( 7.91E-3 ); 
-	_sysGun->setBulletVelocity( 735 );
-	_sysGun->setBulletSize( 7.85E-3 ); // NOTE all data taken from kalashnikov ;)
-	_sysGun->setFiringInterval( 0.4 ); // 2.5 shots/sec
-	_sysGun->setBulletLifespan( 4.0 );
-	_sysGun->setDamageCapacity( 100E3 );
 	addSystem( _sysGun, SystemSimulated );
 	
 	// create operator

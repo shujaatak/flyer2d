@@ -34,16 +34,16 @@ public:
 	virtual ~WorldObject();
 
 	/// Renders object
-	virtual void render( QPainter& painter, const QRectF& rect ){};
+	virtual void render( QPainter& /*painter*/, const QRectF& /*rect*/ ){};
 	
 	/// Renders object on map
-	virtual void renderOnMap( QPainter& painter, const QRectF& rect ){};
+	virtual void renderOnMap( QPainter& /*painter*/, const QRectF& /*rect*/ ){};
 	
 	/// Returns object's bounding rect
 	virtual QRectF boundingRect() const { return QRectF(); }
 	
 	/// Simualtes object
-	virtual void simulate( double dt ){}
+	virtual void simulate( double /*dt*/ ){}
 	
 	/// Returns parent world
 	World* world() const { return _pWorld; }

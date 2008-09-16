@@ -22,6 +22,7 @@
 #include "body.h"
 #include "plane.h"
 #include "world.h"
+#include "cloud.h"
 
 namespace Flyer
 {
@@ -93,6 +94,19 @@ void Engine::simulate ( double dt )
 	body()->b2body()->ApplyForce
 		( 10.0 * b2Vec2( thrust.x(), thrust.y() ) // newtons per kg
 		, pos );
+		
+	// if engine damaged - create smoke
+	double s = status();
+	double smokesPerSecond = 10; // smokes per second of fully destroyed engine
+	if ( s < 0.8 )
+	{
+		double r = ( qrand() % 1000 ) / 1000.0; // random var 0-1
+		double prop = smokesPerSecond*dt * (1.0-s); // propability of emitting smoke
+		if ( r < prop )
+		{
+			Cloud::createSmoke( parent()->world(), pos );
+		}
+	}
 }
 
 // ============================================================================
@@ -127,13 +141,14 @@ void Engine::render( QPainter& painter, const QRectF& rect )
 	painter.restore();
 
 	// render force (debug )
+	/*
 	double fs = 50 ; // force scale
 	QPointF tf = thrustForce() / fs;
 	const b2Vec2& pos = body()->b2body()->GetPosition();
 
 	painter.setPen( Qt::red );
 	painter.drawLine( QLineF( pos.x, pos.y, pos.x + tf.x(), pos.y + tf.y() ) );
-	
+	*/
 }
 
 

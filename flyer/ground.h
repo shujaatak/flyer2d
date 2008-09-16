@@ -18,10 +18,8 @@
 #define FLYERGROUND_H
 
 #include "worldobject.h"
+#include "body.h"
 
-class b2Body;
-class b2ShapeDef;
-class b2PolygonDef;
 
 namespace Flyer
 {
@@ -37,7 +35,7 @@ public:
 
 	virtual void render ( QPainter& painter, const QRectF& rect  );
 	virtual void renderOnMap( QPainter& painter, const QRectF& rect );
-	double height( double x );							///< Calculates ground height at specified x
+	double height( double x ) const;					///< Calculates ground height at specified x
 	
 	void setHeightmap( const QPolygonF& heightMap );	///< Sets heightmap
 
@@ -79,7 +77,7 @@ private:
 
 	void random();					///< Generates random ground
 
-	b2Body* _pGround;				///< Ground body
+	Body* _pGround;					///< Ground body
 	QPolygonF	_heightmap;					///< Heightmap - poins of ground surface
 
 	/// Genrates shapes from heightmap

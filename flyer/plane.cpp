@@ -53,6 +53,7 @@ Plane::Plane( World* pWorld, const QPointF& pos, double angle ) : Machine( pWorl
 	_pAutopilot	= NULL;
 	_pElevator	= NULL;
 	_pGun		= NULL;
+	setLayers( World::ObjectRenderedVehicles | World::ObjectRenderedBuildings );
 }
 
 // ============================================================================
@@ -165,7 +166,7 @@ void Plane::renderOnMap( QPainter& painter, const QRectF& rect )
 	painter.setPen( Qt::red );
 	painter.setBrush( Qt::white );
 	
-	QPointF p = pos();
+	QPointF p = position();
 	double size = 200; // 20 meters
 	QRectF ellipse( p.x() - size/2, p.y() - size/2, size, size );
 	painter.drawEllipse( ellipse );
