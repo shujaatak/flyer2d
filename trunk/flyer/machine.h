@@ -92,17 +92,23 @@ public:
 	double orientation() const { return _orientation; }
 	
 	/// Returns estimated position, using main's body position.
-	QPointF pos() const;
+	QPointF position() const;
+	
+	/// Returns machine angle
+	double angle() const;
 	
 	/// Returns linear velocity
 	b2Vec2 linearVelocity() const;
 	
+	/// Sets layers on whic hthis machine lives
+	void setLayers( int layers );
 
 protected:
 
 	
 	// operations
 	void doBreakJoint( Joint* pJoint );	///< Actually breaks joint
+	void detachBody( Body* pBody );		///< Detaches body from machine
 	
 	// special designated items
 	/// Machines main body. Machine position is determined using it's pos, and destructicion of
@@ -116,6 +122,7 @@ protected:
 	// bodies
 	QMap<int, QList<Body*> > _bodies;
 	QList<Body*>	_allBodies;
+	int				_layers;
 	
 	// joints
 	QList<Joint*>	_allJoints;

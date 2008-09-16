@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/icons" >
+        <file>add-circ.svg</file>
+        <file>add-poly.svg</file>
+        <file>add.png</file>
+        <file>adept_install.png</file>
+        <file>adept_purge.png</file>
+        <file>adept_remove.png</file>
+        <file>exit.png</file>
+        <file>filenew.png</file>
+        <file>fileopen.png</file>
+        <file>filesave.png</file>
+        <file>filesaveas.png</file>
+        <file>frame_image.png</file>
+        <file>viewmag+.png</file>
+        <file>viewmag-.png</file>
+        <file>viewmagfit.png</file>
+    </qresource>
+</RCC>

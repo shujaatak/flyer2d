@@ -1,0 +1,1 @@
+../QPropertyEditor/QPropertyEditorWidget.h

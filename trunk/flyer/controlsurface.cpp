@@ -132,12 +132,14 @@ void ControlSurface::render(QPainter& painter, const QRectF& )
 	painter.restore();
 	
 	// draw force (DEBUG )
+	/*
 	double fs = 500 ; // force scale
 	QPointF wf = aerodynamicForce() / fs;
 	const b2Vec2& pos = body()->b2body()->GetWorldPoint( point2vec( _position ) );
 	
 	painter.setPen( Qt::green );
 	painter.drawLine( QLineF( pos.x, pos.y, pos.x + wf.x(), pos.y + wf.y() ) );
+	*/
 }
 
 // ============================================================================

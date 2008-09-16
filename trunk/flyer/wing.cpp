@@ -47,8 +47,8 @@ QPointF Wing::calculateForce ( double velocity, double sinAttack ) const
 {
 	QPointF pos = vec2point( body()->b2body()->GetPosition() );
 	
-	//double airDensity = parent()->world()->environment()->relativeDensity( pos );
-	double airDensity = 1.0;
+	double airDensity = parent()->world()->environment()->relativeDensity( pos );
+	//double airDensity = 1.0;
 	
 	// lift
 	double lift = -airDensity * velocity*velocity * ( _currentLift + _flapsLift*_flaps ) * sinAttack;
@@ -84,13 +84,14 @@ void Wing::render( QPainter& painter, const QRectF& rect )
 	painter.restore();
 	
 	// draw force (DEBUG )
+	/*
 	double fs = 500 ; // force scale
 	QPointF wf = aerodynamicForce() / fs;
 	const b2Vec2& pos = body()->b2body()->GetPosition();
 	
 	painter.setPen( Qt::blue );
 	painter.drawLine( QLineF( pos.x, pos.y, pos.x + wf.x(), pos.y + wf.y() ) );
-	
+	*/
 }
 
 // ============================================================================
@@ -113,7 +114,7 @@ void Wing::damage ( double force )
 		case 1:
 		{
 			_currentLift -= reduce * _liftCoeff * ( 1.0 - DAMAGED_LIFT );
-			qDebug("lift reducedfrom %g  to %g",_liftCoeff,  _currentLift );
+			//qDebug("lift reducedfrom %g  to %g",_liftCoeff,  _currentLift );
 			break;
 		}
 		// increase drag

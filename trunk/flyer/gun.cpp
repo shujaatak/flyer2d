@@ -25,6 +25,7 @@ namespace Flyer
 
 static const double DAMAGED_INTERVAL	= 10.0;	///< Firing interval when damaged
 static const double DAMAGED_VELOCITY	= 0.5;	///< Bullet velocity when damaged
+static const double REACTION_MULTIPLIER = 0.1;	///< part of rection force whic hactually acts on shooting body
 
 // ============================================================================
 // Constructor
@@ -114,7 +115,7 @@ void Gun::simulate( double dt )
 			
 			//v = f*t/m
 			//f = v*m/t
-			double reaction = _velocity*_mass / dt;
+			double reaction = REACTION_MULTIPLIER * _velocity*_mass / dt;
 			pBody->ApplyImpulse( -reaction*normal, startPoint );
 			
 			// reset timer
@@ -141,6 +142,36 @@ double Gun::status() const
 		
 		return 0.5 * ( intervalDamage + velocityDamage );
 	}
+}
+
+// ============================================================================
+// Creates kalashnikow subachine infantry gun.
+Gun* Gun::kalashikov( Machine* pParent, const QString& name)
+{
+	Gun* pGun = new Gun( pParent, name );
+	pGun->setBulletMass( 7.91E-3 ); 
+	pGun->setBulletVelocity( 735 );
+	pGun->setBulletSize( 7.85E-3 );
+	pGun->setFiringInterval( 0.2 ); // otoginal: 600rpm, here: 300 rpm
+	pGun->setBulletLifespan( 2.0 );
+	pGun->setDamageCapacity( 100E3 );
+	
+	return pGun;
+}
+
+// ============================================================================
+// Creates berezin aircraft machine gun.
+Gun* Gun::berezin( Machine* pParent, const QString& name)
+{
+	Gun* pGun = new Gun( pParent, name );
+	pGun->setBulletMass( 60E-3 );
+	pGun->setBulletVelocity( 830 );
+	pGun->setBulletSize( 12E-3 );
+	pGun->setFiringInterval( 0.15 ); // original: 800 rounds per minute, here: 360
+	pGun->setBulletLifespan( 3.0 );
+	pGun->setDamageCapacity( 100E3 );
+	
+	return pGun;
 }
 
 }

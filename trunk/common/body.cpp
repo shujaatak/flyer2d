@@ -16,6 +16,8 @@
 
 #include <QPainter>
 
+#include "textureprovider.h"
+
 #include "body.h"
 
 namespace Flyer
@@ -27,18 +29,14 @@ Body::Body( const QString& name )
 {
 	_name = name;
 	_pBody = NULL;
+	_layers = 0;
+	_textureScale = 0.2; // TODO some value
 }
 
 // ============================================================================
 // Destructor
 Body::~Body()
 {
-	// remove cached shapes definitions
-	foreach( b2ShapeDef* pShapeDef, _shapeDefinitions )
-	{
-		delete pShapeDef;
-	}
-	
 	// destroy body
 	if ( _pBody )
 	{
@@ -64,9 +62,9 @@ void Body::create( const b2BodyDef& def, b2World* pWorld )
 	_pBody = pWorld->CreateBody( & _definition );
 	
 	// if shapes added - create them
-	foreach( b2ShapeDef* pShapeDef, _shapeDefinitions )
+	foreach( const Shape& shape, _shapes )
 	{
-		_pBody->CreateShape( pShapeDef );
+		_pBody->CreateShape( shape.def() );
 	}
 	
 	// create mass
@@ -78,40 +76,34 @@ void Body::create( const b2BodyDef& def, b2World* pWorld )
 
 // ============================================================================
 // Adds shape to body
-void Body::addShape( b2ShapeDef* pShapeDef, bool removeUserData )
+// Returns pointer to shape in body's intenral shape list
+Shape* Body::addShape( const Shape& shape, bool removeUserData )
 {
-	Q_ASSERT( pShapeDef );
+	_shapes.append( shape ); // copy
+	
+	b2ShapeDef* pDef = _shapes.last().def();
+	Q_ASSERT( pDef );
+	
 	if ( removeUserData )
 	{
-		pShapeDef->userData = NULL;
+		pDef->userData = NULL;
 	}
 	
-	// copy shape
-	if ( pShapeDef->type == e_polygonShape )
-	{
-		b2PolygonDef* pPolygonDef = new b2PolygonDef( * ((b2PolygonDef*)pShapeDef) );
-		_shapeDefinitions.append( pPolygonDef );
-	}
-	else if ( pShapeDef->type == e_circleShape )
-	{
-		b2CircleDef* pCircleDef = new b2CircleDef( * ((b2CircleDef*)pShapeDef ) );
-		_shapeDefinitions.append( pCircleDef );
-	}
-	else
-	{
-		qFatal("Unknown shape type");
-	}
+	pDef->filter.categoryBits = _layers;
+	pDef->filter.maskBits = _layers;
 	
-	// create shaope if body available
+	// create b2 shape if body available
 	if ( _pBody )
 	{
-		_pBody->CreateShape( pShapeDef );
+		_pBody->CreateShape( _shapes.last().def() );
 		// create mass
 		if ( _definition.massData.mass == 0 )
 		{
 			_pBody->SetMassFromShapes();
 		}
 	}
+	
+	return & _shapes.last();
 }
 
 // ============================================================================
@@ -194,34 +186,9 @@ QTransform Body::transform() const
 void Body::flip( const QPointF& p1, const QPointF& p2 )
 {
 	// flip shapes uside down
-	foreach( b2ShapeDef* pShapeDef, _shapeDefinitions )
+	for( int i = 0; i < _shapes.size(); i++ )
 	{
-		// polygon
-		if ( pShapeDef->type == e_polygonShape )
-		{
-			b2PolygonDef* pPoygonDef = (b2PolygonDef*)pShapeDef;
-			
-			// copy vertices to buffer
-			b2Vec2 buffer[ b2_maxPolygonVertices ];
-			for ( int i = 0; i < pPoygonDef->vertexCount; i++ )
-			{
-				buffer[i] = pPoygonDef->vertices[i];
-			}
-
-			// copy back from byffer, but reversed and flipped
-			for ( int j = 0; j < pPoygonDef->vertexCount; j++ )
-			{
-				pPoygonDef->vertices[j].x = buffer[ pPoygonDef->vertexCount - j - 1 ].x;
-				pPoygonDef->vertices[j].y = - buffer[ pPoygonDef->vertexCount - j - 1 ].y;
-			}
-		}
-		// circle
-		else if ( pShapeDef->type == e_circleShape )
-		{
-			b2CircleDef* pCircleDef = (b2CircleDef*)pShapeDef;
-			
-			pCircleDef->localPosition.y = - pCircleDef->localPosition.y;
-		}
+		_shapes[i].flip();
 	}
 
 	// re-create body
@@ -276,12 +243,20 @@ void Body::render( QPainter& painter )
 {
 	if ( _pBody )
 	{
-		
 		QTransform t = transform();
 		
 		painter.save();
-			painter.setTransform( t, true );
-			painter.drawPath( shape() );
+			if ( ! _texture.isNull() )
+			{
+				t.scale( _textureScale, -_textureScale );
+				painter.setTransform( t, true );
+				painter.drawPixmap( _texturePosition/_textureScale, _texture );
+			}
+			else
+			{
+				painter.setTransform( t, true );
+				painter.drawPath( shape() );
+			}
 		painter.restore();
 	
 	}
@@ -294,13 +269,13 @@ bool Body::isConnectedTo( Body* pBody ) const
 	if ( ! pBody ) return false;
 	if ( ! _pBody ) return false;
 	
-	QList<Body*> visited ;
+	QList<const Body*> visited ;
 	return doIsConnectedTo( pBody, visited );
 }
 // ============================================================================
 /// Checks if body is connected to another through joints.
 /// List of visited bodies prevents infinite reccursion.
-bool Body::doIsConnectedTo( Body* pBody, QList<Body*>& visited ) const
+bool Body::doIsConnectedTo( Body* pBody, QList<const Body*>& visited ) const
 {
 	visited.append( this );
 	
@@ -342,9 +317,9 @@ Body* Body::createCopy() const
 	Body* pCopy = new Body(); // TODO different types here
 	
 	// copy shapes
-	foreach( b2ShapeDef* pShapeDef, _shapeDefinitions )
+	foreach( const Shape& shape, _shapes )
 	{
-		pCopy->addShape( pShapeDef, true );
+		pCopy->addShape( shape, true );
 	}
 	
 	// create
@@ -354,6 +329,7 @@ Body* Body::createCopy() const
 		definition.position = _pBody->GetPosition();
 		definition.angle = _pBody->GetAngle();
 		
+		pCopy->setLayers( _layers );
 		pCopy->create( definition, _pBody->GetWorld() );
 		pCopy->b2body()->SetLinearVelocity( _pBody->GetLinearVelocity() );
 		pCopy->b2body()->SetAngularVelocity( _pBody->GetAngularVelocity() );
@@ -361,5 +337,128 @@ Body* Body::createCopy() const
 	
 	return pCopy;
 }
+
+// ============================================================================
+/// Sets collision layers
+void Body::setLayers( int layers )
+{
+	// modify stored definitions
+	for( int i = 0; i < _shapes.size(); i++ )
+	{
+		_shapes[i].def()->filter.categoryBits = layers;
+		_shapes[i].def()->filter.maskBits = layers;
+	}
+	
+	// modify existing shapes
+	if ( _pBody )
+	{
+		b2FilterData filter;
+		filter.categoryBits = layers;
+		filter.maskBits = layers;
+		b2Shape* pShape = _pBody->GetShapeList();
+		while( pShape )
+		{
+			pShape->SetFilterData( filter );
+			pShape = pShape->GetNext();
+		}
+	}
+	_layers = layers; // store for later use
+}
+
+// ============================================================================
+/// Sets texture
+void Body::setTexture( const QString& path )
+{
+	_texture = TextureProvider::loadTexture( path );
+	_texturePath = path;
+}
+
+// ============================================================================
+// Sets texture position
+void Body::setTexturePosition( const QPointF& pos )
+{
+	_texturePosition = pos;
+}
+
+// ============================================================================
+// Sets texture scale
+void Body::setTextureScale( double s )
+{
+	_textureScale = s;
+}
+
+// ============================================================================
+/// Stores body to stream.
+void Body::toStream( QDataStream& stream ) const
+{
+	stream << _definition.position.x;
+	stream << _definition.position.y;
+	stream <<  _definition.massData.center.x;
+	stream << _definition.massData.center.y;
+	stream << _definition.massData.mass;
+	stream << _definition.massData.I;
+	stream << _definition.linearDamping;
+	stream << _definition.angularDamping;
+	stream << _definition.isBullet;
+	stream << _definition.fixedRotation;
+	stream << _definition.isSleeping;
+	// dyamic data(?)
+	stream << _definition.angle;
+	stream << _definition.position.x;
+	stream << _definition.position.y;
+	
+	// shapes
+	stream << _shapes.size();
+	foreach( const Shape& shape, _shapes )
+	{
+		stream << shape;
+	}
+	
+	// texture
+	stream << _texturePath;
+	stream << _textureScale;
+	stream << _texturePosition;
+}
+
+// ============================================================================
+/// Loads body from stream.
+/// Only definition os loaded. This method should be called before b2d object ios created.
+void Body::fromStream( QDataStream& stream )
+{
+	// TODO what about body? should it be deleted now?
+	
+	stream >> _definition.position.x;
+	stream >> _definition.position.y;
+	stream >> _definition.massData.center.x;
+	stream >> _definition.massData.center.y;
+	stream >> _definition.massData.mass;
+	stream >> _definition.massData.I;
+	stream >> _definition.linearDamping;
+	stream >> _definition.angularDamping;
+	stream >> _definition.isBullet;
+	stream >> _definition.fixedRotation;
+	stream >> _definition.isSleeping;
+	// dyamic data(?)
+	stream >> _definition.angle;
+	stream >> _definition.position.x;
+	stream >> _definition.position.y;
+	
+	// shapes
+	int shapeCount;
+	stream >> shapeCount;
+	_shapes.clear();
+	for( int i = 0; i < shapeCount; i++ )
+	{
+		Shape shape;
+		stream >> shape;
+		_shapes.append( shape );
+	}
+	
+	// texture
+	stream >> _texturePath;
+	stream >> _textureScale;
+	stream >> _texturePosition;
+}
+
 
 }

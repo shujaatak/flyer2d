@@ -45,15 +45,17 @@ public:
 	/// Object classes
 	enum ObjectType {
 		// general properties
-		ObjectSimulated				= 0x0001,
+		ObjectSimulated				= 0x000001,
+		ObjectStatic				= 0x000002,
 		
 		// render layers
-		ObjectRenderedSky			= 0x0002,
-		ObjectRenderedBackground	= 0x0004,
-		ObjectRenderedBuildings		= 0x0008,
-		ObjectRenderedVehicles		= 0x0010,
-		ObjectRenderedForeground	= 0x0020,
-		ObjectRenderedMap			= 0x0040,
+		ObjectRenderedSky			= 0x000004,
+		ObjectRenderedBackground	= 0x000008,
+		ObjectRenderedBuildings		= 0x000010,
+		ObjectRenderedVehicles		= 0x000020,
+		ObjectRenderedForeground	= 0x000040,
+		
+		ObjectRenderedMap			= 0x000080,
 		
 		// class
 		ObjectPlane					= 0x000080,
@@ -104,6 +106,10 @@ public:
 	/// Returns timestep used in simulation
 	double timestep() const;
 	
+	/// Returns current simulaton time
+	double time();
+	
+	Plane* _pEnemyPlane; // TODO debug, remove
 private:
 	
 	void initWorld();
@@ -125,6 +131,10 @@ private:
 	void renderAthmosphere( QPainter& painter, const QRectF& rect );
 	QLinearGradient	_skyGradient;	///< sky gradient (experimental)
 	
+	int		_steps;					///< Simulation steps so far
+	
+	
+	void createTown( double start, double end, bool small );
 };
 
 }

@@ -55,6 +55,9 @@ public:
 	
 	/// Retuns associated body
 	Body* body2() const { return _pBody2; }
+	
+	/// Info fomr destruction listener
+	void jointDestroyed();
 
 private:
 

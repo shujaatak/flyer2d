@@ -26,6 +26,8 @@
 namespace Flyer
 {
 
+static const double FPS = 15; //const FPS
+
 // ============================================================================
 // Constructor
 #ifdef FLYER_NO_OPENGL
@@ -43,8 +45,9 @@ WorldWidget::WorldWidget ( QWidget* parent, Qt::WindowFlags f ) : QGLWidget ( pa
 	adjustTransform();
 	
 	// simulate
-	_timer.setInterval( 100 );
+	_timer.setInterval( 1000/FPS );
 	_frames = 0;
+	_zoom = ZOOM1;
 }
 
 // ============================================================================
@@ -93,12 +96,12 @@ void WorldWidget::render( QPainter& painter )
 	
 	// altitude
 	QString altitude;
-	altitude.sprintf("altitude: %.2f m", plane()->pos().y() );
+	altitude.sprintf("altitude: %.2f m", plane()->position().y() );
 	painter.drawText( 10, 25, altitude );
 	
 	// x
 	QString location;
-	location.sprintf("location: %.1f km", plane()->pos().x() / 1000.0 );
+	location.sprintf("location: %.1f km", plane()->position().x() / 1000.0 );
 	painter.drawText( 10, 40, location );
 	
 	// autopilot ( it's time for proper rendering)
@@ -107,16 +110,40 @@ void WorldWidget::render( QPainter& painter )
 		painter.drawText( 10, 55, "autopilot" );
 	}
 	
+	// redner HUD
+	{
+	
+		QPen hudPen;
+		hudPen.setCosmetic( true );
+		hudPen.setWidthF( 1 );
+		hudPen.setColor( QColor( 128, 128, 128, 128 ) );
+		
+		double s = sin( plane()->angle() );
+		double c = cos( plane()->angle() );
+		double spacing = 40; // [px]
+		double shortLine = 100; 
+		double longLine = 200;
+		double x = _planePos.x();
+		double y = _planePos.y();
+		double o = plane()->orientation();
+		// top line
+		painter.drawLine( QPointF( x - spacing*s*o, y - spacing*c*o ), QPointF( x - shortLine*s*o, y - shortLine*c*o));
+	
+		// forward line
+		painter.drawLine( QPointF( x + spacing*c, y - spacing*s ), QPointF( x + longLine*c, y - longLine*s));
+		
+	}
+	
 }
 
 // ============================================================================
 // On timer. Simulates word
 void WorldWidget::onTimer()
 {
-	_pWorld->simulate( 0.1 );
+	_pWorld->simulate( 1.0/FPS );
 
 	adjustTransform();
-	repaint();
+	updateGL();
 	
 	_frames ++;
 	
@@ -167,29 +194,69 @@ void WorldWidget::step()
 // Adjusts translation to plane position
 void WorldWidget::adjustTransform()
 {
-	QPointF pos = plane()->pos();
+	QPointF pos = plane()->position();
 	double airspeed = plane()->airspeed();
 	b2Vec2 velocity = plane()->linearVelocity();
+	int w = width();
+	int h = height();
+	
 	
 	// calculate zoom from airspeed
-	double zoomMax = 10.0; // pixels per meter
+	/*
+	double zoomMax; // pixelss per meter for 1000px screen
 	double zoomMin = 0.3;
-	double minZoomSpeed = 15.0; // speed below zom is always min
+	double zoomPerVelocity = 50.0;	// zoom per m/s
+	double minZoomSpeed = 15.0; // speed below zoom is always min
+	switch( _zoom )
+	{
+		case ZOOM1:
+			zoomMax = 2.0;
+			zoomPerVelocity = 25.0;
+			break;
+		case ZOOM2:
+		default:
+			zoomMax = 10.0;
+			zoomPerVelocity = 50.0;
+			break;
+		case ZOOM3:
+			zoomMax = 20.0;
+			zoomPerVelocity = 100.0;
+			break;
+	}
 	
 	double zoom = zoomMax;
 	if ( airspeed > ( minZoomSpeed + 1 ) )
 	{
-		zoom = 50.0/(airspeed - minZoomSpeed);
+		zoom = zoomPerVelocity/(airspeed - minZoomSpeed);
 		if ( zoom > zoomMax ) zoom = zoomMax;
 		if ( zoom < zoomMin ) zoom = zoomMin;
 	}
+	// rescale zoom to normalized window size (1000px )
+	zoom *= ( w/1000.0 );
+	*/
+	
+	// simplest form - three fixed zoom factors
+	double viewportSize = qMax( w, h );
+	double metersVisible; // meters in veiwport
+	switch( _zoom )
+	{
+		case ZOOM1:
+			metersVisible = 100;
+			break;
+		case ZOOM2:
+		default:
+			metersVisible = 250;
+			break;
+		case ZOOM3:
+			metersVisible = 625;
+			break;
+	}
+	double zoom = viewportSize / metersVisible;
+	
 	// calculate position from velocity vector
 	double velMax = 50.0;
 	double relPosX = qMax( -1.0, qMin( 1.0, velocity.x / velMax ) );
 	double relPosY = qMax( -0.5, qMin( 1.0, velocity.y / velMax ) );
-	
-	int w = width();
-	int h = height();
 	
 	// desired plane position, in pixels
 	/* i'l lthink i'll withdraw all the motion
@@ -211,7 +278,7 @@ void WorldWidget::adjustTransform()
 	
 	
 	QTransform t;
-	t.scale( zoom, -zoom );
+	t.scale( zoom , -zoom ); // rescale zoom to normalize 1000px window
 	t.translate( -pos.x() + _planePos.x()/zoom, -pos.y()- _planePos.y()/zoom );
 	
 	_transform = t;
@@ -326,6 +393,15 @@ void WorldWidget::keyPressEvent( QKeyEvent* pEvent )
 		plane()->releaseBomb();
 		break;
 		
+	// pg up - zoom out
+	case Qt::Key_PageUp:
+		_zoom = Zoom( qMin( _zoom+1, int(ZOOM3) ) );
+		break;
+	
+	// pg dwon - zoom in
+	case Qt::Key_PageDown:
+		_zoom = Zoom( qMax( _zoom-1, int(ZOOM1) ) );
+		break;
 	
 	default:
 		pEvent->ignore();

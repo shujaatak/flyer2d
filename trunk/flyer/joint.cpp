@@ -20,6 +20,7 @@
 namespace Flyer
 {
 
+
 // ============================================================================
 // Constructor
 Joint::Joint()
@@ -47,6 +48,7 @@ void Joint::create( b2JointDef* pDef, b2World* pWorld )
 	Q_ASSERT( pDef && pWorld );
 	
 	_pWorld = pWorld;
+	pDef->userData = this;
 	
 	// copy definition
 	delete _pDefinition;
@@ -54,7 +56,6 @@ void Joint::create( b2JointDef* pDef, b2World* pWorld )
 	{
 		b2RevoluteJointDef* pRevoluteDef = (b2RevoluteJointDef*)pDef;
 		_pDefinition = new b2RevoluteJointDef( * pRevoluteDef );
-		_pDefinition->userData = this;
 	}
 	else
 	{
@@ -69,15 +70,22 @@ void Joint::create( b2JointDef* pDef, b2World* pWorld )
 }
 
 // ============================================================================
+/// Info fomr destructio listener: b2 joint was removed.
+void Joint::jointDestroyed()
+{
+	_pJoint = NULL;
+}
+
+// ============================================================================
 /// Flips body along defined axis.
 /// Axis is defined as pair of points.
 void Joint::flip( const QPointF& p1, const QPointF& p2 )
 {
-	if ( _pJoint )
+	Q_ASSERT( _pBody1 && _pBody2 && _pWorld );
+	
+	// create joint
+	if ( ! _broken )
 	{
-		Q_ASSERT( _pBody1 && _pBody2 && _pWorld );
-		
-		//TODO sometimes joint should be destroyed, sometimes not. Find out!
 		
 		if ( _pDefinition->type == e_revoluteJoint )
 		{
@@ -95,12 +103,8 @@ void Joint::flip( const QPointF& p1, const QPointF& p2 )
 		{
 			qFatal("unsupportet joint type");
 		}
-		
-		// create joint
-		if ( ! _broken )
-		{
-			_pJoint = _pWorld->CreateJoint( _pDefinition );
-		}
+	
+		_pJoint = _pWorld->CreateJoint( _pDefinition );
 	}
 }
 

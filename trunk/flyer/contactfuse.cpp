@@ -46,7 +46,7 @@ void ContactFuse::damage ( double force )
 	{
 		Explosion* pExplosion = new Explosion( parent()->world() );
 		pExplosion->setEnergy( _energy );
-		pExplosion->setCenter( parent()->pos() );
+		pExplosion->setCenter( parent()->position() );
 	
 		//add explosion to the world, remove parent
 		parent()->world()->addObject( pExplosion, World::ObjectSimulated | World::ObjectRenderedForeground );
