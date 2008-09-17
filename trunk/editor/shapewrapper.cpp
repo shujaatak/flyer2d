@@ -42,8 +42,16 @@ ShapeWrapper::ShapeWrapper( Flyer::Shape* pShape, QGraphicsScene* pScene, QObjec
 	else
 	{
 		EditorPolygon* pPolygon = new EditorPolygon();
-		pPolygon->init( 4 );
+		b2PolygonDef* pPolyDef = (b2PolygonDef*)pShape->def();
 		_pItem = pPolygon;
+		
+		// copy shape
+		QPolygonF polygon;
+		for( int i = 0; i < pPolyDef->vertexCount; i++ )
+		{
+			polygon.append( Flyer::vec2point( pPolyDef->vertices[i] ) );
+		}
+		pPolygon->setPolygon( polygon );
 	}
 	
 	pScene->addItem( _pItem );

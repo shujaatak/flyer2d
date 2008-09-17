@@ -30,7 +30,7 @@ Body::Body( const QString& name )
 	_name = name;
 	_pBody = NULL;
 	_layers = 0;
-	_textureScale = 0.2; // TODO some value
+	_textureScale = 0.05; // 20 px per meter, 5cm per pixel
 }
 
 // ============================================================================
@@ -56,8 +56,15 @@ Body::~Body()
 // Creates body
 void Body::create( const b2BodyDef& def, b2World* pWorld )
 {
-	Q_ASSERT( pWorld );
 	_definition = def;
+	create( pWorld );
+}
+
+// ============================================================================
+// Creates body
+void Body::create( b2World* pWorld )
+{
+	Q_ASSERT( pWorld );
 	_definition.userData = this;
 	_pBody = pWorld->CreateBody( & _definition );
 	
@@ -418,6 +425,7 @@ void Body::toStream( QDataStream& stream ) const
 	stream << _texturePath;
 	stream << _textureScale;
 	stream << _texturePosition;
+	stream << _name;
 }
 
 // ============================================================================
@@ -458,6 +466,18 @@ void Body::fromStream( QDataStream& stream )
 	stream >> _texturePath;
 	stream >> _textureScale;
 	stream >> _texturePosition;
+	stream >> _name;
+	
+	// initialize
+	if ( ! _texturePath.isNull() )
+	{
+		_texture = TextureProvider::loadTexture( _texturePath );
+	}
+	else
+	{
+		_texture = QPixmap();
+	}
+
 }
 
 

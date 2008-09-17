@@ -50,6 +50,9 @@ public slots:
 	virtual void on_actionSaveBodyAs_triggered() { saveBodyAs(); }
 	virtual void on_actionSaveBody_triggered() { saveBody(); }
 	virtual void on_actionOpenBody_triggered() { openBody(); }
+	virtual void on_actionZoomAll_triggered(){ zoomAll(); }
+	virtual void on_actionZoomIn_triggered(){ zoomIn(); }
+	virtual void on_actionZoomOut_triggered(){ zoomOut(); }
 	
 	// other
 	
@@ -69,6 +72,10 @@ private:
 	void removeShape();
 	void loadTexture();
 	void exit();
+	
+	void zoomIn();
+	void zoomOut();
+	void zoomAll();
 	
 	void shapeAddVertex();
 	void shapeRemoveVertex();

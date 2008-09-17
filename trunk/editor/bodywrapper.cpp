@@ -48,7 +48,8 @@ BodyWrapper::BodyWrapper( Flyer::Body *pBody, QGraphicsScene* pScene, QObject* p
 	}
 }
 
-
+// ============================================================================
+// Destructor
 BodyWrapper::~BodyWrapper()
 {
 	delete _pTextureItem;

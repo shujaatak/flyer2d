@@ -39,8 +39,8 @@ EditorPolygon::~EditorPolygon()
 // Returns boundiong rect
 QRectF EditorPolygon::boundingRect() const
 {
-	const double m = 10; // margin
 	QRectF polygonRect = polygon().boundingRect();
+	double m = ( polygonRect.width() + polygonRect.height() ) * 0.05;
 	return QRectF( polygonRect.topLeft() - QPointF( m, m ),
 		polygonRect.size() + QSize( m*2, m*2 ) );
 }

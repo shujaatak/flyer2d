@@ -79,6 +79,7 @@
    </attribute>
    <addaction name="actionZoomIn" />
    <addaction name="actionZoomOut" />
+   <addaction name="actionZoomAll" />
   </widget>
   <widget class="QToolBar" name="toolBarBody" >
    <property name="windowTitle" >
@@ -252,6 +253,14 @@
    </property>
    <property name="text" >
     <string>Add Circular Shape</string>
+   </property>
+  </action>
+  <action name="actionZoomAll" >
+   <property name="icon" >
+    <iconset resource="resources/resources.qrc" >:/icons/viewmagfit.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Zoom All</string>
    </property>
   </action>
  </widget>

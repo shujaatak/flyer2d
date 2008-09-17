@@ -46,6 +46,9 @@ public:
 	/// Creates body
 	void create( const b2BodyDef& def, b2World* pWorld );
 	
+	/// Creates body (with pres-set def)
+	void create( b2World* pWorld );
+	
 	/// Destroys physical representation
 	void destroy();
 	
