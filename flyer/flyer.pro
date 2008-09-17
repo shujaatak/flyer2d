@@ -83,12 +83,16 @@ QT += opengl
 HEADERS -= object.h
 
 #DEFINES += FLYER_NO_OPENGL
-INCLUDEPATH += objects/ \
-  ../include \
-  ../common
 
 LIBS += -L../lib/ \
   -L. \
   -lbox2d -lflyercommon
 
 POS_TARGETDESP = ../lib/libflyercommon.a
+INCLUDEPATH += ../common \
+  objects/ \
+  ../include
+
+TARGETDEPS += ../lib/libflyercommon.a \
+  ../lib/libbox2d.a
+

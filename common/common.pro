@@ -13,7 +13,9 @@ CONFIG += staticlib
 HEADERS += b2dqt.h body.h shape.h \
  serializable.h \
  gexception.h \
- textureprovider.h
+ textureprovider.h \
+ bodyprovider.h
 SOURCES += b2dqt.cpp body.cpp shape.cpp \
  serializable.cpp \
- textureprovider.cpp
+ textureprovider.cpp \
+ bodyprovider.cpp

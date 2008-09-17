@@ -14,6 +14,8 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+#include <math.h>
+
 #include "editorgraphicsview.h"
 
 // ============================================================================
@@ -36,24 +38,47 @@ void EditorGraphicsView::drawBackground( QPainter* painter, const QRectF& rect )
 	QGraphicsView::drawBackground( painter, rect );
 	
 	// draw grid
-	// TODO only 00 for now
+	
+	QPen mainGridPen;
+	mainGridPen.setCosmetic( true );
+	mainGridPen.setColor( Qt::darkGray );
+	mainGridPen.setWidth( 0 );
+	
 	QPen gridPen;
 	gridPen.setCosmetic( true );
-	gridPen.setColor( Qt::gray );
+	gridPen.setColor( Qt::lightGray );
 	gridPen.setWidth( 0 );
 	
 	painter->setPen( gridPen );
 	
-	// Y
-	painter->drawLine
-		( QPointF( 0, qMin( sceneRect().top(), rect.top() ) )
-		, QPointF( 0, qMax( sceneRect().bottom(), rect.bottom() ) )
-		);
+	double ymin = qMin( sceneRect().top(), rect.top() );
+	double ymax = qMax( sceneRect().bottom(), rect.bottom() );
+	double xmin = qMin( sceneRect().left(), rect.left() );
+	double xmax = qMax( sceneRect().right(), rect.right() );
 	
-	// X
-	painter->drawLine
-		( QPointF( qMin( sceneRect().left(), rect.left() ), 0 )
-		, QPointF( qMax( sceneRect().right(), rect.right() ), 0 )
-		);
+	// vertical lines
+	for( int x = int(floor( xmin )); x <= int(ceil(xmax)); x++ )
+	{
+		if ( x == 0 ) painter->setPen( mainGridPen );
+		else painter->setPen( gridPen );
+		
+		painter->drawLine
+			( QPointF( x, ymin )
+			, QPointF( x, ymax )
+			);
+	}
+	
+	// horizontal lines
+	for( int y = int(floor( ymin )); y <= int(ceil(ymax)); y++ )
+	{
+		if ( y == 0 ) painter->setPen( mainGridPen );
+		else painter->setPen( gridPen );
+		
+		painter->drawLine
+			( QPointF( xmin, y )
+			, QPointF( xmax, y )
+			);
+	}
+	
 }
 

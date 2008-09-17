@@ -24,6 +24,7 @@
 #include "bodywrapper.h"
 #include "shapewrapper.h"
 #include "textureprovider.h"
+#include "bodyprovider.h"
 
 #include "editor.h"
 
@@ -143,12 +144,14 @@ void Editor::saveBody()
 void Editor::saveBodyAs()
 {
 	QFileDialog dialog;
+	QString library = Flyer::BodyProvider::libraryPath();
 	
 	dialog.setDefaultSuffix( "body" );
 	dialog.setFilter( "Body (*.body)" );
 	dialog.setWindowTitle( tr("Save body") );
 	dialog.setFileMode( QFileDialog::AnyFile );
 	dialog.setAcceptMode( QFileDialog::AcceptSave );
+	dialog.setDirectory( library );
 	
 	if ( dialog.exec() )
 	{
@@ -178,6 +181,31 @@ void Editor::saveBodyAs()
 }
 
 // ============================================================================
+// Zooms in
+void Editor::zoomIn()
+{
+	QTransform zoom;
+	zoom.scale( 1.5, 1.5 );
+	view->setTransform( zoom, true );
+}
+
+// ============================================================================
+// Zooms out
+void Editor::zoomOut()
+{
+	QTransform zoom;
+	zoom.scale( 0.666, 0.666 );
+	view->setTransform( zoom, true );
+}
+
+// ============================================================================
+// Fits everythinf into screen
+void Editor::zoomAll()
+{
+	view->fitInView( _scene.itemsBoundingRect(), Qt::KeepAspectRatio );
+}
+
+// ============================================================================
 /// Adds new shape to current body.
 void Editor::addPolygonalShape()
 {
@@ -191,14 +219,15 @@ void Editor::addPolygonalShape()
 		updateBodyTree();
 	}
 	// show all items
-	view->fitInView( _scene.itemsBoundingRect(), Qt::KeepAspectRatio );
+	zoomAll();
 }
 
 // ============================================================================
 /// Opens body file
 void Editor::openBody()
 {
-	QString fileName = QFileDialog::getOpenFileName( this, tr("Open body"), ".", "Body (*.body)" );
+	QString library = Flyer::BodyProvider::libraryPath();
+	QString fileName = QFileDialog::getOpenFileName( this, tr("Open body"), library, "Body (*.body)" );
 	if ( ! fileName.isNull() )
 	{
 		if ( _pBodyWrapper )
@@ -216,9 +245,10 @@ void Editor::openBody()
 			connect( _pBodyWrapper, SIGNAL(selected(EditableWrapper*)), SLOT(itemSelected( EditableWrapper*)));
 			updateBodyTree();
 			select( _pBodyWrapper );
+			_path = fileName;
 			
 			// show all items
-			view->fitInView( _scene.itemsBoundingRect(), Qt::KeepAspectRatio );
+			zoomAll();
 		}
 		catch( const GException& e )
 		{
@@ -243,7 +273,7 @@ void Editor::addCircularShape()
 		updateBodyTree();
 	}
 	// show all items
-	view->fitInView( _scene.itemsBoundingRect(), Qt::KeepAspectRatio );
+	zoomAll();
 }
 
 // ============================================================================
@@ -277,6 +307,7 @@ void Editor::loadTexture()
 				while( fileName.startsWith( QDir::separator() ) ) fileName.remove( 0, 1 );
 				 
 				_pBodyWrapper->loadTexture( fileName );
+				zoomAll();
 			}
 			else
 			{
