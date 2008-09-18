@@ -32,7 +32,7 @@ public:
 	virtual ~ControlSurface();
 	
 	virtual void damage(double force);
-	virtual void render(QPainter& painter, const QRectF& rect);
+	virtual void render(QPainter& painter, const QRectF& rect, const RenderingOptions& options );
 	virtual double status() const;
 	
 	void setValue( double a );

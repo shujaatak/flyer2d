@@ -16,34 +16,51 @@
 
 #include <QDir>
 #include <QCoreApplication>
+#include <QHash>
+
 
 #include "textureprovider.h"
 
 namespace Flyer
 {
 
-static QString libraryPathCache; ///< Library path cache
+static QString _libraryPathCache; ///< Library path cache
+
+/// Texture cache
+static QHash< QString, Texture > _textures;
 
 // ============================================================================
 ///Loads texture.
-QPixmap TextureProvider::loadTexture( const QString& texture )
+Texture TextureProvider::loadTexture( const QString& name )
 {
-	QString path = libraryPath() + "/" + texture; // TODO stupid and unreliable
-	return QPixmap( path );
+	// texture in cache
+	if ( _textures.contains( name ) )
+	{
+		return _textures[ name ];
+	}
+	
+	// teture not in cache, load 
+	QString path = libraryPath() + "/" + name; // TODO stupid and unreliable
+	QImage baseImage( path );
+
+	Texture t( baseImage );
+	_textures.insert( name, t );
+	
+	return t;
 }
 
 // ============================================================================
 ///Returns path to the library.
 QString TextureProvider::libraryPath()
 {
-	if ( libraryPathCache.isNull() )
+	if ( _libraryPathCache.isNull() )
 	{
 		QDir lib( QCoreApplication::applicationDirPath() );
 		lib.cd( "../textures" );
-		libraryPathCache = lib.absolutePath();
+		_libraryPathCache = lib.absolutePath();
 	}
 	
-	return libraryPathCache;
+	return _libraryPathCache;
 }
 
 

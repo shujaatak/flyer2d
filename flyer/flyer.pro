@@ -33,8 +33,7 @@ SOURCES = main.cpp worldwidget.cpp \
  objects/ironbomb.cpp \
  contactfuse.cpp \
  cloud.cpp \
- building.cpp \
-
+ building.cpp
 
 HEADERS = worldwidget.h \
  mainwindow.h \
@@ -69,7 +68,8 @@ HEADERS = worldwidget.h \
  contactfuse.h \
  cloud.h \
  building.h \
-
+ \
+ renderingoptions.h
 FORMS += mainwindow.ui \
  statuswindow.ui
 
@@ -80,7 +80,8 @@ CONFIG += debug \
  opengl
 QT += opengl
 
-HEADERS -= object.h
+HEADERS -= object.h \
+ renderingoptions.h
 
 #DEFINES += FLYER_NO_OPENGL
 
@@ -95,4 +96,6 @@ INCLUDEPATH += ../common \
 
 TARGETDEPS += ../lib/libflyercommon.a \
   ../lib/libbox2d.a
+
+SOURCES -= renderingoptions.cpp
 

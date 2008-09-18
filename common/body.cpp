@@ -17,6 +17,7 @@
 #include <QPainter>
 
 #include "textureprovider.h"
+#include "renderingoptions.h"
 
 #include "body.h"
 
@@ -246,25 +247,40 @@ void Body::flip( const QPointF& p1, const QPointF& p2 )
 
 // ============================================================================
 // Renders body
-void Body::render( QPainter& painter )
+void Body::render( QPainter& painter, const RenderingOptions& options )
 {
 	if ( _pBody )
 	{
 		QTransform t = transform();
 		
-		painter.save();
-			if ( ! _texture.isNull() )
-			{
+		// draw texture
+	
+		if ( ! _texture.isNull() )
+		{
+			painter.save();
+				QImage texture = _texture.image( options.textureStyle );
 				t.scale( _textureScale, -_textureScale );
 				painter.setTransform( t, true );
-				painter.drawPixmap( _texturePosition/_textureScale, _texture );
-			}
-			else
-			{
+				QPointF position( _texturePosition.x(), - _texturePosition.y() );
+				painter.drawImage( position/_textureScale, texture );
+			painter.restore();
+			
+			/* Debug collisiton draw
+			painter.save();
+				painter.setTransform( transform(), true );
+				painter.setPen( QPen( Qt::red, 0 ) );
+				painter.setBrush( Qt::NoBrush );
+				painter.drawPath( shape() ); // TODO - debug
+			painter.restore();
+			*/
+		}
+		else
+		{
+			painter.save();
 				painter.setTransform( t, true );
 				painter.drawPath( shape() );
-			}
-		painter.restore();
+			painter.restore();
+		}
 	
 	}
 }
@@ -472,10 +488,6 @@ void Body::fromStream( QDataStream& stream )
 	if ( ! _texturePath.isNull() )
 	{
 		_texture = TextureProvider::loadTexture( _texturePath );
-	}
-	else
-	{
-		_texture = QPixmap();
 	}
 
 }

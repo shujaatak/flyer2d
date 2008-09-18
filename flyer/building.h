@@ -39,7 +39,7 @@ public:
 	~Building();
 	
 	virtual QRectF boundingRect() const;
-	virtual void render ( QPainter& painter, const QRectF& rect );
+	virtual void render ( QPainter& painter, const QRectF& rect, const RenderingOptions& options );
 	
 	double width() const { return _width; }
 	double location() const { return _position.x; }

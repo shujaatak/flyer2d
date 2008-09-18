@@ -45,10 +45,10 @@ QRectF Building::boundingRect() const
 
 // ============================================================================
 /// Renders building
-void Building::render ( QPainter& painter, const QRectF& /*rect*/ )
+void Building::render ( QPainter& painter, const QRectF& /*rect*/, const RenderingOptions& options  )
 {
 	// TODO both ways here, to compare results
-	_pBody->render( painter );
+	_pBody->render( painter, options );
 	/*
 	painter.save();
 	
@@ -73,7 +73,12 @@ void Building::render ( QPainter& painter, const QRectF& /*rect*/ )
 Building* Building::createSmallBuilding( World* pWorld, double location, bool background )
 {
 	Building* pBuilding = new Building( pWorld );
-	pBuilding->_pBody = BodyProvider::loadBody( "house_small_1.body" );
+	
+	int housenum = ( qrand() % 3 ) + 1;
+	QString fileName = QString("house_small_%1.body").arg( housenum );
+	pBuilding->_pBody = BodyProvider::loadBody( fileName );
+	
+	
 	pBuilding->_width = 9; // TODO read from somwhere
 	pBuilding->_pBody->def().position.Set( location, pWorld->ground()->height( location ) );
 	pBuilding->_pBody->create( pWorld->b2world() );

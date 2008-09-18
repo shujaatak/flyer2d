@@ -35,7 +35,7 @@ public:
 	virtual ~Bullet();
 
 	virtual QRectF boundingRect() const;
-	virtual void render ( QPainter& painter, const QRectF& rect );
+	virtual void render ( QPainter& painter, const QRectF& rect, const RenderingOptions& options );
 	virtual void simulate ( double dt );
 
 	// properties

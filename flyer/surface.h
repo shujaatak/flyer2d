@@ -36,7 +36,7 @@ public:
 	// system duties
 	
 	virtual void damage(double arg1);
-	virtual void render(QPainter& arg1, const QRectF& arg2);
+	virtual void render(QPainter& arg1, const QRectF& arg2, const RenderingOptions& options);
 	virtual void simulate(double arg1);
 	
 	// properties

@@ -33,7 +33,7 @@ public:
 	virtual ~Spotlight();
 	
 	virtual void damage(double force);
-	virtual void render(QPainter& painter, const QRectF& rect);
+	virtual void render(QPainter& painter, const QRectF& rect, const RenderingOptions& options );
 
 	// properties
 	

@@ -111,7 +111,8 @@ void Serializable::toFile( const QString& path ) const
 /// Stream write operator
 QDataStream & operator << ( QDataStream & out, const Serializable & item )
 {
-	item.toStream( out );
+	// do it via buffer, so always proepr number of bytes is ger from srtream
+	out << item.toBuffer();
 	return out;
 }
 
@@ -119,7 +120,9 @@ QDataStream & operator << ( QDataStream & out, const Serializable & item )
 /// Stream read operator
 QDataStream & operator >> ( QDataStream & in, Serializable & item )
 {
-	item.fromStream( in );
+	QByteArray buffer;
+	in >> buffer;
+	item.fromBuffer( buffer );
 	return in;
 }
 

@@ -84,7 +84,7 @@ public:
 
 	virtual void damage ( double force );
 	virtual void simulate ( double dt );
-	virtual void render( QPainter& painter, const QRectF& rect );
+	virtual void render( QPainter& painter, const QRectF& rect, const RenderingOptions& options );
 	
 	void setElevator( ControlSurface* pElevator ) { _pElevator = pElevator; }
 	void setEngine( Engine* pEngine ) { _pEngine = pEngine; }

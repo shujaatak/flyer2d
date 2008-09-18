@@ -43,11 +43,11 @@ Shrapnel::~Shrapnel()
 
 // ============================================================================
 /// Renders shrapnel
-void Shrapnel::render( QPainter& painter, const QRectF& )
+void Shrapnel::render( QPainter& painter, const QRectF&, const RenderingOptions& options )
 {
 	foreach( Body* pBody, _bodies )
 	{
-		pBody->render( painter );
+		pBody->render( painter, options );
 	}
 }
 

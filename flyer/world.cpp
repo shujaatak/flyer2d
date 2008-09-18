@@ -16,7 +16,6 @@
 
 #include "Box2D.h"
 
-#include "world.h"
 #include "planebumblebee.h"
 #include "ground.h"
 #include "airfield.h"
@@ -26,6 +25,9 @@
 #include "explosion.h"
 #include "joint.h"
 #include "building.h"
+#include "renderingoptions.h"
+
+#include "world.h"
 
 
 namespace Flyer {
@@ -121,15 +123,28 @@ void World::render( QPainter& painter, const QRectF& rect )
 	
 	// bug workartound ?  first pait something with vcectors
 	painter.drawLine( QPointF( 1, 1 ), QPointF( 2, 2 ) );
+	RenderingOptions options;
+	
 	
 	foreach ( int layer, layers )
 	{
+		// setup options
+		if ( layer == ObjectRenderedBackground )
+		{
+			options.textureStyle = Texture::Background;
+		}
+		else
+		{
+			options.textureStyle = Texture::Normal;
+		}
+		
+		// render
 		foreach( WorldObject* pObject, _objects[layer] )
 		{
 			QRectF br = pObject->boundingRect();
 			if( br.isNull() || rect.intersects( br ) )
 			{
-				pObject->render( painter, rect );
+				pObject->render( painter, rect, options );
 			}
 		}
 	}
@@ -305,14 +320,14 @@ double World::timestep() const
 
 // ============================================================================
 /// Creates town at specified locations
-void World::createTown( double start, double end, bool small )
+void World::createTown( double start, double end, bool /*small*/ )
 {
 	// foreground
 	double x = start;
 	while( x < end )
 	{
 		Building* pBuilding = Building::createSmallBuilding( this, x, false );
-		double spacing = 1.5 + ((qrand()%100)/100.0);
+		double spacing = 2.0 + ((qrand()%400)/100.0);
 		
 		x += spacing * pBuilding->width();
 	}
@@ -322,7 +337,7 @@ void World::createTown( double start, double end, bool small )
 	while( x < end )
 	{
 		Building* pBuilding = Building::createSmallBuilding( this, x, true );
-		double spacing = 2.5 + 3.0*((qrand()%100)/100.0);
+		double spacing = 2.0 + ((qrand()%400)/100.0);
 		
 		x += spacing * pBuilding->width();
 	}

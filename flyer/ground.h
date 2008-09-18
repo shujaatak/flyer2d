@@ -33,7 +33,7 @@ public:
 	Ground ( World* pWorld );
 	virtual ~Ground();
 
-	virtual void render ( QPainter& painter, const QRectF& rect  );
+	virtual void render ( QPainter& painter, const QRectF& rect, const RenderingOptions& options  );
 	virtual void renderOnMap( QPainter& painter, const QRectF& rect );
 	double height( double x ) const;					///< Calculates ground height at specified x
 	

@@ -22,6 +22,7 @@
 namespace Flyer {
 
 class World;
+class RenderingOptions;
 
 /**
 	Common base class for objects managed by world.
@@ -34,7 +35,7 @@ public:
 	virtual ~WorldObject();
 
 	/// Renders object
-	virtual void render( QPainter& /*painter*/, const QRectF& /*rect*/ ){};
+	virtual void render( QPainter& /*painter*/, const QRectF& /*rect*/, const RenderingOptions& /*options*/ ){};
 	
 	/// Renders object on map
 	virtual void renderOnMap( QPainter& /*painter*/, const QRectF& /*rect*/ ){};

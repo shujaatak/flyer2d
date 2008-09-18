@@ -61,7 +61,7 @@ QRectF Bullet::boundingRect() const
 
 // ============================================================================
 // Renders bullet
-void Bullet::render ( QPainter& painter, const QRectF& )
+void Bullet::render ( QPainter& painter, const QRectF&, const RenderingOptions& options )
 {
 	if ( _body.b2body() )
 	{

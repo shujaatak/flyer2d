@@ -117,7 +117,7 @@ void ControlSurface::damage(double force)
 
 // ============================================================================
 /// Renders
-void ControlSurface::render(QPainter& painter, const QRectF& )
+void ControlSurface::render(QPainter& painter, const QRectF&, const RenderingOptions& )
 {
 	painter.save();
 		painter.setTransform( body()->transform(), true );

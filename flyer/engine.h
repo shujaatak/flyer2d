@@ -38,7 +38,7 @@ public:
 
 	virtual void damage ( double force );
 	virtual void simulate ( double dt );
-	virtual void render( QPainter& painter, const QRectF& rect );
+	virtual void render( QPainter& painter, const QRectF& rect, const RenderingOptions& optiopns );
 	
 	virtual double status() const;
 	// properties
