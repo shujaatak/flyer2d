@@ -14,38 +14,17 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#ifndef FLYERTEXTUREPROVIDER_H
-#define FLYERTEXTUREPROVIDER_H
-
-#include "texture.h"
-
-#include <QImage>
+#include "renderingoptions.h"
 
 namespace Flyer
 {
 
-/**
-TextureProvider is a utility which provides textures for rendering. Textures are identified
-as file names (relative path). The provider knows where to look for them.
-@author Maciek Gajewski <maciej.gajewski0@gmail.com>
-*/
-
-class TextureProvider
+// ============================================================================
+// Cpstructor. Initializes woth defaults.
+RenderingOptions::RenderingOptions()
 {
-public:
-
-	/// Loads named texture from texture library
-	static Texture loadTexture( const QString& texture );
-	
-	/// Returns disk path (may be resource path) to texture library.
-	static QString libraryPath();
-	
-};
-
+	textureStyle = Texture::Normal;
 }
 
-#endif // FLYERTEXTUREPROVIDER_H
 
-// EOF
-
-
+}

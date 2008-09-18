@@ -53,7 +53,7 @@ Editor::Editor(): QMainWindow()
 	setupUi( this );
 	view->setScene( & _scene );
 	QTransform t;
-	t.scale( 50, 50 ); // 50 px per meter
+	t.scale( 50, -50 ); // 50 px per meter
 	view->setTransform( t );
 	_pBodyWrapper = NULL;
 	_pSelectedObject = NULL;

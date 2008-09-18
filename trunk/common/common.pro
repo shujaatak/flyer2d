@@ -14,8 +14,12 @@ HEADERS += b2dqt.h body.h shape.h \
  serializable.h \
  gexception.h \
  textureprovider.h \
- bodyprovider.h
+ bodyprovider.h \
+ texture.h \
+ renderingoptions.h
 SOURCES += b2dqt.cpp body.cpp shape.cpp \
  serializable.cpp \
  textureprovider.cpp \
- bodyprovider.cpp
+ bodyprovider.cpp \
+ texture.cpp \
+ renderingoptions.cpp

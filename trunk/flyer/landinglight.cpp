@@ -85,9 +85,9 @@ QRectF LandingLight::boundingRect() const
 
 // ============================================================================
 //  Renders object.
-void LandingLight::render(QPainter& painter, const QRectF& rect)
+void LandingLight::render(QPainter& painter, const QRectF& rect, const RenderingOptions& options )
 {
-	Machine::render( painter, rect ); // this will render light cone
+	Machine::render( painter, rect, options ); // this will render light cone
 	
 	QTransform t;
 	t.translate( _x, _y + 0.5 );

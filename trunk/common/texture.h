@@ -14,56 +14,50 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#ifndef FLYERSHRAPNEL_H
-#define FLYERSHRAPNEL_H
+#ifndef FLYERTEXTURE_H
+#define FLYERTEXTURE_H
 
-#include <worldobject.h>
+#include <QMap>
+#include <QImage>
 
 namespace Flyer
 {
 
-class Body;
-
 /**
-	Shrapnel is an short-lived objects that is created as a result of bodies being
-	detached or destroyen in explosion.
-	Shrapnel maintains list of it's bodies.
-	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
+Texture class. Holds image in different version.
+
+@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
 
-class Shrapnel : public WorldObject
+class Texture
 {
-
 public:
-	Shrapnel( World* pWorld );
-	~Shrapnel();
+	/// Texture style
+	enum Style {
+		Normal,				///< Normal texture, unchanged
+		Background,			///< Dimmed texture for objects moved to background
+	};
+
+	Texture();
+	Texture( const QImage& baseImage );
+	~Texture();
 	
-	/// Renders object
-	virtual void render( QPainter& painter, const QRectF& rect, const RenderingOptions& options );
+	/// Applies effect to image to get specified style
+	static QImage applyStyle( const QImage& src, Style style );
 	
-	/// Simualtes object
-	virtual void simulate( double dt );
+	/// Provides texture image in specified version.
+	QImage image( Style style );
 	
-	// config
-	
-	void setLifespan( double l ) { _lifespan = l; }
-	void addBody( Body* pBody ){ _bodies.append( pBody ); }
+	bool isNull() const { return _images.isEmpty(); }
 
 private:
 
-	// config
-	double _lifespan;	///< Maximum lifespan
-
-	// variables
-	QList<Body*> _bodies;
-	
-	double	_age;
-
+	QMap< Style, QImage >	_images;	///< Cached converted images
 };
 
 }
 
-#endif // FLYERSHRAPNEL_H
+#endif // FLYERTEXTURE_H
 
 // EOF
 

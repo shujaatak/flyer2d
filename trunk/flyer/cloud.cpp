@@ -58,7 +58,7 @@ QRectF Cloud::boundingRect() const
 
 // ============================================================================
 /// Renders cloud. 
-void Cloud::render ( QPainter& painter, const QRectF& rect )
+void Cloud::render ( QPainter& painter, const QRectF& rect, const RenderingOptions& /*options*/ )
 {
 	double age = world()->time() - _birdthDate;
 	if ( age > _lifespan )

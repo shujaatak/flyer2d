@@ -19,6 +19,7 @@
 #include "shape.h"
 #include "shapewrapper.h"
 #include "textureprovider.h"
+#include "texture.h"
 
 #include "bodywrapper.h"
 
@@ -78,9 +79,9 @@ void BodyWrapper::loadTexture( const QString& path )
 void BodyWrapper::showTexture( const QString& path )
 {
 	// show texture
-	QPixmap pixmap;
-	pixmap = Flyer::TextureProvider::loadTexture( path );
-	if ( ! pixmap.isNull() )
+	QImage image;
+	image = Flyer::TextureProvider::loadTexture( path ).image( Flyer::Texture::Normal );
+	if ( ! image.isNull() )
 	{
 		// create item
 		if ( ! _pTextureItem )
@@ -91,11 +92,11 @@ void BodyWrapper::showTexture( const QString& path )
 			_pTextureItem->setPos( _pBody->texturePosition() );
 			
 			QTransform t;
-			t.scale( _pBody->textureScale(), _pBody->textureScale() );
+			t.scale( _pBody->textureScale(), -_pBody->textureScale() );
 			_pTextureItem->setTransform( t );
 		}
 		
-		_pTextureItem->setPixmap( pixmap );
+		_pTextureItem->setPixmap( QPixmap::fromImage( image ) );
 	}
 }
 

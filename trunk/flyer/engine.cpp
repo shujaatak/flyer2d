@@ -127,12 +127,12 @@ QPointF Engine::thrustForce()
 
 // ============================================================================
 // Renders
-void Engine::render( QPainter& painter, const QRectF& rect )
+void Engine::render( QPainter& painter, const QRectF& rect, const RenderingOptions& optiopns )
 {
 	Q_ASSERT( body() );
 	
 	// render body
-	body()->render( painter );
+	body()->render( painter, optiopns );
 
 	// render propeller
 	painter.save();

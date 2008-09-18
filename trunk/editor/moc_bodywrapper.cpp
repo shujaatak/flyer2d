@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'bodywrapper.h'
 **
-** Created: Tue Sep 16 23:13:50 2008
+** Created: Thu Sep 18 20:53:46 2008
 **      by: The Qt Meta Object Compiler version 59 (Qt 4.3.4)
 **
 ** WARNING! All changes made in this file will be lost!

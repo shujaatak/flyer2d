@@ -59,36 +59,36 @@ Machine::~Machine()
 
 // ============================================================================
 // Renders machine
-void Machine::render ( QPainter& painter, const QRectF& rect )
+void Machine::render ( QPainter& painter, const QRectF& rect, const RenderingOptions& options )
 {
 	// draw bodies 
 	
 	foreach( Body* pBody, _bodies[ BodyRendered3 ] )
 	{
-		pBody->render( painter );
+		pBody->render( painter, options );
 	}
 	foreach( Body* pBody, _bodies[ BodyRendered2 ] )
 	{
-		pBody->render( painter );
+		pBody->render( painter, options );
 	}
 	foreach( Body* pBody, _bodies[ BodyRendered1 ] )
 	{
-		pBody->render( painter );
+		pBody->render( painter, options );
 	}
 	
 	// draw systems 
 	
 	foreach( System* pSystem, _systems[ SystemRendered3 ] )
 	{
-		pSystem->render( painter, rect );
+		pSystem->render( painter, rect, options );
 	}
 	foreach( System* pSystem, _systems[ SystemRendered2 ] )
 	{
-		pSystem->render( painter, rect );
+		pSystem->render( painter, rect, options );
 	}
 	foreach( System* pSystem, _systems[ SystemRendered1 ] )
 	{
-		pSystem->render( painter, rect );
+		pSystem->render( painter, rect, options );
 	}
 	
 }

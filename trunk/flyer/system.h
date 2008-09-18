@@ -29,6 +29,7 @@ namespace Flyer
 
 class Body;
 class Machine;
+class RenderingOptions;
 
 /**
 	Base class for all aircraft (and other) systems.
@@ -62,7 +63,7 @@ public:
 	
 	// actions
 	
-	virtual void render( QPainter& /*painter*/, const QRectF& /*rect*/ ){};
+	virtual void render( QPainter& /*painter*/, const QRectF& /*rect*/, const RenderingOptions& /*options*/ ){};
 	virtual void simulate( double /*dt*/ ){};
 	virtual void damage( double /*force*/ ){};
 	

@@ -62,7 +62,7 @@ QPointF Wing::calculateForce ( double velocity, double sinAttack ) const
 
 // ============================================================================
 // Renders wing
-void Wing::render( QPainter& painter, const QRectF& rect )
+void Wing::render( QPainter& painter, const QRectF& rect, const RenderingOptions& options )
 {
 	painter.save();
 		painter.setTransform( body()->transform(), true );

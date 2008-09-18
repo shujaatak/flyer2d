@@ -15,8 +15,11 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 #include "Box2D.h"
-#include "ground.h"
+
+#include "renderingoptions.h"
 #include "world.h"
+
+#include "ground.h"
 
 namespace Flyer
 {
@@ -435,7 +438,7 @@ b2PolygonDef* Ground::createTriangleB2Shape( const QPointF& a, const QPointF& b,
 
 // ============================================================================
 // Renders ground
-void Ground::render ( QPainter& painter, const QRectF& /*rect*/  )
+void Ground::render ( QPainter& painter, const QRectF& /*rect*/, const RenderingOptions& /*options*/ )
 {
 	painter.setPen( Qt::black );
 	painter.setBrush( Qt::green );
@@ -457,7 +460,7 @@ void Ground::render ( QPainter& painter, const QRectF& /*rect*/  )
 // Renders grpound on map
 void Ground::renderOnMap( QPainter& painter, const QRectF& rect )
 {
-	render( painter, rect );
+	render( painter, rect, RenderingOptions() );
 }
 
 }

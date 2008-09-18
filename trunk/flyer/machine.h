@@ -44,7 +44,7 @@ public:
 	Machine ( World* pWorld );
 	virtual ~Machine();
 
-	virtual void render ( QPainter& painter, const QRectF& rect );
+	virtual void render ( QPainter& painter, const QRectF& rect, const RenderingOptions& options );
 	virtual void simulate ( double dt );
 	
 	// system classes and manipulation

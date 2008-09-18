@@ -26,12 +26,15 @@ class QPainter;
 
 #include "Box2D.h"
 
+#include "texture.h"
 #include "serializable.h"
 #include "shape.h"
 
 
 namespace Flyer
 {
+
+class RenderingOptions;
 
 /**
 	Wrap around b2Body. It rembeers it's shapes and know how to re-create itself.
@@ -74,7 +77,7 @@ public:
 	QPainterPath shape() const;
 	
 	/// Renders body in the simplest ways - draws it;s shape
-	void render( QPainter& painter );
+	void render( QPainter& painter, const RenderingOptions& options );
 	
 	/// Returns body position and orientation as QTranform
 	QTransform transform() const;
@@ -126,7 +129,7 @@ private:
 	
 	// texturing support
 	
-	QPixmap		_texture;
+	Texture		_texture;
 	QString		_texturePath;	///< Path to texture
 	QPointF		_texturePosition;
 	double		_textureScale;

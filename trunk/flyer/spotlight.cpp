@@ -61,7 +61,7 @@ void Spotlight::damage( double force )
 
 // ============================================================================
 // Renders
-void Spotlight::render(QPainter& painter, const QRectF& )
+void Spotlight::render(QPainter& painter, const QRectF&, const RenderingOptions&  )
 {
 	if ( _on && body() )
 	{

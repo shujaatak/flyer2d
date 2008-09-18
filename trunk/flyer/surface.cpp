@@ -38,13 +38,13 @@ Surface::~Surface()
 
 // ============================================================================
 // Damages surface
-void Surface::damage(double force)
+void Surface::damage(double /*force*/)
 {
 }
 
 // ============================================================================
 // Renders surface
-void Surface::render( QPainter& painter, const QRectF& rect )
+void Surface::render( QPainter& painter, const QRectF& /*rect*/, const RenderingOptions& /*options*/ )
 {
 	painter.save();
 		painter.setTransform( body()->transform(), true );
@@ -68,7 +68,7 @@ void Surface::render( QPainter& painter, const QRectF& rect )
 
 // ============================================================================
 // Simulates surface
-void Surface::simulate( double dt )
+void Surface::simulate( double /*dt*/ )
 {
 	if ( body() && body()->b2body() )
 	{

@@ -39,7 +39,7 @@ public:
 	PlaneBumblebee( World* pWorld, const QPointF& pos, double angle );
 	~PlaneBumblebee();
 
-	virtual void render( QPainter& painter, const QRectF& rect );
+	virtual void render( QPainter& painter, const QRectF& rect, const RenderingOptions& options );
 
 	virtual void releaseBomb();
 
