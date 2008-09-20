@@ -18,6 +18,7 @@
 
 #include "renderingoptions.h"
 #include "world.h"
+#include "textureprovider.h"
 
 #include "ground.h"
 
@@ -120,6 +121,8 @@ Ground::Ground ( World* pWorld ) : WorldObject ( pWorld )
 		_pGround->addShape( pShape );
 		delete pShape;
 	}
+	
+	prepareTextures();
 	
 }
 
@@ -241,6 +244,7 @@ void Ground::random()
 	points.translate( world()->boundary().left(), 0 );
 	
 	setHeightmap( points );	
+	prepareTextures();
 }
 
 // ============================================================================
@@ -438,7 +442,73 @@ b2PolygonDef* Ground::createTriangleB2Shape( const QPointF& a, const QPointF& b,
 
 // ============================================================================
 // Renders ground
-void Ground::render ( QPainter& painter, const QRectF& /*rect*/, const RenderingOptions& /*options*/ )
+void Ground::render ( QPainter& painter, const QRectF& rect, const RenderingOptions& /*options*/ )
+{
+	painter.setPen( Qt::NoPen );
+	painter.setBrush( QColor("#8F6A32") );
+
+	// draw filling
+	
+	// create cached polygin, if none
+	if ( _painterPolygon.empty() )
+	{
+		_painterPolygon = _heightmap;
+		// add corners
+		_painterPolygon.append( world()->boundary().topRight() );
+		_painterPolygon.prepend( world()->boundary().topLeft() );
+	}
+	painter.drawPolygon( _painterPolygon );
+	
+	// draw textures
+	for( int i = 0; i < _heightmap.size() - 1; i++ )
+	{
+		const QPointF& p1 = _heightmap[i];
+		const QPointF& p2 = _heightmap[i+1];
+		
+		double low = qMin( p1.y(), p2.y() );
+		double hi = qMax( p1.y(), p2.y() );
+		double vmargin = 10; // [m]
+		
+		QRectF segmentRect( QPointF( p1.x(), low-vmargin), QPointF( p2.x(), hi+vmargin ) );
+		
+		// does the section fits into screen?
+		if ( ! segmentRect.intersects( rect ) )
+		{
+			continue;
+		}
+		
+		// ok, these points define line that should be textured along
+		
+		// determine translation
+		double scale = 0.05; // std 5cm / pixel
+		//double scale = 1.0;
+		double shear = ( p2.y() - p1.y() ) / ( p2.x() - p1.x() );
+		QTransform t;
+		t.translate(  _heightmap[i].x(), _heightmap[i].y() );
+		t.scale( scale, - scale );
+		t.shear( 0, -shear );
+		
+		// draw pixmaps
+		painter.save();
+			painter.setClipRect( segmentRect );
+			painter.setTransform( t, true );
+			double x = 0;
+			foreach( int index, _textureIndices[i] )
+			{
+				const QImage& image = _textures[ index ];
+				painter.drawImage( x, -image.height(), image );
+				//painter.setPen( Qt::red );
+				//painter.drawRect( x, -1, 4, 1 );
+				x += image.width();
+			}
+		painter.restore();
+	}
+	
+}
+
+// ============================================================================
+// Renders grpound on map
+void Ground::renderOnMap( QPainter& painter, const QRectF& /*rect*/ )
 {
 	painter.setPen( Qt::black );
 	painter.setBrush( Qt::green );
@@ -457,10 +527,32 @@ void Ground::render ( QPainter& painter, const QRectF& /*rect*/, const Rendering
 }
 
 // ============================================================================
-// Renders grpound on map
-void Ground::renderOnMap( QPainter& painter, const QRectF& rect )
+/// This method generates toxtrues which will be used to render ground.
+/// It is assumed that heightmap is already generated.
+void Ground::prepareTextures()
 {
-	render( painter, rect, RenderingOptions() );
+	// first - get list of source images
+	_textures.clear();
+	for( int i = 0; i < 4; i++ ) // TODO umebr of pixmaps shoudl be read by scaning proper directory
+	{
+		QString fileName = QString("ground/grass_low%1.png").arg(i+1);
+		Texture t =TextureProvider::loadTexture( fileName );
+		_textures.append( t.image( Texture::Normal ) );
+	}
+	
+	// ok, now generate randomsequences for each ground segment
+	_textureIndices.clear();
+	for( int i = 0; i < _heightmap.size()-1; i++ )
+	{
+		_textureIndices.append( QList<int>() );
+		// TODO this assumes that each pixmap is 4m long
+		double segmentLength = _heightmap[i+1].x() - _heightmap[i].x();
+		int imageCount = int( ceil( segmentLength / 4.0 ) );
+		for( int j = 0; j < imageCount; j++ )
+		{
+			_textureIndices.last().append( qrand() % _textures.size() );
+		}
+	}
 }
 
 }

@@ -352,10 +352,19 @@ void Editor::shapeRemoveVertex()
 /// Selects objects which has to be displayed  in property editor.
 void Editor::select( EditableWrapper* pObject )
 {
-	if ( _pSelectedObject ) _pSelectedObject->setSelected( false );
+	if ( _pSelectedObject )
+	{
+		_pSelectedObject->setSelected( false );
+		disconnect( _pSelectedObject, NULL, statusBar(), NULL );
+		statusBar()->setToolTip( "" );
+	}
 	propertyEditor->setObject( pObject );
 	_pSelectedObject = pObject;
-	if ( _pSelectedObject ) _pSelectedObject->setSelected( true );
+	if ( _pSelectedObject )
+	{
+		_pSelectedObject->setSelected( true );
+		connect( _pSelectedObject, SIGNAL(showHint(const QString&)), statusBar(), SLOT(showMessage( const QString& )));
+	}
 	
 }
 

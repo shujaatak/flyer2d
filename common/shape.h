@@ -24,11 +24,13 @@
 namespace Flyer
 {
 
+class DamageManager;
+class Body;
+
 /**
 	Wrapper around b2 shape definition.
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-
 class Shape : public Serializable
 {
 
@@ -40,8 +42,21 @@ public:
 	/// Returns associated definition	
 	b2ShapeDef* def() const{ return _pDef; }
 	
+	/// Creates shape
+	void create( Body* pBody );
+	
+	/// Returns associated b2d object
+	b2Shape* b2shape() const { return _pShape; }
+	
 	/// flips shape upside-down
 	void flip();
+	
+	// name
+	
+	QString name() const { return _name; }
+	void setName( const QString& n ) { _name = n; }
+	
+	void setDamageManager( DamageManager* pManager );	///< Associates damage manager with shape
 
 protected:
 
@@ -58,6 +73,8 @@ private:
 	static b2ShapeDef* createDefCopy( b2ShapeDef* );
 
 	b2ShapeDef*	_pDef;		///< B2 shape definition
+	QString		_name;		///< Name
+	b2Shape*	_pShape;	///< B2D object
 };
 
 }

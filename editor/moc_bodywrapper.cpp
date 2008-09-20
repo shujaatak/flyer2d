@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'bodywrapper.h'
 **
-** Created: Thu Sep 18 20:53:46 2008
+** Created: Sat Sep 20 20:37:02 2008
 **      by: The Qt Meta Object Compiler version 59 (Qt 4.3.4)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_BodyWrapper[] = {
        0,       // classname
        0,    0, // classinfo
        0,    0, // methods
-      10,   10, // properties
+      11,   10, // properties
        0,    0, // enums/sets
 
  // properties: name, type, flags
@@ -32,20 +32,21 @@ static const uint qt_meta_data_BodyWrapper[] = {
       37,   25, 0x06195103,
       49,   25, 0x06195103,
       61,   25, 0x06195103,
-      75,   25, 0x06195103,
-      95,   90, 0x01195103,
-     104,   25, 0x06195103,
-     113,   25, 0x06195103,
-     122,   25, 0x06195103,
+      77,   25, 0x06195103,
+      91,   25, 0x06195103,
+     111,  106, 0x01195103,
+     120,   25, 0x06195103,
+     129,   25, 0x06195103,
+     138,   25, 0x06195103,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_BodyWrapper[] = {
     "BodyWrapper\0QString\0Name\0double\0Mass\0"
-    "MassCenterX\0MassCenterY\0LinearDamping\0"
-    "AngularDamping\0bool\0IsBullet\0TextureX\0"
-    "TextureY\0TextureScale\0"
+    "MassCenterX\0MassCenterY\0AngularMomentum\0"
+    "LinearDamping\0AngularDamping\0bool\0"
+    "IsBullet\0TextureX\0TextureY\0TextureScale\0"
 };
 
 const QMetaObject BodyWrapper::staticMetaObject = {
@@ -80,14 +81,15 @@ int BodyWrapper::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
         case 1: *reinterpret_cast< double*>(_v) = getMass(); break;
         case 2: *reinterpret_cast< double*>(_v) = getMassCenterX(); break;
         case 3: *reinterpret_cast< double*>(_v) = getMassCenterY(); break;
-        case 4: *reinterpret_cast< double*>(_v) = getLinearDamping(); break;
-        case 5: *reinterpret_cast< double*>(_v) = getAngularDamping(); break;
-        case 6: *reinterpret_cast< bool*>(_v) = getIsBullet(); break;
-        case 7: *reinterpret_cast< double*>(_v) = getTextureX(); break;
-        case 8: *reinterpret_cast< double*>(_v) = getTextureY(); break;
-        case 9: *reinterpret_cast< double*>(_v) = getTextureScale(); break;
+        case 4: *reinterpret_cast< double*>(_v) = getAngularMomentum(); break;
+        case 5: *reinterpret_cast< double*>(_v) = getLinearDamping(); break;
+        case 6: *reinterpret_cast< double*>(_v) = getAngularDamping(); break;
+        case 7: *reinterpret_cast< bool*>(_v) = getIsBullet(); break;
+        case 8: *reinterpret_cast< double*>(_v) = getTextureX(); break;
+        case 9: *reinterpret_cast< double*>(_v) = getTextureY(); break;
+        case 10: *reinterpret_cast< double*>(_v) = getTextureScale(); break;
         }
-        _id -= 10;
+        _id -= 11;
     } else if (_c == QMetaObject::WriteProperty) {
         void *_v = _a[0];
         switch (_id) {
@@ -95,26 +97,27 @@ int BodyWrapper::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
         case 1: setMass(*reinterpret_cast< double*>(_v)); break;
         case 2: setMassCenterX(*reinterpret_cast< double*>(_v)); break;
         case 3: setMassCenterY(*reinterpret_cast< double*>(_v)); break;
-        case 4: setLinearDamping(*reinterpret_cast< double*>(_v)); break;
-        case 5: setAngularDamping(*reinterpret_cast< double*>(_v)); break;
-        case 6: setIsBullet(*reinterpret_cast< bool*>(_v)); break;
-        case 7: setTextureX(*reinterpret_cast< double*>(_v)); break;
-        case 8: setTextureY(*reinterpret_cast< double*>(_v)); break;
-        case 9: setTextureScale(*reinterpret_cast< double*>(_v)); break;
+        case 4: setAngularMomentum(*reinterpret_cast< double*>(_v)); break;
+        case 5: setLinearDamping(*reinterpret_cast< double*>(_v)); break;
+        case 6: setAngularDamping(*reinterpret_cast< double*>(_v)); break;
+        case 7: setIsBullet(*reinterpret_cast< bool*>(_v)); break;
+        case 8: setTextureX(*reinterpret_cast< double*>(_v)); break;
+        case 9: setTextureY(*reinterpret_cast< double*>(_v)); break;
+        case 10: setTextureScale(*reinterpret_cast< double*>(_v)); break;
         }
-        _id -= 10;
+        _id -= 11;
     } else if (_c == QMetaObject::ResetProperty) {
-        _id -= 10;
+        _id -= 11;
     } else if (_c == QMetaObject::QueryPropertyDesignable) {
-        _id -= 10;
+        _id -= 11;
     } else if (_c == QMetaObject::QueryPropertyScriptable) {
-        _id -= 10;
+        _id -= 11;
     } else if (_c == QMetaObject::QueryPropertyStored) {
-        _id -= 10;
+        _id -= 11;
     } else if (_c == QMetaObject::QueryPropertyEditable) {
-        _id -= 10;
+        _id -= 11;
     } else if (_c == QMetaObject::QueryPropertyUser) {
-        _id -= 10;
+        _id -= 11;
     }
 #endif // QT_NO_PROPERTIES
     return _id;

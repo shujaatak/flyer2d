@@ -85,7 +85,7 @@ AntiAirBattery::~AntiAirBattery()
 
 // ============================================================================
 // Renders AA battery
-void AntiAirBattery::render ( QPainter& painter, const QRectF& )
+void AntiAirBattery::render ( QPainter& painter, const QRectF&, const RenderingOptions& )
 {
 	QTransform t = _bodyMain->transform();
 	QRectF r( -WIDTH/2, -HEIGHT/2, WIDTH, HEIGHT );

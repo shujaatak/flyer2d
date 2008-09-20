@@ -38,6 +38,7 @@ class BodyWrapper : public EditableWrapper
 	Q_PROPERTY( double Mass READ getMass WRITE setMass USER true )
 	Q_PROPERTY( double MassCenterX READ getMassCenterX WRITE setMassCenterX USER true )
 	Q_PROPERTY( double MassCenterY READ getMassCenterY WRITE setMassCenterY USER true )
+	Q_PROPERTY( double AngularMomentum READ getAngularMomentum WRITE setAngularMomentum USER true )
 
 	Q_PROPERTY( double LinearDamping READ getLinearDamping WRITE setLinearDamping USER true )
 	Q_PROPERTY( double AngularDamping READ getAngularDamping WRITE setAngularDamping USER true )
@@ -67,6 +68,8 @@ public:
 	void setMassCenterX( double p ){ _pBody->def().massData.center.x = p; }
 	double getMassCenterY() const { return _pBody->def().massData.center.y; }
 	void setMassCenterY( double p ){ _pBody->def().massData.center.y = p; }
+	void setAngularMomentum( double p ) { _pBody->def().massData.I = p; }
+	double getAngularMomentum() const{ return _pBody->def().massData.I; }
 	
 	// mass
 	double getMass() const { return _pBody->def().massData.mass; }

@@ -74,7 +74,7 @@ private:
 	void traverseSection( RGSection& section, QPolygonF& points );
 	
 	QPolygonF generate( QList<RGSection> seed );
-
+	
 	void random();					///< Generates random ground
 
 	Body* _pGround;					///< Ground body
@@ -85,6 +85,14 @@ private:
 	b2PolygonDef* createTriangleB2Shape( const QPointF& a, const QPointF& b, const QPointF& c );
 	
 	QPolygonF	_painterPolygon;		///< Cached outline
+	
+	
+	// texturing
+	
+	void prepareTextures();						///< Genrerates textures which will be used to render the ground
+	QList<QImage>		_textures;				///< Textures used to draw ground
+	QList<QList<int> >	_textureIndices;		///< Indices of textures used to draw specific sections of ground
+
 };
 
 }

@@ -71,6 +71,7 @@ void Engine::damage ( double force )
 {
 	// currently only damag is reducing max thrust
 	_currentMaxThrust -=  _maxThrust * (force / damageCapacity() );
+	//qDebug("engine damaged with force: %f, thrust reduced to: %f", force, _currentMaxThrust );
 	
 	if( _currentMaxThrust < 0.0 )
 	{

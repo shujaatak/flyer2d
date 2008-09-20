@@ -14,6 +14,8 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+#include <math.h>
+
 #include <QGraphicsScene>
 
 #include "b2dqt.h"
@@ -148,6 +150,48 @@ void ShapeWrapper::sync()
 		
 		pCircleDef->radius = pCircle->radius();
 		pCircleDef->localPosition = Flyer::point2vec( pCircle->center() );
+	}
+}
+
+// ============================================================================
+/// Handles item geometry change.
+void ShapeWrapper::itemChanged()
+{
+	if( _pShape->def()->type == e_polygonShape )
+	{
+		EditorPolygon* pPolygon = (EditorPolygon*)_pItem;
+		QPolygonF polygon = pPolygon->polygon();
+		
+		QString hint;
+		if ( EditorPolygon::isConvex( polygon ) )
+		{
+			double area = EditorPolygon::area( polygon );
+			double mass = area * _pShape->def()->density;
+			
+			hint = QString(tr("Polygon: mass %1 kg")).arg( mass, 0, 'f', 2 );
+		}
+		else
+		{
+			hint = tr("Polygon: concave!");
+		}
+		
+		emit showHint( hint );
+	}
+	else
+	{
+		EditorCircle* pCircle = (EditorCircle* )_pItem;
+	
+		// get data
+		QPointF center = pCircle->center();
+		double radius = pCircle->radius();
+		double area = radius * radius * M_PI;
+		double mass = area * _pShape->def()->density;
+	
+		QString hint = 
+			QString(tr("Circle: center: %1,%2, radius: %3 m, mass: %4 kg")).
+				arg( center.x(), 0, 'f', 2 ).arg( center.y(), 0, 'f', 2 ).arg( radius, 0, 'f', 2 ).arg( mass, 0, 'f', 2 );
+		
+		emit showHint( hint );
 	}
 }
 

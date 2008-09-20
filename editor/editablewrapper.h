@@ -48,10 +48,13 @@ public:
 	/// Syncs wrapped object with editors
 	virtual void sync() {} 
 	
+	/// Message from iterm - geometrychanged	
+	virtual void itemChanged(){}
 
 signals:
 	
-	void selected( EditableWrapper* pObject ); ///< Selected using mouse
+	void selected( EditableWrapper* pObject );	///< Selected using mouse
+	void showHint( const QString& str );			///< Hint that should be displayed on status bar
 	
 protected:
 

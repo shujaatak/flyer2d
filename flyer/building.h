@@ -50,7 +50,6 @@ public:
 private:
 
 	// appearance. replace with texture someday
-	QPainterPath	_path;		///< Visual path. It should be texture in the future
 	QColor			_color;		///< Color
 	
 	Body*			_pBody;			///< Building's body

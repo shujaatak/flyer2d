@@ -97,6 +97,14 @@ class GSysError:public GException
 	virtual ~GSysError(){}
 };
 
+/// Index error - used to signalize index violations
+class GIndexError:public GException
+{
+    public:
+    GIndexError( const QString& msg ):GException(msg){}
+	virtual ~GIndexError(){}
+};
+
 #endif // !GEXCEPTION_H
 
 // eof

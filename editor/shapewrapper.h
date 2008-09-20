@@ -30,6 +30,8 @@ class ShapeWrapper : public EditableWrapper
 {
 	Q_OBJECT
 	
+	Q_PROPERTY( QString Name READ getName WRITE setName USER true )
+	
 	Q_PROPERTY( double Friction READ getFriction WRITE setFriction USER true );
 	Q_PROPERTY( double Restitution READ getRestitution WRITE setRestitution USER true );
 	Q_PROPERTY( double Density READ getDensity WRITE setDensity USER true );
@@ -41,6 +43,10 @@ public:
 	// shape
 	Flyer::Shape* shape() const { return _pShape; }
 
+	// name	
+	QString getName() const { return _pShape->name(); }
+	void setName( const QString& s ){ _pShape->setName( s ); }
+	
 	// friction
 	void setFriction( double f ) { _pShape->def()->friction = f; }
 	double getFriction() const { return _pShape->def()->friction; }
@@ -59,6 +65,8 @@ public:
 
 	virtual bool isValid() const;
 	virtual void sync();
+	
+	virtual void itemChanged();
 private:
 
 	Flyer::Shape* _pShape;

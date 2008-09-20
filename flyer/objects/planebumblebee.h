@@ -47,7 +47,6 @@ private:
 
 	void createSystems();
 	void createBodies( const QPointF& pos, double angle );
-	void createShapes();
 	void createDamageManagers();
 
 	// type -specific data
@@ -57,11 +56,13 @@ private:
 	Body* _bodyEngine;
 	Body* _bodyLeg;
 	Body* _bodyWheel;
+	Body* _bodyTail;
 	
 	// joints
 	Joint* _jointWheel;
 	Joint* _jointEngine;
 	Joint* _jointLeg;
+	Joint* _jointTail;
 	
 	// systems
 	Engine*			_sysEngine;
