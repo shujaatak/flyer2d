@@ -37,7 +37,7 @@ public:
 	AntiAirBattery ( World* pWorld, double location, double angle );
 	~AntiAirBattery();
 
-	virtual void render ( QPainter& painter, const QRectF& rect );
+	virtual void render ( QPainter& painter, const QRectF& rect, const RenderingOptions& options );
 	virtual void renderOnMap( QPainter& painter, const QRectF& rect );
 	/// Returns object's bounding rect
 	virtual QRectF boundingRect() const;

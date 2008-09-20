@@ -57,3 +57,12 @@ void EditableItem::pointClicked( EditorPoint* )
 	scene()->clearSelection();
 	setSelected( true );
 }
+
+// ============================================================================
+// Handles point movement
+void EditableItem::pointMoved( EditorPoint* )
+{
+	prepareGeometryChange();
+	update();
+	_pWrapper->itemChanged();
+}

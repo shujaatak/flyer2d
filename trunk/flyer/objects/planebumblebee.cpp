@@ -14,8 +14,6 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#include "planebumblebee.h"
-
 #include "world.h"
 #include "b2dqt.h"
 #include "damagemanager.h"
@@ -29,10 +27,15 @@
 #include "autopilot.h"
 #include "gun.h"
 #include "ironbomb.h"
+#include "bodyprovider.h"
+
+#include "planebumblebee.h"
 
 namespace Flyer
 {
-static const double WHEEL_RADIUS = 0.5; // [m]
+
+// TODO remove unused
+//static const double WHEEL_RADIUS = 0.5; // [m]
 static const QPointF WHEEL_POS = QPointF( 0.5, -1.5 );
 static const QPointF ELEVATOR_POS = QPointF( -4.0, 0.0 );
 static const QPointF ENGINE_POS = QPointF( 1.5, 0.0 );
@@ -45,6 +48,10 @@ static const double ELEVATOR_STEP = 0.2;	/// elevator movement - in radians
 
 static const QPointF ENGINE_JOINT_POS( 1.4, 0.0 );
 static const QPointF LEG_JOINT_POS( 0.0, -0.3 );
+static const QPointF LEG_POS( 0.3, -0.65 );
+
+static const QPointF TAIL_JOINT_POS( -4.5, 0.0 );
+static const QPointF TAIL_POS( -4.5, 0.0 );
 
 static const double WING_DRAG_H	= 0.8;		// horizontal component of wing's drag
 static const double WING_DRAG_V	= 50;		// vertical component of wing's drag
@@ -55,7 +62,7 @@ static const double FLAPS_EXTRA_LIFT = 80;		// extra drag due to max flaps
 static const double WING_WIDTH = 1.5;
 
 
-static const double HULL_MASS = 1000.0; // 1t
+//static const double HULL_MASS = 1000.0; // 1t
 
 // autopilot params (PID controller)
 static const double AP_I = 1.5;	
@@ -72,7 +79,6 @@ PlaneBumblebee::PlaneBumblebee( World* pWorld, const QPointF& pos, double angle 
 	createBodies( pos, angle );
 	createSystems();
 	createDamageManagers();
-	createShapes();
 	
 	_jointBomb = NULL;
 }
@@ -104,6 +110,9 @@ void PlaneBumblebee::createSystems()
 	_sysEngine->setMaxThrust( MAX_THRUST );
 	_sysEngine->setDamageCapacity( 200E3 );
 	_sysEngine->setBody( _bodyEngine );
+	_sysEngine->setPropellerBladeLength( 0.8 );
+	_sysEngine->setPropellerCenter( QPointF( 0.5, 0.0 ) );
+	_sysEngine->setPropllerAxis( QLineF( 0.3, 0.0, 0.7, 0.0 ) );
 	addSystem( _sysEngine, SystemRendered2 | SystemSimulated );
 	setEngine( _sysEngine );
 	
@@ -184,7 +193,7 @@ void PlaneBumblebee::createSystems()
 	
 	// pre-climb
 	Autopilot::TrackSegment s;
-	s.start.Set( -400, 400 );
+	s.start.Set( -200, 400 );
 	s.end.Set( 400, 400 );
 	s.airspeed = 60;
 	_sysAutopilot->track().append( s );
@@ -246,62 +255,47 @@ void PlaneBumblebee::createBodies( const QPointF& pos, double angle )
 	
 	QPointF wheelCenter = transform.map( WHEEL_POS );
 	QPointF legJointPos = transform.map( LEG_JOINT_POS );
+	QPointF legPos 		= transform.map( LEG_POS );
 	QPointF engineJointPos = transform.map( ENGINE_JOINT_POS );
 	QPointF enginePos = transform.map( ENGINE_POS );
+	QPointF tailPos = transform.map( TAIL_POS );
+	QPointF tailJointPos = transform.map( TAIL_JOINT_POS );
 	
 	// main body
-	b2BodyDef mainDef;
-	mainDef.massData.mass = HULL_MASS;
-	mainDef.massData.center.SetZero();
-	mainDef.massData.I = HULL_MASS * 2; // 2* mass
-	mainDef.linearDamping = 0;
-	mainDef.angularDamping = 0.4;
-	mainDef.position.Set( pos.x(), pos.y() );
-	mainDef.angle = angle;
-	
-	_bodyHull = new Body("Fuselage");
-	_bodyHull->create( mainDef, pWorld );
+	_bodyHull = BodyProvider::loadBody( "planes/bumblebee_fuselage.body" );
+	_bodyHull->setPosition( point2vec( pos ) );
+	_bodyHull->setAngle( angle );
 	addBody( _bodyHull, BodyRendered2 );
 	setMainBody( _bodyHull );
+	_bodyHull->create( pWorld );
 	
 	// wheel
-	b2BodyDef wheelDef;
-	wheelDef.massData.mass = 10;	// 10kg
-	wheelDef.massData.center.SetZero();
-	wheelDef.massData.I = 1;
-	wheelDef.linearDamping = 0;
-	wheelDef.angularDamping = 0.01;
-	
-	wheelDef.position.Set( wheelCenter.x(), wheelCenter.y() ); // 1 meter below
-	wheelDef.angle = angle;
-	
-	_bodyWheel = new Body("Wheel");
-	_bodyWheel->create( wheelDef, pWorld );
+	_bodyWheel = BodyProvider::loadBody( "planes/bumblebee_wheel.body" );
+	_bodyWheel->setPosition( point2vec( wheelCenter ) );
+	_bodyWheel->create( pWorld );
 	addBody( _bodyWheel, BodyRendered1 );
 	
 
 	// leg
-	b2BodyDef legDef;
-	legDef.massData.I = 40;
-	legDef.position.Set( pos.x(), pos.y() );
-	legDef.angle = angle;
-	legDef.linearDamping = 0;
-	legDef.angularDamping = 0;
-	
-	_bodyLeg = new Body("Leg");
-	_bodyLeg->create( legDef, pWorld );
-	addBody( _bodyLeg, BodyRendered3 );
+	_bodyLeg = BodyProvider::loadBody( "planes/bumblebee_leg.body" );
+	_bodyLeg->setPosition( point2vec( legPos ) );
+	_bodyLeg->setAngle( angle );
+	_bodyLeg->create( pWorld );
+	addBody( _bodyLeg, BodyRendered2 );
 	
 	// engine
-	b2BodyDef engineDef;
-	engineDef.position.Set( enginePos.x(), enginePos.y() );
-	engineDef.angle = angle;
-	engineDef.linearDamping = 0;
-	engineDef.angularDamping = 0;
-	
-	_bodyEngine = new Body("Engine");
-	_bodyEngine->create( engineDef, pWorld );
+	_bodyEngine = BodyProvider::loadBody( "planes/bumblebee_engine.body" );
+	_bodyEngine->setAngle( angle );
+	_bodyEngine->setPosition( point2vec( enginePos ) );
+	_bodyEngine->create( pWorld );
 	addBody( _bodyEngine, BodyRendered1 );
+	
+	// tail
+	_bodyTail = BodyProvider::loadBody( "planes/bumblebee_tail.body" );
+	_bodyTail->setAngle( angle );
+	_bodyTail->setPosition( point2vec( tailPos ) );
+	_bodyTail->create( pWorld );
+	addBody( _bodyTail, BodyRendered3 );
 	
 
 	// joints
@@ -332,6 +326,16 @@ void PlaneBumblebee::createBodies( const QPointF& pos, double angle )
 	engineJoint.upperAngle = 0.0;
 	engineJoint.collideConnected = false;
 	
+	// joint between body and tail
+	b2RevoluteJointDef tailJoint;
+	tailJoint.Initialize( _bodyHull->b2body(), _bodyTail->b2body(), point2vec( tailJointPos ) );
+	tailJoint.enableMotor = true;
+	tailJoint.enableLimit = true;
+	tailJoint.lowerAngle = 0.0;
+	tailJoint.upperAngle = 0.0;
+	tailJoint.collideConnected = false;
+	
+	
 	
 	_jointWheel = new Joint();
 	_jointWheel->create( & wheelJoint, pWorld );
@@ -348,85 +352,11 @@ void PlaneBumblebee::createBodies( const QPointF& pos, double angle )
 	_jointEngine->setBodies( _bodyHull, _bodyEngine );
 	addJoint( _jointEngine );
 	
-}
-
-
-// ============================================================================
-// Creates shapes and joints, adds them to objects
-void PlaneBumblebee::createShapes()
-{
-	// main body shape
-	QPolygonF shapeBody;
-	shapeBody.append( QPointF( 1.5, 0.5) );
-	shapeBody.append( QPointF(-0.1, 0.9) );
-	shapeBody.append( QPointF(-5.0, 0.0) );
-	shapeBody.append( QPointF( 0.0,-0.7) );
-	shapeBody.append( QPointF( 1.5,-0.5) );
-		
-	QPolygonF shapeSkid;
-	shapeSkid.append( QPointF(-5.0,-0.3) );
-	shapeSkid.append( QPointF(-4.7,-0.3) );
-	shapeSkid.append( QPointF(-4.0, 0.0) );
-	shapeSkid.append( QPointF(-4.7, 1.0) );
-	shapeSkid.append( QPointF(-5.0, 1.0) );
-
-	b2PolygonDef mainShape = shapeToDef( shapeBody, false );
-	mainShape.friction = 0.5;
-	mainShape.restitution = 0.3;
-	mainShape.userData = _dmHull;
+	_jointTail = new Joint();
+	_jointTail->create( & tailJoint, pWorld );
+	_jointTail->setBodies( _bodyHull, _bodyTail );
+	addJoint( _jointTail );
 	
-	b2PolygonDef skidShape = shapeToDef( shapeSkid, false ); 
-	skidShape.friction = 0.01;
-	skidShape.restitution = 0.1;
-	skidShape.userData = _dmTail;
-	
-	
-	_bodyHull->addShape( & mainShape );
-	_bodyHull->addShape( & skidShape );
-	
-	// wheel 
-	b2CircleDef wheelShape;
-	wheelShape.radius = WHEEL_RADIUS;
-	wheelShape.localPosition.SetZero();
-	wheelShape.isSensor = false;
-	wheelShape.restitution = 0.0;
-	wheelShape.density = 10;
-	wheelShape.friction = 0.7;
-	wheelShape.userData = _dmWheel;
-	
-	_bodyWheel->addShape( & wheelShape );
-	
-	// leg
-	QPolygonF shapeLeg;
-	shapeLeg.append( QPointF(-0.2, -0.2) );
-	shapeLeg.append( QPointF( 0.3, -1.6) );
-	shapeLeg.append( QPointF( 0.7, -1.6) );
-	shapeLeg.append( QPointF( 0.2, -0.2) );
-	b2PolygonDef legShape = shapeToDef( shapeLeg, false );
-	legShape.friction = 0.9;
-	legShape.restitution = 0.1;
-	legShape.density = 20;
-	legShape.userData = _dmLeg;
-	
-	_bodyLeg->addShape( & legShape );
-	
-	// engine
-	QPolygonF shapeEngine;
-	shapeEngine.append( QPointF( -0.2, 0.6) );
-	shapeEngine.append( QPointF( -0.2, -0.6) );
-	shapeEngine.append( QPointF( 0.3, -0.5) );
-	shapeEngine.append( QPointF( 0.3, 0.5) );
-	b2PolygonDef engineShape = shapeToDef( shapeEngine, false );
-	engineShape.friction	= mainShape.friction;
-	engineShape.restitution	= mainShape.restitution;
-	engineShape.density		= 10;
-	engineShape.userData	= _dmEngine;
-	_sysEngine->setPropellerBladeLength( 0.8 );
-	_sysEngine->setPropellerCenter( QPointF( 0.5, 0.0 ) );
-	_sysEngine->setPropllerAxis( QLineF( 0.3, 0.0, 0.7, 0.0 ) );
-
-	_bodyEngine->addShape( & engineShape );
-
 }
 
 // ============================================================================
@@ -438,6 +368,7 @@ void PlaneBumblebee::createDamageManagers()
 	// set 90% to engine, 10% unused
 	_dmEngine->addSystem( _sysEngine, 9 );
 	_dmEngine->addSystem( NULL, 0 );
+	_bodyEngine->shapeByName("main")->setDamageManager( _dmEngine );
 	addDamageManager( _dmEngine );
 	
 	// wheel
@@ -447,16 +378,16 @@ void PlaneBumblebee::createDamageManagers()
 	_dmWheel->addSystem( _sysBrake, 1 );
 	_dmWheel->addSystem( _sysWheelMounting, 1 );
 	_dmWheel->addSystem( NULL, 2 );
+	_bodyWheel->shapeByName("main")->setDamageManager( _dmWheel );
 	addDamageManager( _dmWheel );
 	
 	// leg
 	_dmLeg = new DamageManager( 4E4 );
-	
-	// same as wheel
 	_dmLeg->addSystem( _sysBrake, 1 );
 	_dmLeg->addSystem( _sysWheelMounting, 1 );
 	_dmLeg->addSystem( NULL, 2 );
 	addDamageManager( _dmLeg );
+	_bodyLeg->shapeByName("main")->setDamageManager( _dmLeg );
 	
 	// hull
 	_dmHull = new DamageManager( 4E4 );
@@ -467,6 +398,7 @@ void PlaneBumblebee::createDamageManagers()
 	_dmHull->addSystem( _sysEngine, 2 );
 	_dmHull->addSystem( NULL, 10 ); // 50% unused
 	addDamageManager( _dmHull );
+	_bodyHull->shapeByName("main")->setDamageManager(_dmHull );
 	
 	// tail - wings and engin also could be damaged
 	_dmTail = new DamageManager( 3E4 );
@@ -475,6 +407,7 @@ void PlaneBumblebee::createDamageManagers()
 	_dmTail->addSystem( _sysElevator, 2 );
 	_dmTail->addSystem( NULL, 4 );
 	addDamageManager( _dmTail );
+	_bodyTail->shapeByName("main")->setDamageManager( _dmTail );
 	
 }
 

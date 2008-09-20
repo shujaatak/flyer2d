@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'editablewrapper.h'
 **
-** Created: Thu Sep 18 20:53:46 2008
+** Created: Sat Sep 20 20:37:02 2008
 **      by: The Qt Meta Object Compiler version 59 (Qt 4.3.4)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -22,19 +22,21 @@ static const uint qt_meta_data_EditableWrapper[] = {
        1,       // revision
        0,       // classname
        0,    0, // classinfo
-       1,   10, // methods
+       2,   10, // methods
        0,    0, // properties
        0,    0, // enums/sets
 
  // signals: signature, parameters, type, tag, flags
       25,   17,   16,   16, 0x05,
+      56,   52,   16,   16, 0x05,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_EditableWrapper[] = {
     "EditableWrapper\0\0pObject\0"
-    "selected(EditableWrapper*)\0"
+    "selected(EditableWrapper*)\0str\0"
+    "showHint(QString)\0"
 };
 
 const QMetaObject EditableWrapper::staticMetaObject = {
@@ -63,8 +65,9 @@ int EditableWrapper::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
         case 0: selected((*reinterpret_cast< EditableWrapper*(*)>(_a[1]))); break;
+        case 1: showHint((*reinterpret_cast< const QString(*)>(_a[1]))); break;
         }
-        _id -= 1;
+        _id -= 2;
     }
     return _id;
 }
@@ -74,4 +77,11 @@ void EditableWrapper::selected(EditableWrapper * _t1)
 {
     void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 0, _a);
+}
+
+// SIGNAL 1
+void EditableWrapper::showHint(const QString & _t1)
+{
+    void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
+    QMetaObject::activate(this, &staticMetaObject, 1, _a);
 }

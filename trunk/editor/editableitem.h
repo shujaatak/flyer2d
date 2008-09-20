@@ -33,7 +33,7 @@ public:
 	EditableItem();
 	~EditableItem();
 	
-	virtual void pointMoved( EditorPoint* ) = 0;
+	virtual void pointMoved( EditorPoint* );
 	virtual void pointClicked( EditorPoint* );
 	
 	void setWrapper( EditableWrapper* pW ){ _pWrapper = pW; }

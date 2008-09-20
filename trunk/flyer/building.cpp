@@ -74,13 +74,13 @@ Building* Building::createSmallBuilding( World* pWorld, double location, bool ba
 {
 	Building* pBuilding = new Building( pWorld );
 	
-	int housenum = ( qrand() % 3 ) + 1;
+	int housenum = ( qrand() % 4 ) + 1;
 	QString fileName = QString("house_small_%1.body").arg( housenum );
 	pBuilding->_pBody = BodyProvider::loadBody( fileName );
 	
 	
-	pBuilding->_width = 9; // TODO read from somwhere
-	pBuilding->_pBody->def().position.Set( location, pWorld->ground()->height( location ) );
+	pBuilding->_width = 9;
+	pBuilding->_pBody->setPosition( b2Vec2(location, pWorld->ground()->height( location ) ) );
 	pBuilding->_pBody->create( pWorld->b2world() );
 	
 	if ( background ) pBuilding->_pBody->setLayers( World::ObjectRenderedBackground );

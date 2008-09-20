@@ -19,6 +19,7 @@
 #include <QPainter>
 
 #include "editorpoint.h"
+#include "b2dqt.h"
 
 #include "editorpolygon.h"
 
@@ -115,14 +116,6 @@ void EditorPolygon::init( int a_p )
 }
 
 // ============================================================================
-// Point moved
-void EditorPolygon::pointMoved(EditorPoint*)
-{
-	prepareGeometryChange();
-	update();
-}
-
-// ============================================================================
 // Checks if polygon is ocnvex
 bool EditorPolygon::isConvex( const QPolygonF& p )
 {
@@ -183,5 +176,31 @@ void EditorPolygon::setPolygon( const QPolygonF& polygon )
 	}
 	
 	update();
+}
+
+// ============================================================================
+/// Calculates polygon area
+double EditorPolygon::area( const QPolygonF& p )
+{
+	double total = 0; // sum of products of all sub - triangles
+	
+	// pRef is the reference point for forming triangles.
+	// It's location doesn't change the result (except for rounding error).
+	b2Vec2 p1(0.0f, 0.0f);
+	
+	for( int i = 0; i < p.size(); i++ )
+	{
+		b2Vec2 p2  = Flyer::point2vec( p[i] );
+		b2Vec2 p3  = Flyer::point2vec( p[ (i+1) % p.size() ] );
+		
+		b2Vec2 e1 = p2 - p1;
+		b2Vec2 e2 = p3 - p1;
+
+		double D = b2Cross(e1, e2);
+
+		total += D * 0.5;
+	}
+	
+	return total;
 }
 

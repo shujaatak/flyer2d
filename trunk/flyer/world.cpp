@@ -202,7 +202,7 @@ void World::initWorld()
 	addObject( _pPlayerPlane, ObjectRenderedVehicles | ObjectSide1 | ObjectSimulated | ObjectPlane | ObjectRenderedMap );
 	
 	// enemy plane (!)
-	PlaneBumblebee* pEnemy = new PlaneBumblebee( this, QPointF( -400, 400 ), 0.0 );
+	PlaneBumblebee* pEnemy = new PlaneBumblebee( this, QPointF( -200, 400 ), 0.0 );
 	pEnemy->mainBody()->b2body()->SetLinearVelocity( b2Vec2( 30, 0 ) ); // some initial speed
 	pEnemy->setAutopilot( true ); // turn on autopilot
 	addObject( pEnemy, ObjectRenderedVehicles | ObjectSide2 | ObjectSimulated | ObjectPlane | ObjectRenderedMap );

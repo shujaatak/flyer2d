@@ -44,6 +44,7 @@ class Body : public Serializable
 {
 public:
 	Body( const QString& name = "" );
+	Body( const Body& src );
 	virtual ~Body();
 	
 	/// Creates body
@@ -64,6 +65,12 @@ public:
 	/// Returns body definition. Usable only before creation.
 	b2BodyDef& def() { return _definition; }
 	
+	/// Sets body position
+	void setPosition( const b2Vec2& pos );
+	
+	/// Sets body angle
+	void setAngle( double angle );
+	
 	/// Adds shape to body
 	Shape* addShape( const Shape& shape, bool removeUserData  = false );
 	
@@ -72,6 +79,9 @@ public:
 	
 	/// Returns reference to internal list of shapes
 	QList<Shape>& shapes() { return _shapes; }
+	
+	/// Returns shape by name
+	Shape* shapeByName( const QString& name );
 	
 	/// Returns body shape as painter path
 	QPainterPath shape() const;
@@ -126,6 +136,7 @@ private:
 	b2BodyDef	_definition;
 	QList<Shape>	_shapes;
 	int			_layers;		///< Collision layers
+	double		_orientation;	///< Body orientation [-1 - flipped, +1 - not flipped]
 	
 	// texturing support
 	

@@ -15,6 +15,7 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 #include "gexception.h"
+#include "body.h"
 
 #include "shape.h"
 
@@ -26,6 +27,7 @@ namespace Flyer
 Shape::Shape( b2ShapeDef* pDef ) : Serializable()
 {
 	_pDef = NULL;
+	_pShape = NULL;
 	if ( pDef )
 	{
 		_pDef = createDefCopy( pDef );
@@ -37,6 +39,8 @@ Shape::Shape( b2ShapeDef* pDef ) : Serializable()
 Shape::Shape( const Shape& src ) : Serializable( src )
 {
 	_pDef = createDefCopy( src._pDef );
+	_name = src._name;
+	_pShape = NULL; // TODO created object not copied
 }
 
 
@@ -137,6 +141,8 @@ void Shape::toStream( QDataStream& stream ) const
 			throw GValueError("Shape::toStream: Unknown shape type");
 		}
 	}
+	
+	stream << _name;
 }
 
 // ============================================================================
@@ -192,6 +198,26 @@ void Shape::fromStream( QDataStream& stream )
 		stream >> pCircleDef->radius;
 	}
 	
+	stream >> _name;
+	
+}
+
+// ============================================================================
+/// Associates damage manager with body
+void Shape::setDamageManager( DamageManager* pManager )
+{
+	if ( _pDef ) _pDef->userData = pManager;
+	if ( _pShape ) _pShape->SetUserData( pManager );
+}
+
+// ============================================================================
+/// Creates b2d shape object using body as context.
+void Shape::create( Body* pBody )
+{
+	Q_ASSERT( pBody );
+	Q_ASSERT( pBody->b2body() );
+	
+	_pShape = pBody->b2body()->CreateShape( _pDef );
 }
 
 }

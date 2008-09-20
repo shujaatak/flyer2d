@@ -19,6 +19,7 @@
 #include <QPainter>
 
 #include "editorpoint.h"
+#include "editablewrapper.h"
 
 #include "editorcircle.h"
 
@@ -52,6 +53,7 @@ void EditorCircle::pointMoved(EditorPoint* pPoint )
 		_rimPos = _pRim->pos() - _pCenter->pos();
 	}
 	update();
+	_pWrapper->itemChanged();
 }
 
 // ============================================================================

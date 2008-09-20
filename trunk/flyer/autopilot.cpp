@@ -193,7 +193,7 @@ void Autopilot::controlFollowPath( double dt )
 		// simple flight, minimize vertical distance from track
 		
 		double posError = cy - pos.y;
-		if ( fabs( posError ) < 10 ) // TODO some hourystic value
+		if ( fabs( posError ) < 10 ) // TODO some heuristic value
 		{
 			_posErrorIntegral += posError*dt;
 		}
@@ -215,7 +215,14 @@ void Autopilot::controlFollowPath( double dt )
 		double error = (  vel.y - desiredVSpeed ) / fabs( vel.x );
 		
 		// update integral
-		_errorIntegral += error*dt;
+		if ( fabs( error ) < 10 )
+		{
+			_errorIntegral += error*dt;
+		}
+		else
+		{
+			_errorIntegral = 0.0;
+		}
 		
 		// get derivative
 		double der = ( error - _previousError ) / dt;

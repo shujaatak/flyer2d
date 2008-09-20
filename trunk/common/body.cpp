@@ -18,6 +18,7 @@
 
 #include "textureprovider.h"
 #include "renderingoptions.h"
+#include "gexception.h"
 
 #include "body.h"
 
@@ -26,12 +27,39 @@ namespace Flyer
 
 // ============================================================================
 // Constructor
-Body::Body( const QString& name )
+Body::Body( const QString& name ) : Serializable()
 {
 	_name = name;
 	_pBody = NULL;
 	_layers = 0;
 	_textureScale = 0.05; // 20 px per meter, 5cm per pixel
+	_orientation = 1.0;
+}
+
+// ============================================================================
+/// Copy constructor. If original has b2body created, creates new body with the same dynamical properties.
+Body::Body( const Body& src ) : Serializable( src )
+{
+	_shapes				= src._shapes;
+	_definition			= src._definition;
+	_name				= src._name;
+	_layers				= src._layers;
+	_texture			= src._texture;
+	_texturePath		= src._texturePath;
+	_texturePosition	= src._texturePosition;
+	_textureScale		= src._textureScale;
+	_orientation		= src._orientation;
+	
+	// if original has b2body, create and copy dynamic parameters
+	if ( src._pBody )
+	{
+		_definition.position	= src._pBody->GetPosition();
+		_definition.angle	= src._pBody->GetAngle();
+		
+		create( src._pBody->GetWorld() );
+		_pBody->SetLinearVelocity( src._pBody->GetLinearVelocity() );
+		_pBody->SetAngularVelocity( src._pBody->GetAngularVelocity() );
+	}
 }
 
 // ============================================================================
@@ -70,9 +98,9 @@ void Body::create( b2World* pWorld )
 	_pBody = pWorld->CreateBody( & _definition );
 	
 	// if shapes added - create them
-	foreach( const Shape& shape, _shapes )
+	for( int i = 0; i < _shapes.size(); i++ )
 	{
-		_pBody->CreateShape( shape.def() );
+		_shapes[i].create( this );
 	}
 	
 	// create mass
@@ -103,7 +131,7 @@ Shape* Body::addShape( const Shape& shape, bool removeUserData )
 	// create b2 shape if body available
 	if ( _pBody )
 	{
-		_pBody->CreateShape( _shapes.last().def() );
+		_shapes.last().create( this );
 		// create mass
 		if ( _definition.massData.mass == 0 )
 		{
@@ -193,6 +221,8 @@ QTransform Body::transform() const
 /// Axis is defined as pair of points.
 void Body::flip( const QPointF& p1, const QPointF& p2 )
 {
+	_orientation = _orientation * -1;
+	
 	// flip shapes uside down
 	for( int i = 0; i < _shapes.size(); i++ )
 	{
@@ -259,7 +289,7 @@ void Body::render( QPainter& painter, const RenderingOptions& options )
 		{
 			painter.save();
 				QImage texture = _texture.image( options.textureStyle );
-				t.scale( _textureScale, -_textureScale );
+				t.scale( _textureScale, -_textureScale * _orientation );
 				painter.setTransform( t, true );
 				QPointF position( _texturePosition.x(), - _texturePosition.y() );
 				painter.drawImage( position/_textureScale, texture );
@@ -337,27 +367,7 @@ void Body::destroy()
 /// Creates exact copy
 Body* Body::createCopy() const
 {
-	Body* pCopy = new Body(); // TODO different types here
-	
-	// copy shapes
-	foreach( const Shape& shape, _shapes )
-	{
-		pCopy->addShape( shape, true );
-	}
-	
-	// create
-	if ( _pBody )
-	{
-		b2BodyDef definition = _definition;
-		definition.position = _pBody->GetPosition();
-		definition.angle = _pBody->GetAngle();
-		
-		pCopy->setLayers( _layers );
-		pCopy->create( definition, _pBody->GetWorld() );
-		pCopy->b2body()->SetLinearVelocity( _pBody->GetLinearVelocity() );
-		pCopy->b2body()->SetAngularVelocity( _pBody->GetAngularVelocity() );
-	}
-	
+	Body* pCopy = new Body( *this ); // TODO different types here
 	return pCopy;
 }
 
@@ -427,8 +437,9 @@ void Body::toStream( QDataStream& stream ) const
 	stream << _definition.isSleeping;
 	// dyamic data(?)
 	stream << _definition.angle;
-	stream << _definition.position.x;
-	stream << _definition.position.y;
+	float dummy = 0.0;
+	stream << dummy;
+	stream << dummy;
 	
 	// shapes
 	stream << _shapes.size();
@@ -464,8 +475,9 @@ void Body::fromStream( QDataStream& stream )
 	stream >> _definition.isSleeping;
 	// dyamic data(?)
 	stream >> _definition.angle;
-	stream >> _definition.position.x;
-	stream >> _definition.position.y;
+	float dummy; // TODO sue these dummies in future
+	stream >> dummy;
+	stream >> dummy;
 	
 	// shapes
 	int shapeCount;
@@ -492,5 +504,33 @@ void Body::fromStream( QDataStream& stream )
 
 }
 
+// ============================================================================
+/// Sets body position. Currentyl changes definition only and works before body is created
+void Body::setPosition( const b2Vec2& pos )
+{
+	_definition.position = pos;
+}
+
+// ============================================================================
+/// Returns first shape from list with the name. Throws index error if not found
+Shape* Body::shapeByName( const QString& name )
+{
+	foreach( const Shape& shape, _shapes )
+	{
+		if ( shape.name() == name )
+		{
+			return const_cast<Shape*>( &shape );
+		}
+	}
+	
+	throw GIndexError( QString("Body::shapeByName: shape '%1' not found").arg( name ) );
+}
+
+// ============================================================================
+/// Sets body angle. Currently changes definiotn and works only before creating b2d body.
+void Body::setAngle( double angle )
+{
+	_definition.angle = angle;
+}
 
 }

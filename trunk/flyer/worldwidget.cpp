@@ -454,8 +454,11 @@ void WorldWidget::initializeGL()
 	//{
 		glEnable( GL_LINE_SMOOTH );
 	//	glEnable( GL_POINT_SMOOTH );
-	//	glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
+		//glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
 	//}
+	//glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    //glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
 }
 
 // ============================================================================
