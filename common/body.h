@@ -68,6 +68,8 @@ public:
 	/// Sets body position
 	void setPosition( const b2Vec2& pos );
 	
+	b2Vec2 position() const;
+	
 	/// Sets body angle
 	void setAngle( double angle );
 	
@@ -94,6 +96,7 @@ public:
 	
 	/// Flips body along defined axis
 	void flip( const QPointF& p1, const QPointF& p2 );
+	
 	
 	/// Checks if body is connected to antoher through joints
 	bool isConnectedTo( Body* pBody ) const;

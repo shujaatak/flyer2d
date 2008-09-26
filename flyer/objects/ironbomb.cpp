@@ -21,6 +21,8 @@
 #include "b2dqt.h"
 #include "world.h"
 #include "contactfuse.h"
+#include "bodyprovider.h"
+#include "passiveattachpoint.h"
 
 namespace Flyer
 {
@@ -29,6 +31,8 @@ namespace Flyer
 /// Constructor
 IronBomb::IronBomb ( World* pWorld ) : Machine ( pWorld )
 {
+	_attachPoint = NULL;
+	setLayers( World::ObjectRenderedVehicles | World::ObjectRenderedBuildings );
 }
 
 // ============================================================================
@@ -38,7 +42,7 @@ IronBomb::~IronBomb()
 }
 
 // ============================================================================
-/// Configures
+/// Configures, ale sets 125 kg bomb defaults
 void IronBomb::init( const QPointF& position, double angle )
 {
 	// create main body
@@ -47,31 +51,21 @@ void IronBomb::init( const QPointF& position, double angle )
 	bodyDef.angle = angle;
 	bodyDef.isBullet = true;
 	
-	_bodyMain = new Body( "Bomb" );
-	_bodyMain->create( bodyDef, world()->b2world() );
+	_bodyMain = BodyProvider::loadBody( "weapons/gpb125.body" );
+	_bodyMain->setPosition( point2vec( position ) );
+	_bodyMain->setAngle( angle );
 	addBody( _bodyMain, BodyRendered1 );
+	_bodyMain->create( world()->b2world() );
 	setMainBody( _bodyMain );
 	
 	// create dm
-	_dmFuse = new DamageManager( 5E3 ); // small value
+	_dmFuse = new DamageManager( 10E3 ); // small value
+	_bodyMain->shapeByName("main")->setDamageManager( _dmFuse );
 	addDamageManager( _dmFuse );
 	
-	// create shape
-	b2PolygonDef shapeDef;
-	shapeDef.vertexCount = 6;
-	shapeDef.vertices[0].Set( _length/2, 0 );
-	shapeDef.vertices[1].Set( _length/2 - _diameter/2, _diameter/2 );
-	shapeDef.vertices[2].Set( -_length/2 + _diameter/2, _diameter/2 );
-	shapeDef.vertices[3].Set( -_length/ 2, 0 );
-	shapeDef.vertices[4].Set( -_length/2 + _diameter/2, -_diameter/2 );
-	shapeDef.vertices[5].Set( _length/2 - _diameter/2, -_diameter/2 );
-	shapeDef.friction = 0.6;
-	shapeDef.restitution = 0.1;
-	shapeDef.density = _mass / (_length*_diameter );
-	shapeDef.userData = _dmFuse;
-	_bodyMain->addShape( & shapeDef );
 	
 	// create surface
+	_length = 1.6; // TODO get this from somwhere, read form body.
 	_sysStabilizer = new ControlSurface( this, "Stabilizer" );
 	_sysStabilizer->setBody( _bodyMain );
 	_sysStabilizer->setLength( _diameter );
@@ -80,14 +74,23 @@ void IronBomb::init( const QPointF& position, double angle )
 	_sysStabilizer->setDragCoeffH( 0.1 );
 	_sysStabilizer->setDragCoeffV( 2 );
 	_sysStabilizer->setLiftCoeff( 6 );
-	addSystem( _sysStabilizer, SystemSimulated | SystemRendered2 );
+	addSystem( _sysStabilizer, SystemSimulated );
 	
 	// create fuse
+	_energy = 500E3; // explosion energy. 
 	_sysFuse = new ContactFuse( this, "Fuse" );
 	_sysFuse->setEnergy( _energy );
-	_sysFuse->setDamageCapacity( 20E3 );
+	_sysFuse->setDamageCapacity( 30E3 ); // small enough
 	addSystem( _sysFuse, 0 );
 	_dmFuse->addSystem( _sysFuse, 1 );
+	
+	// create attach point
+	_attachPoint = new PassiveAttachPoint();
+	_attachPoint->setParent( this );
+	_attachPoint->setPosition( b2Vec2( 0, 0.3 ) );
+	addPassiveAttachPoint( _attachPoint );
+	
+	
 }
 
 

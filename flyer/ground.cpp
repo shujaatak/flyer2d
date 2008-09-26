@@ -533,7 +533,7 @@ void Ground::prepareTextures()
 {
 	// first - get list of source images
 	_textures.clear();
-	for( int i = 0; i < 4; i++ ) // TODO umebr of pixmaps shoudl be read by scaning proper directory
+	for( int i = 0; i < 7; i++ ) // TODO umebr of pixmaps shoudl be read by scaning proper directory
 	{
 		QString fileName = QString("ground/grass_low%1.png").arg(i+1);
 		Texture t =TextureProvider::loadTexture( fileName );

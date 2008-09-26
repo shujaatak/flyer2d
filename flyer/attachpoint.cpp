@@ -14,46 +14,40 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#include "contactfuse.h"
-#include "explosion.h"
-#include "world.h"
-#include "machine.h"
+#include "attachpoint.h"
 
 namespace Flyer
 {
 
 // ============================================================================
 // Constructor
-ContactFuse::ContactFuse ( Machine* pParent, const QString& name ) : System ( pParent, name )
+AttachPoint::AttachPoint()
 {
-	_energy = 0;
-	_damageReceived = 0;
-	_destroyed = false;
+	_pParentMachine = NULL;
+	_pParentBody = NULL;
+	_position.SetZero();
+	_angle = 0.0;
 }
 
 // ============================================================================
 // Destructor
-ContactFuse::~ContactFuse()
+AttachPoint::~AttachPoint()
 {
 }
 
 // ============================================================================
-// Handles damage
-void ContactFuse::damage ( double force )
+// Sets partent machine
+void AttachPoint::setParent( Machine* p )
 {
-	_damageReceived += force;
-	//qDebug("fuse: %g/%g", _damageReceived, damageCapacity() ); TODO remove
-	if ( ! _destroyed && _damageReceived >= damageCapacity() )
-	{
-		Explosion* pExplosion = new Explosion( parent()->world() );
-		pExplosion->setEnergy( _energy );
-		pExplosion->setCenter( parent()->position() );
+	// must be virgin
+	Q_ASSERT( ! _pParentMachine );
+	Q_ASSERT( ! _pParentBody );
 	
-		//add explosion to the world, remove parent
-		parent()->world()->addObject( pExplosion, World::ObjectSimulated | World::ObjectRenderedForeground );
-		parent()->world()->removeObject( parent() );
-		_destroyed = true;
-	}
+	
+	_pParentMachine = p;
 }
 
+
 }
+
+// EOF

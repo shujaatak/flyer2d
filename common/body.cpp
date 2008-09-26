@@ -219,6 +219,7 @@ QTransform Body::transform() const
 // ============================================================================
 /// Flips body along defined axis.
 /// Axis is defined as pair of points.
+///\note tried to use b2Vec2 here, but float precision is too small!
 void Body::flip( const QPointF& p1, const QPointF& p2 )
 {
 	_orientation = _orientation * -1;
@@ -531,6 +532,14 @@ Shape* Body::shapeByName( const QString& name )
 void Body::setAngle( double angle )
 {
 	_definition.angle = angle;
+}
+
+// ============================================================================
+/// Returens body poisition
+b2Vec2 Body::position() const
+{
+	if ( _pBody ) return _pBody->GetPosition();
+	else return _definition.position;
 }
 
 }

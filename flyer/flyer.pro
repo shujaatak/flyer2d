@@ -33,7 +33,10 @@ SOURCES = main.cpp worldwidget.cpp \
  objects/ironbomb.cpp \
  contactfuse.cpp \
  cloud.cpp \
- building.cpp
+ building.cpp \
+ attachpoint.cpp \
+ activeattachpoint.cpp \
+ passiveattachpoint.cpp
 
 HEADERS = worldwidget.h \
  mainwindow.h \
@@ -69,15 +72,16 @@ HEADERS = worldwidget.h \
  cloud.h \
  building.h \
  \
- renderingoptions.h
+ renderingoptions.h \
+ attachpoint.h \
+ activeattachpoint.h \
+ passiveattachpoint.h
 FORMS += mainwindow.ui \
  statuswindow.ui
 
 
-CONFIG -= release
 
-CONFIG += debug \
- opengl
+CONFIG += opengl
 QT += opengl
 
 HEADERS -= object.h \

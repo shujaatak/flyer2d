@@ -28,6 +28,7 @@
 #include "gun.h"
 #include "ironbomb.h"
 #include "bodyprovider.h"
+#include "activeattachpoint.h"
 
 #include "planebumblebee.h"
 
@@ -35,7 +36,6 @@ namespace Flyer
 {
 
 // TODO remove unused
-//static const double WHEEL_RADIUS = 0.5; // [m]
 static const QPointF WHEEL_POS = QPointF( 0.5, -1.5 );
 static const QPointF ELEVATOR_POS = QPointF( -4.0, 0.0 );
 static const QPointF ENGINE_POS = QPointF( 1.5, 0.0 );
@@ -61,8 +61,8 @@ static const double FLAPS_EXTRA_DRAG = 5;		// extra drag due to max flaps
 static const double FLAPS_EXTRA_LIFT = 80;		// extra drag due to max flaps
 static const double WING_WIDTH = 1.5;
 
-
-//static const double HULL_MASS = 1000.0; // 1t
+static const b2Vec2 BOMB_POS( -1.0, -0.6 );
+static const double BOMB_ANGLE	= -0.2;
 
 // autopilot params (PID controller)
 static const double AP_I = 1.5;	
@@ -80,7 +80,15 @@ PlaneBumblebee::PlaneBumblebee( World* pWorld, const QPointF& pos, double angle 
 	createSystems();
 	createDamageManagers();
 	
-	_jointBomb = NULL;
+	// create bomb attach point
+	_pointBomb = new ActiveAttachPoint();
+	_pointBomb->setParent( this );
+	_pointBomb->setName( "General purpose fuselage mount point" );
+	_pointBomb->setParentBody( _bodyHull );
+	_pointBomb->setPosition( BOMB_POS );
+	_pointBomb->setAngle( BOMB_ANGLE );
+	addActiveAttachPoint( _pointBomb );
+	setWeponAttachPoint( _pointBomb );
 }
 
 // ============================================================================
@@ -88,18 +96,6 @@ PlaneBumblebee::PlaneBumblebee( World* pWorld, const QPointF& pos, double angle 
 PlaneBumblebee::~PlaneBumblebee()
 {
 }
-
-// TEMP - bopmb relaser
-void PlaneBumblebee::releaseBomb()
-{
-	if ( _jointBomb )
-	{
-		_jointBomb->breakJoint();
-		delete _jointBomb;
-		_jointBomb = NULL;
-	}
-}
-
 
 // ============================================================================
 // Creates system

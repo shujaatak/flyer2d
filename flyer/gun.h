@@ -46,9 +46,11 @@ public:
 	void setMuzzle( const QPointF& m ) { _muzzle = m; }
 	QPointF muzzle() const { return _muzzle; }
 	void setNormal( const QPointF& n ) { _normal = n; }
+	void setWorldNormal( const QPointF& n ); /// Sets normal in word coordinates
 	QPointF normal() const { return _normal; }
 	void setBulletVelocity( double v ) { _velocity = v; _currentVelocity = v;}
 	void setFiringInterval( double i ) { _interval = i; _currentnInterval = i;}
+	void setMuzzleShift( double s ) { _muzzleShift = s; }
 	
 	// actions
 	void setFiring( bool firing ) { _firing = firing; }
@@ -67,6 +69,7 @@ private:
 	double _lifespan;	///< Bullet lifespan
 	double _velocity;	///< Bullet;s initial velocity
 	double _interval;	///< shooting interval [seconds]
+	double _muzzleShift;	///< Shift between muzzle and point where bullets are actually created
 	
 	QPointF _muzzle;	///< Muzzle location
 	QPointF _normal;	///< Muzzle direction

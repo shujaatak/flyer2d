@@ -22,12 +22,11 @@ editablewrapper.cpp \
 FORMS += editor.ui
 RESOURCES =resources/resources.qrc
 
-CONFIG += rtti \
- debug
+CONFIG += rtti
 
 
 
-CONFIG -= release
+CONFIG -= debug
 
 LIBS += -L../lib/ \
   -lflyercommon \

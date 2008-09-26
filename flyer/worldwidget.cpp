@@ -319,6 +319,11 @@ void WorldWidget::mousePressEvent( QMouseEvent* pEvent )
 		plane()->setFiring( true );
 		break;
 		
+	// right
+	case Qt::RightButton:
+		plane()->releaseWeapon();
+		break;
+		
 	
 	default:
 		pEvent->ignore();

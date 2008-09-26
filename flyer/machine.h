@@ -33,6 +33,8 @@ class System;
 class Body;
 class Joint;
 class DamageManager;
+class ActiveAttachPoint;
+class PassiveAttachPoint;
 
 /**
 	Base class for machines. Machine is a set of systems, bodies and joints.
@@ -102,6 +104,15 @@ public:
 	
 	/// Sets layers on whic hthis machine lives
 	void setLayers( int layers );
+	
+	/// Adds attach point to machine
+	void addActiveAttachPoint( ActiveAttachPoint* pPoint );
+	
+	/// Adds attach point to machine
+	void addPassiveAttachPoint( PassiveAttachPoint* pPoint );
+	
+	/// Returns machine's attach points
+	QList<ActiveAttachPoint*>& activeAttachPoints() { return _activeAttachPoints; }
 
 protected:
 
@@ -130,6 +141,10 @@ protected:
 	
 	// damage managers
 	QList<DamageManager*> _allDamageManagers;
+	
+	// attach points
+	QList<ActiveAttachPoint*>		_activeAttachPoints;
+	QList<PassiveAttachPoint*>		_passiveAttachPoints;
 	
 	// variables
 	

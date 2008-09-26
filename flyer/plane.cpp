@@ -31,6 +31,8 @@
 #include "wheelbrake.h"
 #include "autopilot.h"
 #include "gun.h"
+#include "activeattachpoint.h"
+
 #include "plane.h"
 
 
@@ -38,14 +40,14 @@
 namespace Flyer
 {
 static const double MIN_FLIP_SPEED = 30;	///< min speed for flip
-static const double MAX_TURN_SPEED = 0.1;	///< max speed for turn
+static const double MAX_TURN_SPEED = 0.3;	///< max speed for turn
 
 
 
 
 // ============================================================================
 // Constructor
-Plane::Plane( World* pWorld, const QPointF& pos, double angle ) : Machine( pWorld )
+Plane::Plane( World* pWorld, const QPointF& /*pos*/, double /*angle*/ ) : Machine( pWorld )
 {
 	_pEngine	= NULL;
 	_pWing		= NULL;
@@ -53,6 +55,7 @@ Plane::Plane( World* pWorld, const QPointF& pos, double angle ) : Machine( pWorl
 	_pAutopilot	= NULL;
 	_pElevator	= NULL;
 	_pGun		= NULL;
+	_pWeaponAttachPoint  = NULL;
 	setLayers( World::ObjectRenderedVehicles | World::ObjectRenderedBuildings );
 }
 
@@ -161,7 +164,7 @@ void Plane::flipPlane()
 
 // ============================================================================
 // Renders plane on map
-void Plane::renderOnMap( QPainter& painter, const QRectF& rect )
+void Plane::renderOnMap( QPainter& painter, const QRectF& /*rect*/ )
 {
 	painter.setPen( Qt::red );
 	painter.setBrush( Qt::white );
@@ -223,6 +226,13 @@ bool Plane::autopilot() const
 void Plane::setFiring( bool on )
 {
 	if ( _pGun ) _pGun->setFiring( on );
+}
+
+// ============================================================================
+// Releases attached weapon
+void Plane::releaseWeapon()
+{
+	if ( _pWeaponAttachPoint ) _pWeaponAttachPoint->release();
 }
 
 }

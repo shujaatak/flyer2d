@@ -26,6 +26,7 @@ class ContactFuse;
 class DamageManager;
 class Body;
 class Surface;
+class PassiveAttachPoint;
 
 /**
 	Simple iron bomb wthconfigurable sisze, mass and explosion energy.
@@ -44,6 +45,8 @@ public:
 	void setMass( double m ) { _mass = m; }
 	void setEnergy( double e ) { _energy = e; }
 	
+	PassiveAttachPoint* atachPoint() const { return _attachPoint; }
+	
 	void init( const QPointF& position, double angle );
 	
 private:
@@ -60,6 +63,7 @@ private:
 	DamageManager*	_dmFuse;
 	Body*			_bodyMain;
 	Surface*		_sysStabilizer;
+	PassiveAttachPoint*	_attachPoint;
 
 };
 

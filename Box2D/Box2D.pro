@@ -8,7 +8,7 @@ DESTDIR = ../lib
 CONFIG += staticlib \
  release
 
-DEPENDPATH += ". \
+DEPENDPATH += """. \
               Collision \
               Common \
               Dynamics \
@@ -20,9 +20,7 @@ DEPENDPATH += ". \
                Collision/Shapes \
                Dynamics \
                Dynamics/Joints \
-               Dynamics/Contacts
-
-# Input
+               Dynamics/Contacts""# Input
 HEADERS += Collision/b2BroadPhase.h \
            Collision/b2Collision.h \
            Collision/b2PairManager.h \
@@ -84,5 +82,6 @@ SOURCES += Collision/b2BroadPhase.cpp \
            Dynamics/Joints/b2PrismaticJoint.cpp \
            Dynamics/Joints/b2PulleyJoint.cpp \
            Dynamics/Joints/b2RevoluteJoint.cpp
+
 CONFIG -= debug
 
