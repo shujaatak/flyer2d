@@ -20,6 +20,10 @@ Currently there is only one plane available. It's small, slow, STOL recon plane,
 
 Throttle engine to max, get some speed and off you go!
 
+== Flying ==
+
+Flying is pretty easy. Use minimap to navigate. To turn around, get at least 150-200 m above ground, speed up to at least 150 km/h, then flip plane (SPACE) and use half-loop to change direction.
+
 == Landing ==
 
 Use yellow spotlight as a guide, fly along the light beam. Deploy full flaps (V), and reduce throttle to 20-30%. Maintain speed 80-90 km/h during approach.
