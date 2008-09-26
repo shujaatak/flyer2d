@@ -41,8 +41,6 @@ public:
 
 	virtual void render( QPainter& painter, const QRectF& rect, const RenderingOptions& options );
 
-	virtual void releaseBomb();
-
 private:
 
 	void createSystems();
@@ -80,9 +78,8 @@ private:
 	DamageManager*	_dmHull;
 	DamageManager*	_dmTail;
 	
-	// attached machines (temporary)
-	IronBomb*	_pBomb;
-	Joint*	_jointBomb;
+	// attached machines
+	ActiveAttachPoint* _pointBomb;
 	
 };
 

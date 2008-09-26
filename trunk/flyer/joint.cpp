@@ -81,7 +81,9 @@ void Joint::jointDestroyed()
 /// Axis is defined as pair of points.
 void Joint::flip( const QPointF& p1, const QPointF& p2 )
 {
-	Q_ASSERT( _pBody1 && _pBody2 && _pWorld );
+	if ( ! _pBody1 && ! _pBody2 ) return; // do nothing if joint not used
+	
+	Q_ASSERT( _pWorld );
 	
 	// create joint
 	if ( ! _broken )

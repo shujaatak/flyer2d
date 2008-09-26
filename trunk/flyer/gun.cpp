@@ -34,6 +34,7 @@ Gun::Gun ( Machine* pParent, const QString& name ) : System ( pParent, name )
 	_firing = false;
 	_timeFromLastFiring = 0;
 	_broken = false;
+	_muzzleShift = 0.0;
 }
 
 // ============================================================================
@@ -100,8 +101,8 @@ void Gun::simulate( double dt )
 			pBullet->setSize( _size );
 			
 			// fire bullet
-			b2Vec2 startPoint = pBody->GetWorldPoint( point2vec( _muzzle ) );
-			b2Vec2 endPoint = pBody->GetWorldPoint( point2vec( _muzzle + _normal ) );
+			b2Vec2 startPoint = pBody->GetWorldPoint( point2vec( _muzzle + _normal*_muzzleShift ) );
+			b2Vec2 endPoint = pBody->GetWorldPoint( point2vec( _muzzle + _normal*(_muzzleShift+1) ) );
 			
 			b2Vec2 normal = endPoint - startPoint;
 			
@@ -172,6 +173,16 @@ Gun* Gun::berezin( Machine* pParent, const QString& name)
 	pGun->setDamageCapacity( 100E3 );
 	
 	return pGun;
+}
+
+// ============================================================================
+/// Sets nortmal in world coordinates, independend of body rotation.
+void Gun::setWorldNormal( const QPointF& n )
+{
+	b2Vec2 worldMuzzle = body()->b2body()->GetWorldPoint( point2vec( _muzzle ) );
+	b2Vec2 worldEndpoint = worldMuzzle + point2vec( n );
+	b2Vec2 localEndpoint = body()->b2body()->GetLocalPoint( worldEndpoint );
+	_normal = vec2point( localEndpoint - point2vec( _muzzle ) );
 }
 
 }

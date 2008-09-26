@@ -14,46 +14,49 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#ifndef FLYERANTIAIRBATTERY_H
-#define FLYERANTIAIRBATTERY_H
+#ifndef FLYERACTIVEATTACHPOINT_H
+#define FLYERACTIVEATTACHPOINT_H
 
-#include "machine.h"
+#include "attachpoint.h"
 
 namespace Flyer
 {
 
-class Gun;
-class Body;
-class DamageManager;
-class AntiAirGunOperator;
+class PassiveAttachPoint;
 
 /**
-	Simple anti-air gun which fires kalashnikov shells constantly
-	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
+This is active attach point. It is master side of arrach point connection - it 
+manages the joint that is used to attaching.
+@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class AntiAirBattery : public Machine
+class ActiveAttachPoint : public AttachPoint
 {
 public:
-	AntiAirBattery ( World* pWorld, double location, double angle );
-	~AntiAirBattery();
+	ActiveAttachPoint();
+	~ActiveAttachPoint();
 
-	virtual void render ( QPainter& painter, const QRectF& rect, const RenderingOptions& options );
-	virtual void renderOnMap( QPainter& painter, const QRectF& rect );
-
+	// config
+	
+	virtual void setParent( Machine* p );
+	
+	// operations
+	
+	void attach( PassiveAttachPoint* pPoint );
+	void release();
+	
+	virtual void flip( const QPointF& p1, const QPointF& p2 );
+	
 private:
 
-	// components
-	Body*	_bodyMain;
-	Body*	_bodyBase;
-	Gun*	_sysGun;
-	DamageManager* _dmMain;
-	AntiAirGunOperator* _sysOperator;
-	double _lastDisplayedAngle;
+	PassiveAttachPoint*	_pAttachedPoint;
+	
+	Joint*		_pJoint;
+	
 };
 
 }
 
-#endif // FLYERANTIAIRBATTERY_H
+#endif // FLYERACTIVEATTACHPOINT_H
 
 // EOF
 

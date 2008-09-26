@@ -22,6 +22,8 @@
 #include "b2dqt.h"
 #include "shrapnel.h"
 #include "world.h"
+#include "activeattachpoint.h"
+#include "passiveattachpoint.h"
 
 namespace Flyer
 {
@@ -54,6 +56,16 @@ Machine::~Machine()
 	foreach ( Body* pBody, _allBodies )
 	{
 		delete pBody;
+	}
+	
+	foreach( ActiveAttachPoint* pPoint, _activeAttachPoints )
+	{
+		delete pPoint;
+	}
+	
+	foreach( PassiveAttachPoint* pPoint, _passiveAttachPoints )
+	{
+		delete pPoint;
 	}
 }
 
@@ -208,6 +220,12 @@ void Machine::flip( const QPointF& p1, const QPointF& p2 )
 		pBody->flip( p1, p2 );
 	}
 	
+	// flip attached machines
+	foreach( ActiveAttachPoint* pPoint, _activeAttachPoints )
+	{
+		pPoint->flip( p1, p2 );
+	}
+	
 	// flip joints
 	foreach( Joint* pJoint, _allJoints )
 	{
@@ -327,5 +345,26 @@ void Machine::setLayers( int layers )
 	}	
 }
 
+// ============================================================================
+/// Adds attach point
+void Machine::addActiveAttachPoint( ActiveAttachPoint* pPoint )
+{
+	if ( ! pPoint->parent() )
+	{
+		pPoint->setParent( this );
+	}
+	_activeAttachPoints.append( pPoint );
+}
+
+// ============================================================================
+/// Adds attach point
+void Machine::addPassiveAttachPoint( PassiveAttachPoint* pPoint )
+{
+	if ( ! pPoint->parent() )
+	{
+		pPoint->setParent( this );
+	}
+	_passiveAttachPoints.append( pPoint );
+}
 
 }

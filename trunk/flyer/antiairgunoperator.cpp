@@ -123,7 +123,7 @@ void AntiAirGunOperator::simulate ( double dt )
 			_currentAngle += movement;
 		}
 		// set gun angle
-		_pGun->setNormal( QPointF( sin(_currentAngle), cos(_currentAngle) ) );
+		_pGun->setWorldNormal( QPointF( sin(_currentAngle), cos(_currentAngle) ) );
 		_pGun->setFiring( shoot );
 	}
 }
@@ -149,10 +149,13 @@ QPointF AntiAirGunOperator::getEnemyPos()
 	}
 	
 	return QPointF();
-	
-	
-	
-	
+}
+
+// ============================================================================
+/// Returns current angle in normalized coordinates.
+double AntiAirGunOperator::currentAngleNormalized() const
+{
+	return M_PI/2 - _currentAngle;
 }
 
 }

@@ -14,13 +14,16 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#include "antiairbattery.h"
 #include "body.h"
 #include "gun.h"
 #include "world.h"
 #include "ground.h"
 #include "damagemanager.h"
 #include "antiairgunoperator.h"
+#include "bodyprovider.h"
+#include "textureprovider.h"
+
+#include "antiairbattery.h"
 
 namespace Flyer
 {
@@ -32,33 +35,33 @@ static const double HEIGHT = 5;
 // Constructor
 AntiAirBattery::AntiAirBattery ( World* pWorld, double location, double angle  ) : Machine ( pWorld )
 {
-	double aboveGround = 1;	/// position above ground
-	
+	setLayers( World::ObjectRenderedBuildings );
+
 	double locationY = world()->ground()->height( location );
+	b2Vec2 basePos( location, locationY );
+	b2Vec2 bodyPos( location, locationY + 1.5 );
 	
 	// create damage manager
 	_dmMain = new DamageManager( 30E3 );
 	addDamageManager( _dmMain );
 	
-	// create body
-	b2BodyDef bodyDef;
-	bodyDef.massData.mass = 0; // static body
-	bodyDef.angle = 0;
-	bodyDef.position.Set( location, locationY + aboveGround );
+	_bodyMain = BodyProvider::loadBody( "installations/flak1-body.body" );
+	_bodyMain->setPosition( bodyPos );
+	_bodyMain->create( pWorld->b2world() );
+	addBody( _bodyMain, BodyRendered1 );
 	
-	b2PolygonDef shapeDef;
-	shapeDef.SetAsBox( WIDTH/2, HEIGHT/ 2 );
-	shapeDef.userData = _dmMain;
+	_bodyBase = BodyProvider::loadBody( "installations/flak1-base.body" );
+	_bodyBase->setPosition( basePos );
+	_bodyBase->create( pWorld->b2world() );
+	addBody( _bodyBase, BodyRendered1 );
 	
-	_bodyMain = new Body();
-	_bodyMain->create( bodyDef, pWorld->b2world() );
-	_bodyMain->addShape( & shapeDef );
-	addBody( _bodyMain, 0 );
+	_bodyMain->shapeByName( "main" )->setDamageManager( _dmMain );
 	
 	// create gun
 	_sysGun = Gun::berezin( this, "Gun" );
 	_sysGun->setBody( _bodyMain );
-	_sysGun->setMuzzle( QPointF( 0.0, HEIGHT/2 + 0.1 ) );
+	_sysGun->setMuzzle( QPointF( 0.0, 0.0 ) );
+	_sysGun->setMuzzleShift( 4.0 );
 	_sysGun->setNormal( QPointF( cos( angle), sin(angle) ) );
 	addSystem( _sysGun, SystemSimulated );
 	
@@ -69,6 +72,7 @@ AntiAirBattery::AntiAirBattery ( World* pWorld, double location, double angle  )
 	_sysOperator->setMaxAngle( M_PI/2 );
 	_sysOperator->setDamageCapacity( 100E3 );
 	addSystem( _sysOperator, SystemSimulated );
+	_lastDisplayedAngle = 0.5; // min angle from zenith;
 	
 	// add systems to damage manager
 	_dmMain->addSystem( _sysGun, 1 );
@@ -85,22 +89,48 @@ AntiAirBattery::~AntiAirBattery()
 
 // ============================================================================
 // Renders AA battery
-void AntiAirBattery::render ( QPainter& painter, const QRectF&, const RenderingOptions& )
+void AntiAirBattery::render ( QPainter& painter, const QRectF& rect, const RenderingOptions& options )
 {
+	Machine::render( painter, rect, options );
+	
 	QTransform t = _bodyMain->transform();
-	QRectF r( -WIDTH/2, -HEIGHT/2, WIDTH, HEIGHT );
+	
+	// get angle
+	double currentAngle = _sysOperator->currentAngle();
+	double lastSign = _lastDisplayedAngle > 0 ? 1 : -1;
+	
+	// limit angle to min/max
+	if ( fabs( currentAngle ) < _sysOperator->minAngle() )
+	{
+		currentAngle = _sysOperator->minAngle() * lastSign; // don't change sign while outside range
+	}
+	if (  fabs( currentAngle ) > _sysOperator->maxAngle() )
+	{
+		currentAngle = _sysOperator->maxAngle() * lastSign;
+	}
+	
+	// check if sign changed
+	if ( ( lastSign * currentAngle)  < 0 )
+	{
+		double x = _bodyMain->position().x;
+		_bodyMain->flip( QPointF( x, 1 ), QPointF( x, -1 ) ); // flip around vertical axis
+	}
+	_lastDisplayedAngle = currentAngle;
+	double sign = currentAngle > 0 ? 1 : -1;
+	
+	// calculate screen angle
+	double screenAngle =  M_PI/2 - currentAngle;
 	
 	painter.save();
-		painter.setPen( Qt::black );
-		painter.setBrush( Qt::darkRed );
+		QImage barrel = TextureProvider::loadTexture("installations/flak1-barrel.png").image(Texture::Normal);
+		QPointF textureAxis = QPointF( 13, 8 ); // axis in texture coords
 		
+		double scale = 0.05; // TODO this has to go with texture somehow
+		t.rotateRadians( screenAngle );
+		t.scale( scale * sign, -scale * sign );
+		t.translate( -textureAxis.x(), -textureAxis.y() );
 		painter.setTransform( t, true );
-		painter.drawRect( r );
-		
-		// draw gun
-		QPointF start( 0.0, HEIGHT/2 );
-		QPointF end = start + _sysGun->normal() *HEIGHT ;
-		painter.drawLine( start, end );
+		painter.drawImage( 0, 0, barrel );
 	painter.restore();
 }
 
@@ -114,16 +144,6 @@ void  AntiAirBattery::renderOnMap( QPainter& painter, const QRectF&  )
 	QRect r( pos.x -size/2, pos.y - size/2, size ,size );
 	painter.setPen( Qt::darkRed );
 	painter.drawRect( r );
-}
-
-// ============================================================================
-// Boundsing rect
-QRectF AntiAirBattery::boundingRect() const
-{
-	b2Vec2 pos = _bodyMain->b2body()->GetPosition();
-	
-	QRect r( pos.x -WIDTH/2, pos.y - HEIGHT/2, WIDTH ,HEIGHT );
-	return r;
 }
 
 

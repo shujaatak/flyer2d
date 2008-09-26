@@ -34,14 +34,26 @@ public:
 	AntiAirGunOperator( Machine* pParent, const QString& name = "" );
 	virtual ~AntiAirGunOperator();
 
+	// system duties
+
 	virtual double status() const;
 	virtual void damage ( double force );
 	virtual void simulate ( double dt );
 	
-	// config
+	// configuration
+	
 	void setGun( Gun* pGun ){ _pGun = pGun; }
 	void setMinAngle( double a ) { _minAngle = a; }
 	void setMaxAngle( double a ) { _maxAngle = a; }
+	double minAngle() const { return _minAngle; }
+	double maxAngle() const { return _maxAngle; }
+	
+	// status
+	
+	/// Retruns current angle from zenith
+	double currentAngle() const { return _currentAngle; }
+	/// Returns current angler in std coordinates
+	double currentAngleNormalized() const;			
 	
 	
 private:

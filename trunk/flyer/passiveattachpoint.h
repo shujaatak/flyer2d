@@ -14,46 +14,41 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#ifndef FLYERANTIAIRBATTERY_H
-#define FLYERANTIAIRBATTERY_H
+#ifndef FLYERPASSIVEATTACHPOINT_H
+#define FLYERPASSIVEATTACHPOINT_H
 
-#include "machine.h"
+#include "attachpoint.h"
 
 namespace Flyer
 {
 
-class Gun;
-class Body;
-class DamageManager;
-class AntiAirGunOperator;
+class ActiveAttachPoint;
 
 /**
-	Simple anti-air gun which fires kalashnikov shells constantly
-	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
+This is passive attach point. It's basicaly does nothing, only keeps references
+to it's body and attached active joint.
+@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class AntiAirBattery : public Machine
+
+class PassiveAttachPoint : public AttachPoint
 {
 public:
-	AntiAirBattery ( World* pWorld, double location, double angle );
-	~AntiAirBattery();
+	PassiveAttachPoint();
+	~PassiveAttachPoint();
 
-	virtual void render ( QPainter& painter, const QRectF& rect, const RenderingOptions& options );
-	virtual void renderOnMap( QPainter& painter, const QRectF& rect );
-
+	// control mnessages from active point
+	
+	void setAttachedPoint( ActiveAttachPoint* p ) { _pAttachedPoint = p; }
+	virtual void flip( const QPointF& p1, const QPointF& p2 );
+	
 private:
 
-	// components
-	Body*	_bodyMain;
-	Body*	_bodyBase;
-	Gun*	_sysGun;
-	DamageManager* _dmMain;
-	AntiAirGunOperator* _sysOperator;
-	double _lastDisplayedAngle;
+	ActiveAttachPoint* _pAttachedPoint;
 };
 
 }
 
-#endif // FLYERANTIAIRBATTERY_H
+#endif // FLYERPASSIVEATTACHPOINT_H
 
 // EOF
 

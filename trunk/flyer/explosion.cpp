@@ -39,6 +39,7 @@ Explosion::Explosion ( World* pWorld ) : WorldObject ( pWorld )
 	_radius = 0;
 	_maxFireRadius = 0;
 	_currentStep = 0;
+	_maxRadius = 0;
 	
 	_speed = 85; // 1/4 the speed of sound
 }
@@ -75,7 +76,7 @@ void Explosion::setEnergy( double e )
 
 // ============================================================================
 // Renders
-void Explosion::render ( QPainter& painter, const QRectF& )
+void Explosion::render ( QPainter& painter, const QRectF&, const RenderingOptions&  )
 {
 	// render fire
 	double fireRadius = qMin( _radius*0.9, _maxFireRadius );
@@ -121,6 +122,8 @@ void Explosion::actWithForce()
 	// find range of force in current step
 	double minRange = _radius; // current radius
 	double maxRange = qMin( _radius + _speed * world()->timestep(), _maxRadius );
+	
+	if ( maxRange < 0.01 ) return; // do nothing for small damage
 	
 	// find bodies within range
 	b2AABB aabb;

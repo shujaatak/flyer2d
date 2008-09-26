@@ -26,6 +26,8 @@
 #include "joint.h"
 #include "building.h"
 #include "renderingoptions.h"
+#include "ironbomb.h"
+#include "activeattachpoint.h"
 
 #include "world.h"
 
@@ -34,7 +36,8 @@ namespace Flyer {
 
 // Costants
 
-static const double TIMESTEP = 1.0/60.0; 	// [s]
+static const double	TIMESTEP = 1.0/60.0; 	// [s]
+static const int	ITERATIONS = 10;		// solver iterations
 
 
 
@@ -201,6 +204,14 @@ void World::initWorld()
 	_pPlayerPlane = new PlaneBumblebee( this, QPointF( 0, _pGround->height(300) + 2.5 ), 0.2 );
 	addObject( _pPlayerPlane, ObjectRenderedVehicles | ObjectSide1 | ObjectSimulated | ObjectPlane | ObjectRenderedMap );
 	
+	// add sample bomb floating near the plane
+	IronBomb* pBomb = new IronBomb( this );
+	pBomb->init( QPointF( 20, 302 ), 0.0 );
+	addObject( pBomb, ObjectRenderedVehicles | ObjectSimulated );
+	
+	// attache the bomb
+	_pPlayerPlane->activeAttachPoints().first()->attach( pBomb->atachPoint() );
+	
 	// enemy plane (!)
 	PlaneBumblebee* pEnemy = new PlaneBumblebee( this, QPointF( -200, 400 ), 0.0 );
 	pEnemy->mainBody()->b2body()->SetLinearVelocity( b2Vec2( 30, 0 ) ); // some initial speed
@@ -224,7 +235,7 @@ void World::initWorld()
 	addObject( new AntiAirBattery( this, 3000, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRenderedBuildings | ObjectSide2 | ObjectRenderedMap   );
 	addObject( new AntiAirBattery( this, 3050, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRenderedBuildings | ObjectSide2 | ObjectRenderedMap  );
 	addObject( new AntiAirBattery( this, 3100, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRenderedBuildings | ObjectSide2 | ObjectRenderedMap  );
-	addObject( new AntiAirBattery( this, -2000, 1.2 ), ObjectInstallation | ObjectSimulated | ObjectRenderedBuildings | ObjectSide2 | ObjectRenderedMap   );
+	addObject( new AntiAirBattery( this, -1000, 1.2 ), ObjectInstallation | ObjectSimulated | ObjectRenderedBuildings | ObjectSide2 | ObjectRenderedMap   );
 	
 	// sky gradient
 	_skyGradient.setStart( _boundary.left() + _boundary.width()/ 2, _boundary.top() );
@@ -238,10 +249,7 @@ void World::initWorld()
 	
 	// add sample building at the runway
 	Building::createSmallBuilding( this, 30, true );
-	//for( int i = 0; i < 140; i++ )
-	//{
-	//	Building::createSmallBuilding( this, 220 + 5*i, false );
-	//}
+	
 	
 }
 
@@ -258,7 +266,7 @@ void World::simulate( double dt )
 	int iters = dt/TIMESTEP; // sub iterations here
 	for( int i = 0; i < iters; i++ )
 	{
-		_pb2World->Step( dt/iters, 20 );
+		_pb2World->Step( dt/iters, ITERATIONS );
 		foreach ( WorldObject* pObject, _objects[ ObjectSimulated] )
 		{
 			pObject->simulate( dt/iters );
