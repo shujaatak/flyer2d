@@ -7,7 +7,7 @@
   * Use *mouse wheel* to control throttle.
   * *V*/*F* - open/close flaps.
   * *SPACE* - turn or flip plane. Plane will turn when standing on the ground, and flip when flying with speed above 120 km/h.
-  * *PgUp*/*PgDown* - zoom in/zoom out.
+  * *Page Up*/*Page Down* - zoom in/zoom out.
   * *B* - apply wheel brake.
   * *A* - toggle autopilot.
   * *Left Mouse Button* - fire gun.
