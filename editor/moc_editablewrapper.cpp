@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'editablewrapper.h'
 **
-** Created: Fri Sep 26 18:58:57 2008
+** Created: Sat Sep 27 17:37:03 2008
 **      by: The Qt Meta Object Compiler version 59 (Qt 4.3.4)
 **
 ** WARNING! All changes made in this file will be lost!
