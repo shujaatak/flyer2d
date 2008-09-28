@@ -195,7 +195,7 @@ void WorldWidget::step()
 void WorldWidget::adjustTransform()
 {
 	QPointF pos = plane()->position();
-	double airspeed = plane()->airspeed();
+	//double airspeed = plane()->airspeed();
 	b2Vec2 velocity = plane()->linearVelocity();
 	int w = width();
 	int h = height();
@@ -254,9 +254,9 @@ void WorldWidget::adjustTransform()
 	double zoom = viewportSize / metersVisible;
 	
 	// calculate position from velocity vector
-	double velMax = 50.0;
-	double relPosX = qMax( -1.0, qMin( 1.0, velocity.x / velMax ) );
-	double relPosY = qMax( -0.5, qMin( 1.0, velocity.y / velMax ) );
+	//double velMax = 50.0;
+	//double relPosX = qMax( -1.0, qMin( 1.0, velocity.x / velMax ) );
+	//double relPosY = qMax( -0.5, qMin( 1.0, velocity.y / velMax ) );
 	
 	// desired plane position, in pixels
 	/* i'l lthink i'll withdraw all the motion

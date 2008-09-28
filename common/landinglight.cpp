@@ -21,6 +21,8 @@
 #include "Box2D.h"
 
 #include "world.h"
+#include "common.h"
+
 #include "landinglight.h"
 
 namespace Flyer {
@@ -31,6 +33,10 @@ LandingLight::LandingLight(World* pWorld, double x, double y, double angle )
 	_x = x;
 	_y = y;
 	_angle = angle;
+	
+	setLayers( LayerBuildings );
+	setRenderLayer( LayerBuildings );
+	setName("Landing Light");
 	
 	// init manager
 	_damageManager = new DamageManager();

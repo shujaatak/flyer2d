@@ -57,8 +57,10 @@ public:
 	/// Sets render layere
 	void setRenderLayer( int z ) { _renderLayer = z; }
 	
+	void setName( const QString& n ) { _name = n; }
+	QString name() const { return _name; }
 	
-	// chilsren / parent relationship
+	// children / parent relationship
 	
 	/// Returns parent object
 	WorldObject* parent() const { return _pParent; }
@@ -71,7 +73,8 @@ private:
 	WorldObject*	_pParent;		///< Parent world object [optional, NULL for top-level objects]
 	QList<WorldObject*>	_children;	///< Children objects
 	
-	int _renderLayer;							///< Z-coordinate, used for ordering painting
+	int _renderLayer;				///< Z-coordinate, used for ordering painting
+	QString	_name;					///< Object's name
 };
 
 }

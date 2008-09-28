@@ -35,6 +35,8 @@ IronBomb::IronBomb ( World* pWorld ) : Machine ( pWorld )
 {
 	_attachPoint = NULL;
 	setLayers( PhysLayerVehicles | PhysLayerBuildings );
+	setRenderLayer( LayerVehicles );
+	setName( "Bomb" );
 }
 
 // ============================================================================

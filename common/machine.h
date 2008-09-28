@@ -48,6 +48,7 @@ public:
 
 	virtual void render ( QPainter& painter, const QRectF& rect, const RenderingOptions& options );
 	virtual void simulate ( double dt );
+	virtual QRectF boundingRect() const;
 	
 	// system classes and manipulation
 	enum SystemType {				/// system type
@@ -149,6 +150,9 @@ protected:
 	// variables
 	
 	double _orientation;	//!< Orientation - 1 - normal, -1 - mirrored. 
+	
+	void updateSize();		///< Calculates _size;
+	double	_size;			///< Approx. size used to calculate rough bounding rect.
 };
 
 }

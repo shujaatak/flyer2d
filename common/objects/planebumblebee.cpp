@@ -89,6 +89,7 @@ PlaneBumblebee::PlaneBumblebee( World* pWorld, const QPointF& pos, double angle 
 	_pointBomb->setAngle( BOMB_ANGLE );
 	addActiveAttachPoint( _pointBomb );
 	setWeponAttachPoint( _pointBomb );
+	setName("Bumblebee");
 }
 
 // ============================================================================

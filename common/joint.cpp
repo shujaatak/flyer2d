@@ -79,7 +79,7 @@ void Joint::jointDestroyed()
 // ============================================================================
 /// Flips body along defined axis.
 /// Axis is defined as pair of points.
-void Joint::flip( const QPointF& p1, const QPointF& p2 )
+void Joint::flip( const QPointF& /*p1*/, const QPointF& /*p2*/ )
 {
 	if ( ! _pBody1 && ! _pBody2 ) return; // do nothing if joint not used
 	

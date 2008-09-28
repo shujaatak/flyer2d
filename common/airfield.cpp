@@ -14,6 +14,8 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+#include "common.h"
+
 #include "airfield.h"
 
 namespace Flyer {
@@ -26,6 +28,8 @@ Airfield::Airfield( World* pWorld, double x1, double x2, double y )
 	_x1 = x1;
 	_x2 = x2;
 	_y = y;
+	setRenderLayer( LayerForeground );
+	setName("Aitfield");
 }
 
 

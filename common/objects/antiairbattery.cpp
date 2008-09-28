@@ -38,6 +38,7 @@ AntiAirBattery::AntiAirBattery ( World* pWorld, double location, double angle  )
 {
 	setLayers( PhysLayerBuildings );
 	setRenderLayer( LayerBuildings );
+	setName("Flak");
 
 	double locationY = world()->ground()->height( location );
 	b2Vec2 basePos( location, locationY );

@@ -124,7 +124,7 @@ void World::render( QPainter& painter, const QRectF& rect )
 	RenderingOptions options;
 	
 	// get objects to be rendered in this bounding rect (TODO: use broadphase here)
-	QMap<int, WorldObject* > objectsToRender;
+	QMultiMap<int, WorldObject* > objectsToRender;
 	// render
 	foreach( WorldObject* pObject, _objects[ObjectRendered] )
 	{
@@ -134,6 +134,9 @@ void World::render( QPainter& painter, const QRectF& rect )
 			objectsToRender.insert( pObject->renderLayer(), pObject );
 		}
 	}
+	// TODO debug
+	//qDebug("Rendering %d of %d renderable objects"
+	//	, objectsToRender.size(), _objects[ObjectRendered].size() );
 	
 	
 	// render objects
@@ -151,6 +154,7 @@ void World::render( QPainter& painter, const QRectF& rect )
 		}
 		
 		pObject->render( painter, rect, options );
+		//qDebug("Rendering item %s on layer %d", qPrintable( pObject->name() ), pObject->renderLayer() );
 	}
 	
 	
