@@ -43,7 +43,8 @@ Joint::~Joint()
 
 // ============================================================================
 /// Creates joint
-void Joint::create( b2JointDef* pDef, b2World* pWorld )
+/// If \b fix is true, creates joint even if it was broken before.
+void Joint::create( b2JointDef* pDef, b2World* pWorld, bool fix /*= false*/  )
 {
 	Q_ASSERT( pDef && pWorld );
 	
@@ -61,6 +62,8 @@ void Joint::create( b2JointDef* pDef, b2World* pWorld )
 	{
 		qFatal("unknown joint type");
 	}
+	
+	if ( fix ) _broken = false;
 	
 	if ( ! _broken )
 	{

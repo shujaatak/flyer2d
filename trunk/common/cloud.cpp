@@ -28,6 +28,7 @@ namespace Flyer
 Cloud::Cloud ( World* pWorld ) : WorldObject ( pWorld )
 {
 	_birdthDate = pWorld->time();
+	pWorld->addToTimer1( this );
 }
 
 // ============================================================================
@@ -111,6 +112,17 @@ Cloud* Cloud::createSmoke( World* pWorld, const b2Vec2& pos )
 	pWorld->addObject( pSmoke, World::ObjectStatic | World::ObjectRendered );
 	
 	return pSmoke;
+}
+
+// ============================================================================
+/// Handles 1-second timer. Destroys cloud it it is her time.
+void Cloud::timer1()
+{
+	double age = world()->time() - _birdthDate;
+	if ( age > _lifespan )
+	{
+		world()->removeObject( this );
+	}
 }
 
 }

@@ -16,6 +16,7 @@
 
 #include <QKeyEvent>
 #include <QGLFormat>
+#include <QTextEdit>
 
 #include "mainwindow.h"
 #include "plane.h"
@@ -39,14 +40,36 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags f): QWidget(parent, f)
 	connect( worldWidget, SIGNAL(throttleChanged(double)), SLOT(throttleChanged(double)) );
 	connect( worldWidget, SIGNAL(flapsChanged(double)), SLOT(flapsChanged(double)) );
 
+	// status window
 	_pStatusWindow = new StatusWindow();
 	_pStatusWindow->show();
 	_pStatusWindow->setMachine( worldWidget->plane() );
 	
+	// enemy status window
 	StatusWindow* pEnemy = new StatusWindow();
 	pEnemy->setMachine( worldWidget->world()->_pEnemyPlane );
 	pEnemy->show();
 	pEnemy->setWindowTitle( "Enemy plane" );
+	
+	// help
+	QString help = 
+	"Controls\n\n"
+	"Mouse Up/Down\t- elevator\n"
+	"Mouse Wheel\t- throttle\n"
+	"Mouse Left Button\t- fire gun\n"
+	"Mouse Right Button\t- release bomb\n"
+	"Page Up/Page Down\t- zoom in/out\n"
+	"F/V\t- flaps\n"
+	"Space\t- flip/turn\n"
+	"B\t- wheel brake\n"
+	"A\t- toggle autopilot\n"
+	"P\t- pause";
+	
+	QTextEdit *pHelp = new QTextEdit();
+	pHelp->setText( help );
+	pHelp->setReadOnly( true );
+	pHelp->setWindowTitle( "Help" );
+	pHelp->show();
 }
 
 // ============================================================================
@@ -56,87 +79,21 @@ MainWindow::~MainWindow()
 }
 
 // ============================================================================
-// Elevator slider handle
-void MainWindow::on_sliderElevator_valueChanged( int value )
-{
-	worldWidget->plane()->setElevator( value / 100.0 );
-}
-
-// ============================================================================
-// Throttle slider handle
-void MainWindow::on_sliderThrottle_valueChanged( int value )
-{
-	worldWidget->plane()->setThrottle( value / 100.0 );
-}
-
-// ============================================================================
-// button start stop
-void MainWindow::on_buttonStartStop_toggled( bool state )
-{
-	if ( state ) worldWidget->start();
-	else worldWidget->stop();
-}
-
-// ============================================================================
-// button step
-void MainWindow::on_buttonStep_clicked()
-{
-	worldWidget->step();
-}
-
-// ============================================================================
-// on brake pressed
-void MainWindow::on_buttonBrake_pressed()
-{
-	worldWidget->plane()->applyWheelBrake( true );
-}
-
-// ============================================================================
-// on brake released
-void MainWindow::on_buttonBrake_released()
-{
-	worldWidget->plane()->applyWheelBrake( false );
-}
-
-// ============================================================================
-// Flips plane
-void MainWindow::on_buttonFlip_clicked()
-{
-	worldWidget->plane()->flipPlane();
-}
-
-// ============================================================================
-// Flaps handler.
-void MainWindow::on_sliderFlaps_valueChanged( int value )
-{
-	worldWidget->plane()->setFlaps( value / 3.0 );
-}
-
-// ============================================================================
 // Handles plane elevator change
-void MainWindow::elevatorChanged( double e )
+void MainWindow::elevatorChanged( double /*e*/ )
 {
-	sliderElevator->blockSignals( true );
-	sliderElevator->setValue( 100 * e );
-	sliderElevator->blockSignals( false );
 }
 
 // ============================================================================
 // Handle throttle change
-void MainWindow::throttleChanged( double t )
+void MainWindow::throttleChanged( double /*t*/ )
 {
-	sliderThrottle->blockSignals( true );
-	sliderThrottle->setValue( 100*t );
-	sliderThrottle->blockSignals( false );
 }
 
 // ============================================================================
 // Handles flaps change
-void MainWindow::flapsChanged( double f )
+void MainWindow::flapsChanged( double /*f*/ )
 {
-	sliderFlaps->blockSignals( true );
-	sliderFlaps->setValue( f * 4 );
-	sliderFlaps->blockSignals( false );
 }
 
 // ============================================================================

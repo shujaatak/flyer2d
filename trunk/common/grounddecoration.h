@@ -14,50 +14,50 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#ifndef FLYERACTIVEATTACHPOINT_H
-#define FLYERACTIVEATTACHPOINT_H
+#ifndef FLYERGROUNDDECORATION_H
+#define FLYERGROUNDDECORATION_H
 
-#include "attachpoint.h"
+#include <QRectF>
+#include <QTransform>
+#include <QList>
+
+#include "worldobject.h"
 
 namespace Flyer
 {
 
-class PassiveAttachPoint;
-
 /**
-This is active attach point. It is master side of arrach point connection - it 
-manages the joint that is used to attaching.
+It's a decorational world object responsible fro drawing ground surface (grass).
 @author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class ActiveAttachPoint : public AttachPoint
+class GroundDecoration : public WorldObject
 {
-public:
-	ActiveAttachPoint();
-	~ActiveAttachPoint();
 
-	// config
+public:
+	GroundDecoration( World* pWorld );
+	virtual ~GroundDecoration();
+
+	// world object duties
 	
-	virtual void setParent( Machine* p );
+	virtual QRectF boundingRect() const;
+	virtual void render( QPainter& painter, const QRectF& rect, const RenderingOptions& options );
 	
-	// operations
+	// intialization
 	
-	void attach( PassiveAttachPoint* pPoint );
-	void release();
-	
-	virtual void flip( const QPointF& p1, const QPointF& p2 );
-	virtual bool attached() const { return _pAttachedPoint != NULL; }
-	
+	void init( const QList<int>& textureIndices, const QRectF& boundingRect
+		, const QTransform& transform, QList<QImage>* pTextures );
+
 private:
 
-	PassiveAttachPoint*	_pAttachedPoint;
-	
-	Joint*		_pJoint;
-	
+	QRectF		_boundingRect;
+	QTransform	_transform;
+	QList<int>	_textureIndices;	///< Textrue indices
+	QList<QImage>*	_pTextures;		///< Textures used to draw ground
 };
 
 }
 
-#endif // FLYERACTIVEATTACHPOINT_H
+#endif // FLYERGROUNDDECORATION_H
 
 // EOF
 

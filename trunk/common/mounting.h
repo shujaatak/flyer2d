@@ -38,11 +38,14 @@ public:
 	virtual void damage ( double force );
 	virtual void simulate ( double dt );
 	virtual double status() const;
+	virtual void repair();
 	
 	// properties
-	void setJoint( Joint* pJoint ) { _pJoint = pJoint; }
+	void setJoint( Joint* pJoint );
 	
 	void setTolerance( double t ) { _tolerance = t; }
+	void setRigid( bool r ) { _rigid = r; }
+	bool rigid() const { return _rigid; }
 
 private:
 
@@ -50,6 +53,7 @@ private:
 	Joint*	_pJoint;		///< Attached joint
 	double _damageReceived;	///< Damage received so far
 	bool	_broken;		///< If joint broken
+	bool	_rigid;			///< If jpoint is rigid (doesn't rotate) and should be damaged by torque
 };
 
 }

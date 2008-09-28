@@ -32,6 +32,7 @@ Mounting::Mounting ( Machine* pParent, const QString& name, Joint* pJoint /*= NU
 	
 	_damageReceived = 0;
 	_broken = false;
+	_rigid = true;
 	
 }
 
@@ -63,17 +64,51 @@ double Mounting::status() const
 }
 
 // ============================================================================
+// Repairs sytsem
+void Mounting::repair()
+{
+	if ( _broken )
+	{
+		// TODO - problem here, need to re-create obejct
+	}
+	else
+	{
+		_damageReceived = 0.0;
+	}
+}
+
+// ============================================================================
 /// Handles simulation step
 void Mounting::simulate ( double dt )
 {
 	if ( _pJoint && _pJoint->b2joint() )
 	{
 		double forceTime = dt * _pJoint->b2joint()->GetReactionForce().Length();
+		if ( _rigid ) forceTime += dt * _pJoint->b2joint()->GetReactionTorque();
 		if ( forceTime > _tolerance*dt )
 		{
 			damage( forceTime );
 		}
 	}
+}
+
+// ============================================================================
+/// Sets joint.
+void Mounting::setJoint( Joint* pJoint )
+{
+	_pJoint = pJoint;
+	
+	// make rigid if joint has limits.
+	/* TODO, noooo, alwyas rigid!
+	if ( _pJoint && _pJoint->definition() )
+	{
+		if ( _pJoint->definition()->type == e_revoluteJoint )
+		{
+			b2RevoluteJointDef* pDef = static_cast<b2RevoluteJointDef*>( _pJoint->definition() );
+			if ( pDef
+		}
+	}
+	*/
 }
 
 }

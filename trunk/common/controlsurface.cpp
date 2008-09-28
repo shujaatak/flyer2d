@@ -116,6 +116,14 @@ void ControlSurface::damage(double force)
 }
 
 // ============================================================================
+// Repairs
+void ControlSurface::repair()
+{
+	_currentMaxValue = 1.0;
+	_currentMinValue = -1.0;
+}
+
+// ============================================================================
 /// Renders
 void ControlSurface::render(QPainter& painter, const QRectF&, const RenderingOptions& )
 {

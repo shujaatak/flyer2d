@@ -167,6 +167,7 @@ void Machine::addBody( Body* pBody, int types )
 	
 	_allBodies.append( pBody );
 	pBody->setLayers( _layers );
+	pBody->setParentMachine( this );
 	
 	updateSize();
 }
@@ -182,6 +183,7 @@ void Machine::removeBody( Body* pBody )
 	
 	_allBodies.removeAll( pBody );
 	updateSize();
+	pBody->setParentMachine( NULL );
 }
 
 

@@ -149,6 +149,15 @@ double Gun::status() const
 }
 
 // ============================================================================
+/// Repairs gun
+void Gun::repair()
+{
+	_currentVelocity = _velocity;
+	_currentnInterval = _interval;
+	_broken = false;
+}
+
+// ============================================================================
 // Creates kalashnikow subachine infantry gun.
 Gun* Gun::kalashikov( Machine* pParent, const QString& name)
 {

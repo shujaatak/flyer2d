@@ -54,7 +54,8 @@ HEADERS += activeattachpoint.h \
            objects/antiairbattery.h \
            objects/planebumblebee.h \
  common.h \
- grounddecoration.h
+ grounddecoration.h \
+ hangar.h
 
 
 SOURCES += activeattachpoint.cpp \
@@ -98,5 +99,6 @@ SOURCES += activeattachpoint.cpp \
            objects/ironbomb.cpp \
            objects/antiairbattery.cpp \
            objects/planebumblebee.cpp \
- grounddecoration.cpp
+ grounddecoration.cpp \
+ hangar.cpp
 

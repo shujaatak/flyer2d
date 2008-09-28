@@ -28,7 +28,7 @@ Airfield::Airfield( World* pWorld, double x1, double x2, double y )
 	_x1 = x1;
 	_x2 = x2;
 	_y = y;
-	setRenderLayer( LayerForeground );
+	setRenderLayer( LayerHud );
 	setName("Aitfield");
 }
 

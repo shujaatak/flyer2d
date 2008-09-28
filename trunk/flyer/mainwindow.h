@@ -39,15 +39,6 @@ protected:
 
 private slots:
 
-	void on_sliderElevator_valueChanged( int );
-	void on_sliderThrottle_valueChanged( int );
-	void on_sliderFlaps_valueChanged( int );
-	void on_buttonStartStop_toggled( bool );
-	void on_buttonStep_clicked();
-	void on_buttonBrake_pressed();
-	void on_buttonBrake_released();
-	void on_buttonFlip_clicked();
-	
 	void elevatorChanged( double e );
 	void throttleChanged( double t );
 	void flapsChanged( double f );

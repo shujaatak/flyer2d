@@ -36,7 +36,7 @@ public:
 	virtual ~Joint();
 	
 	/// Creates joint
-	void create( b2JointDef* pDef, b2World* pWorld );
+	void create( b2JointDef* pDef, b2World* pWorld, bool fix = false );
 	
 	/// Returns associated box2d object.
 	b2Joint* b2joint() const { return _pJoint; }
@@ -58,6 +58,8 @@ public:
 	
 	/// Info fomr destruction listener
 	void jointDestroyed();
+	
+	const b2JointDef* definition() const { return _pDefinition; }
 
 private:
 

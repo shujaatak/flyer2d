@@ -48,6 +48,9 @@ public:
 	/// Simualtes object
 	virtual void simulate( double /*dt*/ ){}
 	
+	/// Handles 1-second timer event
+	virtual void timer1() {}
+	
 	/// Returns world
 	World* world() const { return _pWorld; }
 	

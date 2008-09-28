@@ -1,4 +1,5 @@
 TEMPLATE = app
+DESTDIR = ../bin
 
 HEADERS += editor.h \
 editorpoint.h \

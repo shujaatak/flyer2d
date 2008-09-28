@@ -49,12 +49,6 @@ IronBomb::~IronBomb()
 /// Configures, ale sets 125 kg bomb defaults
 void IronBomb::init( const QPointF& position, double angle )
 {
-	// create main body
-	b2BodyDef bodyDef;
-	bodyDef.position = point2vec( position );
-	bodyDef.angle = angle;
-	bodyDef.isBullet = true;
-	
 	_bodyMain = BodyProvider::loadBody( "weapons/gpb125.body" );
 	_bodyMain->setPosition( point2vec( position ) );
 	_bodyMain->setAngle( angle );

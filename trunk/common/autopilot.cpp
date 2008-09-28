@@ -51,7 +51,7 @@ Autopilot::~Autopilot()
 
 // ============================================================================
 // Simulates damage
-void Autopilot::damage ( double force )
+void Autopilot::damage ( double /*force*/ )
 {
 	// none
 }
@@ -279,14 +279,16 @@ void Autopilot::controlFollowPath( double dt )
 
 // ============================================================================
 /// Debug render autopliot track
-void Autopilot::render( QPainter& painter, const QRectF&, const RenderingOptions& )
+void Autopilot::render( QPainter& /*painter*/, const QRectF&, const RenderingOptions& )
 {
+	/* TODO debug draw
 	painter.setPen( QPen( Qt::blue, 0 ) );
 	
 	foreach( const TrackSegment& segment, _track )
 	{
 		painter.drawLine( vec2point( segment.start ), vec2point( segment.end ) );
 	}
+	*/
 }
 
 }

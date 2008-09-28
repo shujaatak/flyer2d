@@ -574,7 +574,7 @@ void Ground::prepareTextures()
 		double shear = ( p2.y() - p1.y() ) / ( p2.x() - p1.x() );
 		const double vmargin = 1.0; // max height of grass
 		
-		QRectF segmentRect( QPointF( p1.x(), low), QPointF( p2.x(), hi+vmargin ) );
+		QRectF segmentRect( QPointF( p1.x(), low-vmargin), QPointF( p2.x(), hi+vmargin ) );
 		
 		QTransform t;
 		t.translate(  _heightmap[i].x(), _heightmap[i].y() );

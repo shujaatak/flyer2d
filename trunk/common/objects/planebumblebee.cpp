@@ -88,7 +88,7 @@ PlaneBumblebee::PlaneBumblebee( World* pWorld, const QPointF& pos, double angle 
 	_pointBomb->setPosition( BOMB_POS );
 	_pointBomb->setAngle( BOMB_ANGLE );
 	addActiveAttachPoint( _pointBomb );
-	setWeponAttachPoint( _pointBomb );
+	setWeponPoint( _pointBomb );
 	setName("Bumblebee");
 }
 
@@ -116,16 +116,23 @@ void PlaneBumblebee::createSystems()
 	// wheel mounting
 	_sysWheelMounting = new Mounting( this, "Wheel mounting" );
 	_sysWheelMounting->setTolerance( 30E3 );
-	_sysWheelMounting->setDamageCapacity( 200E3 );
+	_sysWheelMounting->setDamageCapacity( 300E3 );
 	_sysWheelMounting->setJoint( _jointWheel );
 	addSystem( _sysWheelMounting, SystemSimulated );
 	
 	// leg mounting
-	Mounting* pLegMounting = new Mounting( this, "Leg mounting" );
-	pLegMounting->setTolerance( 30E3 );
-	pLegMounting->setDamageCapacity( 400E3 );
-	pLegMounting->setJoint( _jointLeg );
-	addSystem( pLegMounting, SystemSimulated );
+	_sysLegMounting = new Mounting( this, "Leg mounting" );
+	_sysLegMounting->setTolerance( 30E3 );
+	_sysLegMounting->setDamageCapacity( 200E3 );
+	_sysLegMounting->setJoint( _jointLeg );
+	addSystem( _sysLegMounting, SystemSimulated );
+	
+	// tail mounting
+	_sysTailMounting = new Mounting( this, "Tail mounting" );
+	_sysTailMounting->setTolerance( 30E3 );
+	_sysTailMounting->setDamageCapacity( 200E3 );
+	_sysTailMounting->setJoint( _jointTail );
+	addSystem( _sysTailMounting, SystemSimulated );
 	
 	// wing
 	_sysWing = new Wing( this, "Wing" );
@@ -374,7 +381,7 @@ void PlaneBumblebee::createDamageManagers()
 	// use 25% for brake/ 25% for mounting
 	_dmWheel->addSystem( _sysBrake, 1 );
 	_dmWheel->addSystem( _sysWheelMounting, 1 );
-	_dmWheel->addSystem( NULL, 2 );
+	_dmWheel->addSystem( NULL, 8 );
 	_bodyWheel->shapeByName("main")->setDamageManager( _dmWheel );
 	addDamageManager( _dmWheel );
 	
@@ -382,7 +389,8 @@ void PlaneBumblebee::createDamageManagers()
 	_dmLeg = new DamageManager( 4E4 );
 	_dmLeg->addSystem( _sysBrake, 1 );
 	_dmLeg->addSystem( _sysWheelMounting, 1 );
-	_dmLeg->addSystem( NULL, 2 );
+	_dmLeg->addSystem( _sysLegMounting, 1 );
+	_dmLeg->addSystem( NULL, 3 );
 	addDamageManager( _dmLeg );
 	_bodyLeg->shapeByName("main")->setDamageManager( _dmLeg );
 	
@@ -393,6 +401,8 @@ void PlaneBumblebee::createDamageManagers()
 	_dmHull->addSystem( _sysElevator, 1 );
 	_dmHull->addSystem( _sysAutopilot, 1 );
 	_dmHull->addSystem( _sysEngine, 2 );
+	_dmHull->addSystem( _sysLegMounting, 1 );
+	_dmHull->addSystem( _sysTailMounting, 1 );
 	_dmHull->addSystem( NULL, 10 ); // 50% unused
 	addDamageManager( _dmHull );
 	_bodyHull->shapeByName("main")->setDamageManager(_dmHull );
@@ -402,7 +412,8 @@ void PlaneBumblebee::createDamageManagers()
 	_dmTail->addSystem( _sysEngine, 1 );
 	_dmTail->addSystem( _sysWing, 3 );
 	_dmTail->addSystem( _sysElevator, 2 );
-	_dmTail->addSystem( NULL, 4 );
+	_dmTail->addSystem( _sysTailMounting, 1 );
+	_dmTail->addSystem( NULL, 5 );
 	addDamageManager( _dmTail );
 	_bodyTail->shapeByName("main")->setDamageManager( _dmTail );
 	

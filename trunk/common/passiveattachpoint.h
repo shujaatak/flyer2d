@@ -40,7 +40,8 @@ public:
 	
 	void setAttachedPoint( ActiveAttachPoint* p ) { _pAttachedPoint = p; }
 	virtual void flip( const QPointF& p1, const QPointF& p2 );
-	
+	virtual bool attached() const { return _pAttachedPoint != NULL; }
+
 private:
 
 	ActiveAttachPoint* _pAttachedPoint;

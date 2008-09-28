@@ -38,6 +38,7 @@ public:
 	virtual void damage ( double force );
 	virtual void simulate ( double dt );
 	virtual double status() const;
+	virtual void repair();
 	
 	void setOn( bool on ) { _on = on; }
 	bool on() const { return _on; }
