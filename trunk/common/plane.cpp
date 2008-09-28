@@ -56,7 +56,8 @@ Plane::Plane( World* pWorld, const QPointF& /*pos*/, double /*angle*/ ) : Machin
 	_pElevator	= NULL;
 	_pGun		= NULL;
 	_pWeaponAttachPoint  = NULL;
-	setLayers( LayerVehicles | LayerBuildings );
+	setLayers( PhysLayerVehicles | PhysLayerBuildings );
+	setRenderLayer( LayerVehicles );
 }
 
 // ============================================================================

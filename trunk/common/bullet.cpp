@@ -35,6 +35,8 @@ Bullet::Bullet ( World* pWorld ) : WorldObject ( pWorld )
 	_size = 0;
 	_age = 0;
 	_damageManager.setDamageMultiplier( DAMAGE_MULTIPLIER );
+	setName( "Bullet" );
+	setRenderLayer( LayerVehicles );
 }
 
 // ============================================================================

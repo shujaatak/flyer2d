@@ -20,6 +20,7 @@
 #include "world.h"
 #include "textureprovider.h"
 #include "grounddecoration.h"
+#include "common.h"
 
 #include "ground.h"
 
@@ -107,7 +108,7 @@ Ground::Ground ( World* pWorld ) : WorldObject ( pWorld )
 	
 	_pGround = new Body("Ground");
 	_pGround->create( groundBodyDef, pWorld->b2world() );
-	_pGround->setLayers( 0xffff ); //alll!
+	_pGround->setLayers( 0xffff ); //all!
 	
 	QList<b2PolygonDef*> shapes = createShape();
 	foreach( b2PolygonDef* pShape, shapes )
@@ -124,6 +125,9 @@ Ground::Ground ( World* pWorld ) : WorldObject ( pWorld )
 	}
 	
 	prepareTextures();
+	
+	setName( "Ground" );
+	setRenderLayer( LayerForeground );
 	
 }
 
@@ -443,7 +447,7 @@ b2PolygonDef* Ground::createTriangleB2Shape( const QPointF& a, const QPointF& b,
 
 // ============================================================================
 // Renders ground
-void Ground::render ( QPainter& painter, const QRectF& rect, const RenderingOptions& /*options*/ )
+void Ground::render ( QPainter& painter, const QRectF& /*rect*/, const RenderingOptions& /*options*/ )
 {
 	painter.setPen( Qt::NoPen );
 	painter.setBrush( QColor("#8F6A32") );

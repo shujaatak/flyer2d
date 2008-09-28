@@ -22,7 +22,7 @@ namespace Flyer {
 /// Constructor, creates top-level object.
 WorldObject::WorldObject( World* pWorld )
 {
-	Q_ASSERT( _pWorld );
+	Q_ASSERT( pWorld );
 	_pWorld = pWorld;
 	_pParent = NULL;
 	_renderLayer = 0;

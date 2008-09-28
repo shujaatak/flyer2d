@@ -34,6 +34,8 @@ Machine::Machine ( World* pWorld ) : WorldObject ( pWorld )
 {
 	_orientation = 1.0;
 	_layers = 0;
+	_size = 10; // some default value
+	_pMainBody = NULL;
 }
 
 // ============================================================================
@@ -165,6 +167,8 @@ void Machine::addBody( Body* pBody, int types )
 	
 	_allBodies.append( pBody );
 	pBody->setLayers( _layers );
+	
+	updateSize();
 }
 
 // ============================================================================
@@ -177,6 +181,29 @@ void Machine::removeBody( Body* pBody )
 	}
 	
 	_allBodies.removeAll( pBody );
+	updateSize();
+}
+
+
+// ============================================================================
+/// Updates size
+void Machine::updateSize()
+{
+	QRectF boundingRect;
+	foreach( Body* pBody, _allBodies )
+	{
+		if ( boundingRect.isNull() )
+		{
+			boundingRect = pBody->shape().boundingRect();
+		}
+		else
+		{
+			boundingRect |= pBody->shape().boundingRect();
+		}
+	}
+	
+	_size = qMax( boundingRect.width(), boundingRect.height() );
+	//qDebug("%s: size updated to: %g", qPrintable( name() ),_size );
 }
 
 // ============================================================================
@@ -365,6 +392,14 @@ void Machine::addPassiveAttachPoint( PassiveAttachPoint* pPoint )
 		pPoint->setParent( this );
 	}
 	_passiveAttachPoints.append( pPoint );
+}
+
+// ============================================================================
+/// Calculates rough bounding rectangle of the machine.
+QRectF Machine::boundingRect() const
+{
+	QPointF pos = position();
+	return QRectF( pos.x() - _size, pos.y() - _size, _size*2, _size*2 );
 }
 
 }

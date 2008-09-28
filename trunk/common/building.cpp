@@ -79,13 +79,21 @@ Building* Building::createSmallBuilding( World* pWorld, double location, bool ba
 	QString fileName = QString("house_small_%1.body").arg( housenum );
 	pBuilding->_pBody = BodyProvider::loadBody( fileName );
 	
-	
+	b2Vec2 pos = b2Vec2(location, pWorld->ground()->height( location ) );
 	pBuilding->_width = 9;
-	pBuilding->_pBody->setPosition( b2Vec2(location, pWorld->ground()->height( location ) ) );
+	pBuilding->_pBody->setPosition( pos );
 	pBuilding->_pBody->create( pWorld->b2world() );
+	pBuilding->setName( "Small building" );
+	pBuilding->_boundingRect = pBuilding->_pBody->shape().boundingRect().translated( vec2point( pos ));
 	
+	// set physical layer
 	if ( background ) pBuilding->_pBody->setLayers( PhysLayerBackground );
 	else pBuilding->_pBody->setLayers( PhysLayerBuildings );
+	
+	// set rendering layer
+	if ( background ) pBuilding->setRenderLayer( LayerBackground );
+	else pBuilding->setRenderLayer( LayerBuildings );
+	
 	
 	// add object
 	int objectClass = World::ObjectStatic | World::ObjectRendered;

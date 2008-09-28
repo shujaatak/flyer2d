@@ -5,7 +5,6 @@
 TEMPLATE = app
 TARGET = flyer
 DEPENDPATH += .
-INCLUDEPATH += ../include ../common
 LIBS += -L../lib -lflyercommon -lbox2d
 CONFIG += debug
 QT += opengl
@@ -14,3 +13,8 @@ QT += opengl
 HEADERS += mainwindow.h statuswindow.h worldwidget.h
 FORMS += mainwindow.ui statuswindow.ui
 SOURCES += main.cpp mainwindow.cpp statuswindow.cpp worldwidget.cpp
+INCLUDEPATH += ../common \
+  ../include
+
+TARGETDEPS += ../lib/libflyercommon.a
+
