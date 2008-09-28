@@ -34,6 +34,7 @@ Body::Body( const QString& name ) : Serializable()
 	_layers = 0;
 	_textureScale = 0.05; // 20 px per meter, 5cm per pixel
 	_orientation = 1.0;
+	_pParentMachine = NULL;
 }
 
 // ============================================================================
@@ -540,6 +541,14 @@ b2Vec2 Body::position() const
 {
 	if ( _pBody ) return _pBody->GetPosition();
 	else return _definition.position;
+}
+
+// ============================================================================
+/// Returns body boundng rect (in body coordinates)
+QRectF Body::boundingRect() const
+{
+	// TODO find better implementation.
+	return shape().boundingRect();
 }
 
 }

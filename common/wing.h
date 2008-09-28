@@ -35,6 +35,7 @@ public:
 	virtual void damage ( double force );
 	virtual void render( QPainter& painter, const QRectF& rect, const RenderingOptions& options );
 	virtual double status() const;
+	virtual void repair();
 	
 	// properties
 	void setFlapsDrag( double fg ) { _flapsDrag = fg; }

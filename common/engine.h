@@ -41,6 +41,7 @@ public:
 	virtual void render( QPainter& painter, const QRectF& rect, const RenderingOptions& optiopns );
 	
 	virtual double status() const;
+	virtual void repair();
 	// properties
 	
 	void setThrottle( double throttle ); /// Sets throttle (0-1)

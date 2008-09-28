@@ -57,6 +57,7 @@ AntiAirBattery::AntiAirBattery ( World* pWorld, double location, double angle  )
 	_bodyBase->setPosition( basePos );
 	_bodyBase->create( pWorld->b2world() );
 	addBody( _bodyBase, BodyRendered1 );
+	setMainBody( _bodyBase );
 	
 	_bodyMain->shapeByName( "main" )->setDamageManager( _dmMain );
 	

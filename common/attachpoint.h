@@ -63,6 +63,7 @@ public:
 	void setName( const QString& n ) { _name = n; }
 	
 	virtual void flip( const QPointF& p1, const QPointF& p2 ) = 0;
+	virtual bool attached() const = 0;
 	
 protected:
 

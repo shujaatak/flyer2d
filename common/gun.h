@@ -37,6 +37,7 @@ public:
 	virtual void damage ( double force );
 	virtual void simulate( double dt );
 	virtual double status() const;
+	virtual void repair();
 	
 	// config
 	void setBulletMass( double m ) { _mass = m; }

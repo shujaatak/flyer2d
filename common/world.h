@@ -33,6 +33,7 @@ namespace Flyer {
 
 class Plane;
 class Ground;
+class Machine;
 
 /**
 	Main world object. Holds Box2d world, and controls simulation.
@@ -104,12 +105,24 @@ public:
 	/// Returns current simulaton time
 	double time();
 	
+	/// Adds object to 1-second timer.
+	void addToTimer1( WorldObject* pObject ) { _timer1Objects.append( pObject ); }
+	
+	// querying
+	
+	/// Finds machines in specified area
+	QList<Machine*> findMachines( const QRectF& area, int types ) const;
+	
+	
 	Plane* _pEnemyPlane; // TODO debug, remove
+	
+	
 private:
 	
 	void initWorld();
 
 	QList<WorldObject*> _allObjects;	///< List of objects
+	QList<WorldObject*> _timer1Objects;	///< Objects connected to 1-second timer.
 	
 	/// Categorized lists of objects
 	QMap< int, QList<WorldObject*> >	_objects;
@@ -127,9 +140,10 @@ private:
 	QLinearGradient	_skyGradient;	///< sky gradient (experimental)
 	
 	int		_steps;					///< Simulation steps so far
-	
+	double	_timer1Time;			///< Time from lats 1-second timer event
 	
 	void createTown( double start, double end, bool small );
+	
 };
 
 }

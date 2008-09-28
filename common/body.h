@@ -35,6 +35,7 @@ namespace Flyer
 {
 
 class RenderingOptions;
+class Machine;
 
 /**
 	Wrap around b2Body. It rembeers it's shapes and know how to re-create itself.
@@ -88,6 +89,9 @@ public:
 	/// Returns body shape as painter path
 	QPainterPath shape() const;
 	
+	/// Returns body bounding rect
+	QRectF boundingRect() const;
+	
 	/// Renders body in the simplest ways - draws it;s shape
 	void render( QPainter& painter, const RenderingOptions& options );
 	
@@ -97,6 +101,8 @@ public:
 	/// Flips body along defined axis
 	void flip( const QPointF& p1, const QPointF& p2 );
 	
+	/// Returns current orientation
+	double orientation() const { return _orientation; }
 	
 	/// Checks if body is connected to antoher through joints
 	bool isConnectedTo( Body* pBody ) const;
@@ -119,6 +125,9 @@ public:
 	void setTextureScale( double s );
 	double textureScale() const { return _textureScale; }
 	
+	Machine* parentMachine() const { return _pParentMachine; }
+	void setParentMachine( Machine* p ) { _pParentMachine = p; }
+
 protected:
 
 	/// Puts object into stream
@@ -128,10 +137,10 @@ protected:
 	
 	/// Provides ID which identifies object type
 	virtual QString classId() const { return "Body"; }
-
+	
 private:
 
-	// opoerations
+	// operations
 	bool doIsConnectedTo( Body* pBody, QList<const Body*>& visited ) const;
 
 	QString		_name;			///< Body name
@@ -140,6 +149,7 @@ private:
 	QList<Shape>	_shapes;
 	int			_layers;		///< Collision layers
 	double		_orientation;	///< Body orientation [-1 - flipped, +1 - not flipped]
+	Machine*	_pParentMachine;	///> Machine which owns this body
 	
 	// texturing support
 	

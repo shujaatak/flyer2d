@@ -69,9 +69,7 @@ public:
 	// TODO replace it by more generic interface
 	void setFiring( bool on );
 	void releaseWeapon();
-	
-	// temporry bomb interface
-	virtual void releaseBomb(){}
+	ActiveAttachPoint* weaponPoint(){ return _pWeaponPoint; }
 	
 	// systems
 	void setAutopilot( Autopilot* pAutopilot ){ _pAutopilot = pAutopilot; }
@@ -80,7 +78,7 @@ public:
 	void setWing( Wing* pWing ) { _pWing = pWing; }
 	void setElevator( ControlSurface* pElevator ) { _pElevator = pElevator; }
 	void setGun( Gun* pGun ) { _pGun = pGun; }
-	void setWeponAttachPoint( ActiveAttachPoint* pAp ){ _pWeaponAttachPoint = pAp; }
+	void setWeponPoint( ActiveAttachPoint* pAp ){ _pWeaponPoint = pAp; }
 	
 private:
 
@@ -91,7 +89,7 @@ private:
 	Autopilot*		_pAutopilot;
 	ControlSurface*	_pElevator;
 	Gun*			_pGun;
-	ActiveAttachPoint* _pWeaponAttachPoint;
+	ActiveAttachPoint* _pWeaponPoint;
 	
 };
 

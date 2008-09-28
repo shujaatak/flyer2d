@@ -150,4 +150,15 @@ double Wing::status() const
 	return ( dragDamage + liftDamage + flapsDamage ) / 3.0;
 }
 
+// ============================================================================
+// Repairs wing
+void Wing::repair()
+{
+	_currentDragH = _dragCoeffH;
+	_currentDragV = _dragCoeffV;
+	_currentFlapsMin = 0.0;
+	_currentFlapsMax = 1.0;
+	_currentLift = _liftCoeff;
+}
+
 }

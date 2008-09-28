@@ -84,6 +84,13 @@ void Engine::damage ( double force )
 }
 
 // ============================================================================
+// Repairs engine
+void Engine::repair()
+{
+	_currentMaxThrust = _maxThrust;
+}
+
+// ============================================================================
 // Simulates engine operation.
 void Engine::simulate ( double dt )
 {
@@ -128,7 +135,7 @@ QPointF Engine::thrustForce()
 
 // ============================================================================
 // Renders
-void Engine::render( QPainter& painter, const QRectF& rect, const RenderingOptions& optiopns )
+void Engine::render( QPainter& painter, const QRectF& /*rect*/, const RenderingOptions& optiopns )
 {
 	Q_ASSERT( body() );
 	

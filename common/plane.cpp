@@ -55,7 +55,7 @@ Plane::Plane( World* pWorld, const QPointF& /*pos*/, double /*angle*/ ) : Machin
 	_pAutopilot	= NULL;
 	_pElevator	= NULL;
 	_pGun		= NULL;
-	_pWeaponAttachPoint  = NULL;
+	_pWeaponPoint  = NULL;
 	setLayers( PhysLayerVehicles | PhysLayerBuildings );
 	setRenderLayer( LayerVehicles );
 }
@@ -233,7 +233,7 @@ void Plane::setFiring( bool on )
 // Releases attached weapon
 void Plane::releaseWeapon()
 {
-	if ( _pWeaponAttachPoint ) _pWeaponAttachPoint->release();
+	if ( _pWeaponPoint ) _pWeaponPoint->release();
 }
 
 }

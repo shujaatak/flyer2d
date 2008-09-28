@@ -48,6 +48,8 @@ WorldWidget::WorldWidget ( QWidget* parent, Qt::WindowFlags f ) : QGLWidget ( pa
 	_timer.setInterval( 1000/FPS );
 	_frames = 0;
 	_zoom = ZOOM1;
+	
+	start();
 }
 
 // ============================================================================
@@ -108,6 +110,22 @@ void WorldWidget::render( QPainter& painter )
 	if ( plane()->autopilot() )
 	{
 		painter.drawText( 10, 55, "autopilot" );
+	}
+	
+	// throttle
+	QString throttle;
+	throttle.sprintf("throttle: %d%%", int( plane()->throttle() * 100 ) );
+	painter.drawText( width() - 100, 10, throttle );
+	
+	// flaps
+	QString flaps;
+	flaps.sprintf("flaps: %d%%", int( plane()->flaps() * 100 ) );
+	painter.drawText( width() - 100, 25, flaps );
+	
+	// pause
+	if ( ! isRunning() )
+	{
+		painter.drawText( width() / 2, 10, "paused" );
 	}
 	
 	// redner HUD
@@ -171,6 +189,7 @@ void WorldWidget::start()
 void WorldWidget::stop()
 {
 	_timer.stop();
+	repaint();
 }
 
 // ============================================================================
@@ -189,6 +208,12 @@ void WorldWidget::step()
 	
 }
 
+// ============================================================================
+/// Returns \b true if simulation is runing
+bool WorldWidget::isRunning() const
+{
+	return _timer.isActive();
+}
 
 // ============================================================================
 // Adjusts translation to plane position
@@ -393,11 +418,6 @@ void WorldWidget::keyPressEvent( QKeyEvent* pEvent )
 		plane()->setAutopilot( ! plane()->autopilot() );
 		break;
 		
-	// ENTER
-	case Qt::Key_Return:
-		plane()->releaseBomb();
-		break;
-		
 	// pg up - zoom out
 	case Qt::Key_PageUp:
 		_zoom = Zoom( qMin( _zoom+1, int(ZOOM3) ) );
@@ -406,6 +426,12 @@ void WorldWidget::keyPressEvent( QKeyEvent* pEvent )
 	// pg dwon - zoom in
 	case Qt::Key_PageDown:
 		_zoom = Zoom( qMax( _zoom-1, int(ZOOM1) ) );
+		break;
+	
+	// puse
+	case Qt::Key_P:
+		if ( isRunning() ) stop();
+		else start();
 		break;
 	
 	default:

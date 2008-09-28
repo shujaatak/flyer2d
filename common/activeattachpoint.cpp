@@ -71,13 +71,26 @@ void ActiveAttachPoint::attach( PassiveAttachPoint* pPoint )
 	Q_ASSERT( pMasterBody->b2body() );
 	Q_ASSERT( pSlaveBody->b2body() );
 	
+	// sync orientation
+	if ( pMasterBody->orientation() * pSlaveBody->orientation() < 0 )
+	{
+		Machine* pSlaveMachine = pSlaveBody->parentMachine();
+		if ( pSlaveMachine )
+		{
+			double x = pSlaveMachine->position().x();
+			pSlaveMachine->flip( QPointF( x, 1 ), QPointF( x, -1 ) );
+		}
+	}
+	
 	// find connection's world point and angle
-	b2Vec2 worldPoint = pMasterBody->b2body()->GetWorldPoint( _position );
-	double worldAngle = pMasterBody->b2body()->GetAngle() + _angle;
+	b2Vec2 position( _position.x, _position.y * pMasterBody->orientation() );
+	b2Vec2 worldPoint = pMasterBody->b2body()->GetWorldPoint( position );
+	double worldAngle = pMasterBody->b2body()->GetAngle() + _angle * pMasterBody->orientation();
 	
 	// move slave body so it's passive point coords overlap with world coords.
-	double targetAngle	= worldAngle - pPoint->angle();
-	b2Vec2 tagertPos	= worldPoint - b2Mul( b2Mat22( targetAngle ), pPoint->position() );
+	double targetAngle	= worldAngle - pPoint->angle() * pSlaveBody->orientation();
+	b2Vec2 passivePos	= b2Vec2( pPoint->position().x, pPoint->position().y * pSlaveBody->orientation() );
+	b2Vec2 tagertPos	= worldPoint - b2Mul( b2Mat22( targetAngle ), passivePos );
 	
 	pSlaveBody->b2body()->SetXForm( tagertPos,  targetAngle );
 	
@@ -88,7 +101,7 @@ void ActiveAttachPoint::attach( PassiveAttachPoint* pPoint )
 	def.upperAngle = 0.0;
 	def.lowerAngle = 0.0;
 	
-	_pJoint->create( & def, pMasterBody->b2body()->GetWorld() );
+	_pJoint->create( & def, pMasterBody->b2body()->GetWorld(), true );
 	_pJoint->setBodies( pMasterBody, pSlaveBody );
 	
 	// and finally - take business card from this guy

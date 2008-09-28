@@ -14,50 +14,37 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#ifndef FLYERACTIVEATTACHPOINT_H
-#define FLYERACTIVEATTACHPOINT_H
+#ifndef FLYERHANGAR_H
+#define FLYERHANGAR_H
 
-#include "attachpoint.h"
+#include "machine.h"
 
 namespace Flyer
 {
 
-class PassiveAttachPoint;
-
 /**
-This is active attach point. It is master side of arrach point connection - it 
-manages the joint that is used to attaching.
+Hangar is a building repering other machines that comes near him.
 @author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class ActiveAttachPoint : public AttachPoint
-{
-public:
-	ActiveAttachPoint();
-	~ActiveAttachPoint();
 
-	// config
+class Hangar : public Machine
+{
+
+public:
+	Hangar( World* pWorld, double location );
+	virtual ~Hangar();
 	
-	virtual void setParent( Machine* p );
-	
-	// operations
-	
-	void attach( PassiveAttachPoint* pPoint );
-	void release();
-	
-	virtual void flip( const QPointF& p1, const QPointF& p2 );
-	virtual bool attached() const { return _pAttachedPoint != NULL; }
+	virtual void timer1();
 	
 private:
 
-	PassiveAttachPoint*	_pAttachedPoint;
-	
-	Joint*		_pJoint;
-	
+	QRectF	_activeArea;	///< Active area
+
 };
 
 }
 
-#endif // FLYERACTIVEATTACHPOINT_H
+#endif // FLYERHANGAR_H
 
 // EOF
 

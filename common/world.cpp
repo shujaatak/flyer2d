@@ -29,6 +29,7 @@
 #include "ironbomb.h"
 #include "activeattachpoint.h"
 #include "common.h"
+#include "hangar.h"
 
 #include "world.h"
 
@@ -76,7 +77,6 @@ class WorldContactListener : public b2ContactListener
 			pDM2->contact(multiplier1 * force );
 		}
 	}
-	
 	
 };
 	
@@ -186,6 +186,8 @@ void World::renderMap( QPainter& painter, const QRectF& rect )
 void World::initWorld()
 {
 	_steps = 0;
+	_timer1Time = 0.0;
+	
 	_boundary = QRectF( -15000, -500, 30000, 3000 ); // 30x3 km box
 	// create world
 	b2AABB worldAABB;
@@ -218,7 +220,7 @@ void World::initWorld()
 	addObject( pBomb, ObjectRendered | ObjectSimulated );
 	
 	// attache the bomb
-	_pPlayerPlane->activeAttachPoints().first()->attach( pBomb->atachPoint() );
+	_pPlayerPlane->activeAttachPoints().first()->attach( pBomb->attachPoint() );
 	
 	// enemy plane (!)
 	PlaneBumblebee* pEnemy = new PlaneBumblebee( this, QPointF( -200, 400 ), 0.0 );
@@ -243,7 +245,7 @@ void World::initWorld()
 	addObject( new AntiAirBattery( this, 3000, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRendered | ObjectSide2 | ObjectRenderedMap   );
 	addObject( new AntiAirBattery( this, 3050, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRendered | ObjectSide2 | ObjectRenderedMap  );
 	addObject( new AntiAirBattery( this, 3100, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRendered | ObjectSide2 | ObjectRenderedMap  );
-	addObject( new AntiAirBattery( this, -1000, 1.2 ), ObjectInstallation | ObjectSimulated | ObjectRendered| ObjectSide2 | ObjectRenderedMap   );
+	addObject( new AntiAirBattery( this, -1500, 1.2 ), ObjectInstallation | ObjectSimulated | ObjectRendered| ObjectSide2 | ObjectRenderedMap   );
 	
 	// sky gradient
 	_skyGradient.setStart( _boundary.left() + _boundary.width()/ 2, _boundary.top() );
@@ -255,8 +257,8 @@ void World::initWorld()
 	createTown( 400, 800, true ); // TODO teporarly disanled to torack down texture problems
 	createTown( 1300, 200, true );
 	
-	// add sample building at the runway
-	Building::createSmallBuilding( this, 30, true );
+	// hangar on runway
+	addObject( new Hangar( this, 40 ), ObjectInstallation | ObjectRendered | ObjectSide1 );
 	
 	
 }
@@ -266,10 +268,15 @@ void World::initWorld()
 void World::simulate( double dt )
 {
 	// destroy objects from queue
+	/*
 	while( ! _objectsToDestroy.isEmpty() )
 	{
 		delete _objectsToDestroy.takeFirst();
 	}
+	*/
+	// TODO new implementation
+	qDeleteAll( _objectsToDestroy );
+	_objectsToDestroy.clear();
 	
 	int iters = dt/TIMESTEP; // sub iterations here
 	for( int i = 0; i < iters; i++ )
@@ -280,6 +287,19 @@ void World::simulate( double dt )
 			pObject->simulate( dt/iters );
 		}
 	}
+	// call 1-second timer, if it is it's time
+	if ( _timer1Time >= 1.0 )
+	{
+		_timer1Time -= 1.0;
+		foreach( WorldObject* pObject, _timer1Objects )
+		{
+			pObject->timer1();
+		}
+	}
+	_timer1Time += dt;
+	
+	
+	
 	_steps ++;
 }
 
@@ -312,6 +332,7 @@ void World::addObject( WorldObject* pObject, int objectClass )
 void World::removeObject( WorldObject* pObject, bool destroy )
 {
 	_allObjects.removeAll( pObject );
+	_timer1Objects.removeAll( pObject );
 	
 	// remove from specific lists
 	for( int i =0 ;i < 32; i++ )
@@ -357,8 +378,39 @@ void World::createTown( double start, double end, bool /*small*/ )
 		
 		x += spacing * pBuilding->width();
 	}
-	
+}
 
+// ============================================================================
+/// Finds machines which have their positions in specified area.
+/// \b types is bitmask of object types which should be searched
+QList<Machine*> World::findMachines( const QRectF& area, int types ) const
+{
+	// TODO use box2d AABB and back reference from main body
+	
+	// seek through all categories
+	QList<Machine*> result;
+	for( int i =0 ;i < 32; i++ )
+	{
+		int bit = 1 << i;
+		
+		if ( bit & types )
+		{
+			foreach( WorldObject* pObject, _objects[bit] )
+			{
+				Machine* pMachine = dynamic_cast<Machine*>( pObject );
+				if	( pMachine 
+					&& area.contains( pMachine->position() ) 
+					&& ! result.contains( pMachine ) 
+					)
+				{
+					result.append( pMachine );
+				}
+			}
+		}
+	}
+	
+	return result;
+	
 }
 
 }

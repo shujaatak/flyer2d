@@ -8,6 +8,7 @@ DEPENDPATH += .
 LIBS += -L../lib -lflyercommon -lbox2d
 CONFIG += debug
 QT += opengl
+DESTDIR = ../bin
 
 # Input
 HEADERS += mainwindow.h statuswindow.h worldwidget.h

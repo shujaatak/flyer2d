@@ -45,7 +45,7 @@ public:
 	void setMass( double m ) { _mass = m; }
 	void setEnergy( double e ) { _energy = e; }
 	
-	PassiveAttachPoint* atachPoint() const { return _attachPoint; }
+	PassiveAttachPoint* attachPoint() const { return _attachPoint; }
 	
 	void init( const QPointF& position, double angle );
 	

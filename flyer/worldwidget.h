@@ -52,6 +52,7 @@ public:
 	
 	void start();
 	void stop();
+	bool isRunning() const;
 	void step();
 	
 	// zoom levels

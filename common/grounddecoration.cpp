@@ -14,66 +14,64 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#include "wheelbrake.h"
-#include "joint.h"
+#include "common.h"
+
+#include "grounddecoration.h"
 
 namespace Flyer
 {
 
 // ============================================================================
 // Constructor
-WheelBrake::WheelBrake ( Machine* pParent, const QString& name ) : System ( pParent, name )
+GroundDecoration::GroundDecoration( World* pWorld ): WorldObject( pWorld )
 {
-	_pJoint = NULL;
-	_on = false;
+	setRenderLayer( LayerForeground );
+	_pTextures = NULL;
+	setName("Ground decoration");
 }
 
 // ============================================================================
-// estructor
-WheelBrake::~WheelBrake()
+// Destrcutor
+GroundDecoration::~GroundDecoration()
 {
 }
 
 // ============================================================================
-// Damages brake
-void WheelBrake::damage ( double force )
+/// Returnsa item's boundoing rect.
+QRectF GroundDecoration::boundingRect() const
 {
-	double reduce = force/ damageCapacity();
-	
-	_currentTorque = qMax( 0.0, _currentTorque - _brakingTorque * reduce );
+	return _boundingRect;
 }
 
 // ============================================================================
-// Repairs system
-void WheelBrake::repair()
+/// Actually draws the surface.
+void GroundDecoration::render( QPainter& painter, const QRectF& /*rect*/, const RenderingOptions& /*options*/ )
 {
-	_currentTorque = _brakingTorque;
-}
-
-// ============================================================================
-// Simulates brake
-void WheelBrake::simulate ( double /*dt*/ )
-{
-	if ( _pJoint && _pJoint->b2joint() && _pJoint->b2joint()->GetType() == e_revoluteJoint )
-	{
-		b2RevoluteJoint* pRevoluteJoint = static_cast<b2RevoluteJoint*>( _pJoint->b2joint() );
-		if ( _on )
+	// draw pixmaps
+	painter.save();
+		painter.setClipRect( _boundingRect );
+		painter.setTransform( _transform, true );
+		double x = 0;
+		foreach( int index, _textureIndices )
 		{
-			pRevoluteJoint->SetMaxMotorTorque( _brakingTorque );
-			pRevoluteJoint->SetMotorSpeed( 0.0 );
+			const QImage& image = (*_pTextures)[ index ];
+			painter.drawImage( x, -image.height(), image );
+			//painter.setPen( Qt::red );
+			//painter.drawRect( x, -1, 4, 1 );
+			x += image.width();
 		}
-		else
-		{
-			pRevoluteJoint->SetMaxMotorTorque( 0.0 );
-		}
-	}
+	painter.restore();
 }
 
 // ============================================================================
-// Estimates status
-double WheelBrake::status() const
+/// Initializes decoration
+void GroundDecoration::init( const QList<int>& textureIndices, const QRectF& boundingRect
+	, const QTransform& transform, QList<QImage>* pTextures  )
 {
-	return _currentTorque / _brakingTorque;
+	_boundingRect = boundingRect;
+	_textureIndices = textureIndices;
+	_transform = transform;
+	_pTextures = pTextures;
 }
 
 }
