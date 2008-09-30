@@ -34,7 +34,7 @@ class PassiveAttachPoint : public AttachPoint
 {
 public:
 	PassiveAttachPoint();
-	~PassiveAttachPoint();
+	virtual ~PassiveAttachPoint();
 
 	// control mnessages from active point
 	

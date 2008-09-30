@@ -7,7 +7,7 @@ TARGET = flyercommon
 DEPENDPATH += 
 INCLUDEPATH += ../include objects
 LIBS += -lbox2d -L../lib
-CONFIG += staticlib
+CONFIG += staticlib release
 DESTDIR = ../lib
 
 # Input

@@ -1,6 +1,6 @@
 TEMPLATE = lib
 CONFIG += staticlib
-CONFIG += debug_and_release
+CONFIG += release
 
 SOURCES = ColorCombo.cpp \
           Property.cpp \
