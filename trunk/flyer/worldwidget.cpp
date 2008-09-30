@@ -48,8 +48,6 @@ WorldWidget::WorldWidget ( QWidget* parent, Qt::WindowFlags f ) : QGLWidget ( pa
 	_timer.setInterval( 1000/FPS );
 	_frames = 0;
 	_zoom = ZOOM1;
-	
-	start();
 }
 
 // ============================================================================
@@ -125,7 +123,9 @@ void WorldWidget::render( QPainter& painter )
 	// pause
 	if ( ! isRunning() )
 	{
-		painter.drawText( width() / 2, 10, "paused" );
+		QRect r( 0, 10, width(), 500 );
+		painter.drawText( r
+			, Qt::AlignHCenter, QString("PAUSED\nPress P to resume.") );
 	}
 	
 	// redner HUD
@@ -150,6 +150,43 @@ void WorldWidget::render( QPainter& painter )
 		// forward line
 		painter.drawLine( QPointF( x + spacing*c, y - spacing*s ), QPointF( x + longLine*c, y - longLine*s));
 		
+	}
+	
+	// render messages
+	{
+		// acquire
+		QStringList messages;
+		const int MAX_DISPLAYED_MESSAGES = 5;
+		double MAX_MESSAGE_AGE = 5.0; // 5 s
+		
+		double minTime = world()->time() - MAX_MESSAGE_AGE;
+		
+		int last = plane()->messages().size() - 1; // index of last element
+		while( last >= 0 && messages.size() < MAX_DISPLAYED_MESSAGES )
+		{
+			if ( plane()->messages()[ last ].time() > minTime )
+			{
+				messages.prepend( plane()->messages()[ last ].text() );
+			}
+			else
+			{
+				break;
+			}
+			
+			last --;
+		}
+		
+		
+		// display
+		QFont messageFont( "Arial" );
+		messageFont.setPixelSize( height()/ 30 );
+		messageFont.setWeight( QFont::Bold );
+		
+		QRectF messagesRect( 0, height() * 0.7, width(), height() * 0.3 );
+		
+		painter.setFont( messageFont );
+		painter.setPen( QColor( 0, 0, 0, 192 ) );
+		painter.drawText( messagesRect, Qt::AlignHCenter | Qt::AlignBottom, messages.join("\n") );
 	}
 	
 }

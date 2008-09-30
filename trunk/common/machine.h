@@ -24,6 +24,8 @@ class QPainter;
 
 #include "Box2D.h"
 
+#include "message.h"
+
 #include "worldobject.h"
 
 namespace Flyer
@@ -106,6 +108,8 @@ public:
 	/// Sets layers on whic hthis machine lives
 	void setLayers( int layers );
 	
+	// attach points 
+	
 	/// Adds attach point to machine
 	void addActiveAttachPoint( ActiveAttachPoint* pPoint );
 	
@@ -114,6 +118,11 @@ public:
 	
 	/// Returns machine's attach points
 	QList<ActiveAttachPoint*>& activeAttachPoints() { return _activeAttachPoints; }
+	
+	// messages
+	void addSystemMessage( const QString& );
+	
+	const QList<Message>& messages() const { return _messages; }
 
 protected:
 
@@ -153,6 +162,8 @@ protected:
 	
 	void updateSize();		///< Calculates _size;
 	double	_size;			///< Approx. size used to calculate rough bounding rect.
+	
+	QList<Message> _messages;
 };
 
 }
