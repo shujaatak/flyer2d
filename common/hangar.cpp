@@ -95,8 +95,11 @@ void Hangar::timer1()
 		
 		pSystem->repair();
 		
-		// TODO send message
-		qDebug( "%s", qPrintable(message) );
+		// Send message (if repair sucessfull)
+		if ( pSystem->status() == 1.0 )
+		{
+			pSystem->parent()->addSystemMessage( message );
+		}
 	
 		return;
 	}
@@ -120,7 +123,7 @@ void Hangar::timer1()
 				// attache the bomb
 				pPoint->attach( pBomb->attachPoint() );
 				
-				qDebug("Bomb reattached");
+				pPlane->addSystemMessage("Bomb reattached");
 				return;
 			}
 		}

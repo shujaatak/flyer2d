@@ -99,7 +99,7 @@ Cloud* Cloud::createSmoke( World* pWorld, const b2Vec2& pos )
 	
 	double radius = ( qrand() % 100 ) / 100.0 + 0.5;
 	
-	double lifespan = 1 + (qrand()%20000)/10000.0; // 1-2 s
+	double lifespan = 1 + (qrand()%40000)/10000.0; // 1-5 s
 	
 	pSmoke->setVelocity( b2Vec2( vx, vy ) );
 	pSmoke->setPosition( pos );

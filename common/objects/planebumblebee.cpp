@@ -103,7 +103,7 @@ PlaneBumblebee::~PlaneBumblebee()
 void PlaneBumblebee::createSystems()
 {
 	// engine
-	_sysEngine = new Engine( this, "engine" );
+	_sysEngine = new Engine( this, "Engine" );
 	_sysEngine->setMaxThrust( MAX_THRUST );
 	_sysEngine->setDamageCapacity( 200E3 );
 	_sysEngine->setBody( _bodyEngine );
@@ -149,7 +149,7 @@ void PlaneBumblebee::createSystems()
 	setWing( _sysWing );
 	
 	// elevator
-	_sysElevator = new ControlSurface( this, "elevator" );
+	_sysElevator = new ControlSurface( this, "Elevator" );
 	_sysElevator->setWidth( ELEVATOR_LENGTH );
 	_sysElevator->setPosition( ELEVATOR_POS );
 	_sysElevator->setStep( ELEVATOR_STEP );
@@ -160,7 +160,7 @@ void PlaneBumblebee::createSystems()
 	setElevator( _sysElevator );
 	
 	// brake
-	_sysBrake = new WheelBrake( this, "wheel brake");
+	_sysBrake = new WheelBrake( this, "Wheel brake");
 	_sysBrake->setBrakingTorque( WHEEL_BRAKE_TORQUE );
 	_sysBrake->setJoint( _jointWheel );
 	_sysBrake->setDamageCapacity( 100E3 );
@@ -168,7 +168,7 @@ void PlaneBumblebee::createSystems()
 	setWheelBrake( _sysBrake );
 	
 	// autopilot
-	_sysAutopilot = new Autopilot( this, "autopilot" );
+	_sysAutopilot = new Autopilot( this, "Autopilot" );
 	_sysAutopilot->setElevator( _sysElevator );
 	_sysAutopilot->setEngine( _sysEngine );
 	_sysAutopilot->setWing( _sysWing );

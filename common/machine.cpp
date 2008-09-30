@@ -404,4 +404,12 @@ QRectF Machine::boundingRect() const
 	return QRectF( pos.x() - _size, pos.y() - _size, _size*2, _size*2 );
 }
 
+// ============================================================================
+/// Ads system message to message queue.
+void Machine::addSystemMessage( const QString& text )
+{
+	_messages.append( Message( text, world()->time() ) );
+}
+
+
 }

@@ -16,8 +16,10 @@
 
 #include <math.h>
 
-#include "damagemanager.h"
 #include "system.h"
+#include "machine.h"
+
+#include "damagemanager.h"
 
 namespace Flyer
 {
@@ -58,7 +60,21 @@ void DamageManager::contact( double force )
 			
 			if ( pSystem )
 			{
+				double before = pSystem->status();
 				pSystem->damage( damage/(_systems.size()*repeats) );
+				double after = pSystem->status();
+				
+				// emit messages
+				if ( before > 0.5 && after < 0.5 && after > 0.0 )
+				{
+					QString message = QString(QObject::tr("%1 severly damaged")).arg( pSystem->name() );
+					pSystem->parent()->addSystemMessage( message );
+				}
+				else if ( before > 0.0 && after <= 0.0 )
+				{
+					QString message = QString(QObject::tr("%1 destroyed")).arg( pSystem->name() );
+					pSystem->parent()->addSystemMessage( message );
+				}
 			}
 		}
 	}
