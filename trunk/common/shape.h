@@ -37,7 +37,7 @@ class Shape : public Serializable
 public:
 	Shape( b2ShapeDef* pDef = NULL );
 	Shape( const Shape& src );
-	~Shape();
+	virtual ~Shape();
 	
 	/// Returns associated definition	
 	b2ShapeDef* def() const{ return _pDef; }

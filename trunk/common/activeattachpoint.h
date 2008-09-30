@@ -33,7 +33,7 @@ class ActiveAttachPoint : public AttachPoint
 {
 public:
 	ActiveAttachPoint();
-	~ActiveAttachPoint();
+	virtual ~ActiveAttachPoint();
 
 	// config
 	

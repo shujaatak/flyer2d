@@ -142,7 +142,7 @@ private:
 	int		_steps;					///< Simulation steps so far
 	double	_timer1Time;			///< Time from lats 1-second timer event
 	
-	void createTown( double start, double end, bool small );
+	void createTown( double start, double end, bool smallHouses ); // NOTE was 'small' here, but smetimes on Windows 'small' is defined as 'char' :(
 	
 };
 

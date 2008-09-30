@@ -33,7 +33,7 @@ Attach Point describes point to which one machine can attach another machines.
 Attached machines are always in master-slave relationshsip, so there are two
 kinds of attach points - passive and active
 @see ActiveAttachPoint
-@see PasiveAttachPoint
+@see PassiveAttachPoint
 @author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
 
@@ -42,7 +42,7 @@ class AttachPoint
 
 public:
 	AttachPoint();
-	~AttachPoint();
+	virtual ~AttachPoint();
 	
 	// config 
 	

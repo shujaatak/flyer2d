@@ -27,16 +27,17 @@ CONFIG += rtti
 
 
 
-CONFIG -= debug
+CONFIG += release
 
 LIBS += -L../lib/ \
   -lflyercommon \
   -lbox2d \
-  -lQPropertyEditord
+  -lQPropertyEditor
 
 INCLUDEPATH += ../common \
   ../flyer \
-  ../include
+  ../include \
+  ../QPropertyEditor
 
 TARGETDEPS += ../lib/libflyercommon.a \
   ../lib/libbox2d.a
