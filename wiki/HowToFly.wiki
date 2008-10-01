@@ -29,3 +29,5 @@ Flying is pretty easy. Use minimap to navigate. To turn around, get at least 150
 Use yellow spotlight as a guide, fly along the light beam. Deploy full flaps (V), and reduce throttle to 20-30%. Maintain speed 80-90 km/h during approach.
 
 Just above runway recover from dive, gently point the nose up, and try to touch down with minimal vertical speed. Do not turn the engine off, small thrust will help you recover from bounce.
+
+To repair and re-arm plane taxi to hangar and stop. Plane will be fixed within few seconds.
