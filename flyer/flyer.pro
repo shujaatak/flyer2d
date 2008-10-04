@@ -6,7 +6,6 @@ TEMPLATE = app
 TARGET = flyer
 DEPENDPATH += .
 LIBS += -L../lib -lflyercommon -lbox2d
-CONFIG += release
 QT += opengl
 DESTDIR = ../bin
 

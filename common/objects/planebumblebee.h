@@ -67,6 +67,7 @@ private:
 	Mounting*		_sysWheelMounting;
 	Mounting*		_sysLegMounting;
 	Mounting*		_sysTailMounting;
+	Mounting*		_sysEngineMounting;
 	Wing*			_sysWing;
 	ControlSurface*	_sysElevator;
 	WheelBrake*		_sysBrake;

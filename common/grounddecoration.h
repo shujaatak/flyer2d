@@ -21,6 +21,8 @@
 #include <QTransform>
 #include <QList>
 
+#include "texture.h"
+
 #include "worldobject.h"
 
 namespace Flyer
@@ -45,14 +47,14 @@ public:
 	// intialization
 	
 	void init( const QList<int>& textureIndices, const QRectF& boundingRect
-		, const QTransform& transform, QList<QImage>* pTextures );
+		, const QTransform& transform, QList<Texture>* pTextures );
 
 private:
 
 	QRectF		_boundingRect;
 	QTransform	_transform;
 	QList<int>	_textureIndices;	///< Textrue indices
-	QList<QImage>*	_pTextures;		///< Textures used to draw ground
+	QList<Texture>*	_pTextures;		///< Textures used to draw ground
 };
 
 }

@@ -40,6 +40,11 @@ enum PhysicalLayers {
 	PhysLayerVehicles	= 0x0004,
 };
 
+// Common utilities
+
+/// Benchmarkng utility. Returns current imte as milliseconds.
+double getms(); 
+
 }
 
 #endif // FLYER_COMMON_H

@@ -96,23 +96,26 @@ void Engine::simulate ( double dt )
 {
 	Q_ASSERT( body() );
 	
-	const b2Vec2& pos = body()->b2body()->GetPosition();
-	
-	QPointF thrust	= thrustForce();
-	body()->b2body()->ApplyForce
-		( 10.0 * b2Vec2( thrust.x(), thrust.y() ) // newtons per kg
-		, pos );
-		
-	// if engine damaged - create smoke
-	double s = status();
-	double smokesPerSecond = 10; // smokes per second of fully destroyed engine
-	if ( s < 0.8 )
+	if ( body()->b2body() ) // work only if engine's body created
 	{
-		double r = ( qrand() % 1000 ) / 1000.0; // random var 0-1
-		double prop = smokesPerSecond*dt * (1.0-s); // propability of emitting smoke
-		if ( r < prop )
+		const b2Vec2& pos = body()->b2body()->GetPosition();
+		
+		QPointF thrust	= thrustForce();
+		body()->b2body()->ApplyForce
+			( 10.0 * b2Vec2( thrust.x(), thrust.y() ) // newtons per kg
+			, pos );
+			
+		// if engine damaged - create smoke
+		double s = status();
+		double smokesPerSecond = 10; // smokes per second of fully destroyed engine
+		if ( s < 0.8 )
 		{
-			Cloud::createSmoke( parent()->world(), pos );
+			double r = ( qrand() % 1000 ) / 1000.0; // random var 0-1
+			double prop = smokesPerSecond*dt * (1.0-s); // propability of emitting smoke
+			if ( r < prop )
+			{
+				Cloud::createSmoke( parent()->world(), pos );
+			}
 		}
 	}
 }
@@ -121,16 +124,24 @@ void Engine::simulate ( double dt )
 // Thrust force (in kg)
 QPointF Engine::thrustForce()
 {
-	double angle = body()->b2body()->GetAngle();
-	b2Vec2 pos = body()->b2body()->GetPosition();
-	double thrust = _throttle * _currentMaxThrust;
-	double airDensity = parent()->world()->environment()->relativeDensity( QPointF( pos.x, pos.y ) );
-	
-	// thrust along the normal vector
-	QTransform t;
-	t.rotateRadians( angle ); 
-	
-	return t.map( _normal*thrust*airDensity );
+	if ( body()->b2body() )
+	{
+		double angle = body()->b2body()->GetAngle();
+		b2Vec2 pos = body()->b2body()->GetPosition();
+		double thrust = _throttle * _currentMaxThrust;
+		double airDensity = parent()->world()->environment()->relativeDensity( QPointF( pos.x, pos.y ) );
+		
+		// thrust along the normal vector
+		QTransform t;
+		t.rotateRadians( angle ); 
+		
+		return t.map( _normal*thrust*airDensity );
+	}
+	// Engine body destroyred or not created yet
+	else
+	{
+		return QPointF();
+	}
 }
 
 // ============================================================================

@@ -34,11 +34,16 @@ LIBS += -L../lib/ \
   -lbox2d \
   -lQPropertyEditor
 
-INCLUDEPATH += ../common \
-  ../flyer \
-  ../include \
-  ../QPropertyEditor
 
 TARGETDEPS += ../lib/libflyercommon.a \
   ../lib/libbox2d.a
+
+CONFIG -= debug
+
+QT += opengl
+
+INCLUDEPATH += ../flyer \
+  ../common \
+  ../QPropertyEditor \
+  ../include
 

@@ -123,6 +123,8 @@ void World::render( QPainter& painter, const QRectF& rect )
 	painter.drawLine( QPointF( 1, 1 ), QPointF( 2, 2 ) );
 	RenderingOptions options;
 	
+	options.viewportSize = rect.size().toSize(); // NOTE this may be inaccurate
+	
 	// get objects to be rendered in this bounding rect (TODO: use broadphase here)
 	QMultiMap<int, WorldObject* > objectsToRender;
 	// render
@@ -209,9 +211,90 @@ void World::initWorld()
 	// init ground
 	_pGround = new Ground( this );
 	addObject( _pGround, ObjectRendered | ObjectRenderedMap );
+	{
+		// init seed
+		QList<Ground::Section> seed;
+		Ground::Section section;
+		
+		// first section - mountains from -15 to -5 km
+		section.x = -15000;
+		section.y = 2500;
+		section.maxSlope = 1.5;
+		section.canBeDividedRight = true;
+		section.minSectionSize = 50;	// dense terrain
+		section.maxSectionSize = 200;
+		section.maxHeight = 2400;
+		section.minHeight = 400;
+		seed.append( section );
+		
+		// second section - flat land fro -5 km to -50m
+		section.x = -5000;
+		section.y = 500;
+		section.maxSlope = 0.1;
+		section.canBeDividedRight = true;
+		section.minSectionSize = 100;	// smooth terrain
+		section.maxSectionSize = 400;
+		section.maxHeight = 700;
+		section.minHeight = 250;
+		seed.append( section );
+		
+		// third section - airfield
+		section.x = -100;
+		section.y = 300;
+		section.canBeDividedRight = false;
+		seed.append( section );
+		
+		// fourth section - smooth flats gently going up to 10km
+		section.x = 300; // this gives 400m for runway
+		section.y = 300; // flat runway
+		section.maxSlope = 0.1;
+		section.canBeDividedRight = true;
+		section.minSectionSize = 100;
+		section.maxSectionSize = 400;
+		section.maxHeight = 850;
+		section.minHeight = 250;
+		seed.append( section );
+		
+		// fifth section - next airfield
+		section.x = 2000; // at 10th km // TODO temporarly reduced
+		section.y = 300;
+		section.canBeDividedRight = false;
+		seed.append( section );
+		
+		// between airport and mountains
+		section.x = 2350;
+		section.y = 300;
+		section.maxSlope = 0.2;
+		section.canBeDividedRight = true;
+		section.minSectionSize = 170;
+		section.maxSectionSize = 500;
+		section.maxHeight = 800;
+		section.minHeight = 300;
+		seed.append( section );
+		
+		// sixth section - mountins to the end
+		section.x = 10000;
+		section.y = 700;
+		section.maxSlope = 1.5;
+		section.canBeDividedRight = true;
+		section.minSectionSize = 70;
+		section.maxSectionSize = 200;
+		section.maxHeight = 2400;
+		section.minHeight = 700;
+		seed.append( section );
+		
+		
+		// very last section
+		section.x = 15000;
+		section.y = 2500;
+		section.canBeDividedRight = false;
+		seed.append( section );
+		
+		_pGround->random( seed );
+	}
 	
 	// init plane
-	_pPlayerPlane = new PlaneBumblebee( this, QPointF( 0, _pGround->height(300) + 2.5 ), 0.2 );
+	_pPlayerPlane = new PlaneBumblebee( this, QPointF( 0, _pGround->height(0) + 2.5 ), 0.2 );
 	addObject( _pPlayerPlane, ObjectRendered | ObjectSide1 | ObjectSimulated | ObjectPlane | ObjectRenderedMap );
 	
 	// add sample bomb floating near the plane
@@ -223,28 +306,30 @@ void World::initWorld()
 	_pPlayerPlane->activeAttachPoints().first()->attach( pBomb->attachPoint() );
 	
 	// enemy plane (!)
+	/*
 	PlaneBumblebee* pEnemy = new PlaneBumblebee( this, QPointF( -200, 400 ), 0.0 );
 	pEnemy->mainBody()->b2body()->SetLinearVelocity( b2Vec2( 30, 0 ) ); // some initial speed
 	pEnemy->setAutopilot( true ); // turn on autopilot
 	addObject( pEnemy, ObjectRendered | ObjectSide2 | ObjectSimulated | ObjectPlane | ObjectRenderedMap );
 	_pEnemyPlane = pEnemy; // debug variable
-	
+	*/
+	_pEnemyPlane = NULL;
 	
 	// airfields
-	addObject( new Airfield( this, -50, 250, 300 ), ObjectRendered | ObjectAirfield | ObjectSide1 | ObjectRenderedMap  );
-	addObject( new Airfield( this, 10050, 10300, 800 ), ObjectRendered | ObjectAirfield | ObjectSide1 | ObjectRenderedMap  );
+	addObject( new Airfield( this, -50, 250 ), ObjectRendered | ObjectAirfield | ObjectSide1 | ObjectRenderedMap  );
+	addObject( new Airfield( this, 2050, 2300 ), ObjectRendered | ObjectAirfield | ObjectSide1 | ObjectRenderedMap  );
 	
 	// landing lights
-	addObject( new LandingLight( this, -50, 300, M_PI-0.25 ),  ObjectRendered | ObjectSimulated );
-	addObject( new LandingLight( this, 250, 300, 0.25 ),  ObjectRendered| ObjectSimulated  );
+	addObject( new LandingLight( this, -50, M_PI-0.25 ),  ObjectRendered | ObjectSimulated );
+	addObject( new LandingLight( this, 250, 0.25 ),  ObjectRendered| ObjectSimulated  );
 	
-	addObject( new LandingLight( this, 10050, 800, M_PI-0.25 ),  ObjectRendered | ObjectSimulated  );
-	addObject( new LandingLight( this, 10300, 800, 0.25 ),  ObjectRendered | ObjectSimulated  );
+	addObject( new LandingLight( this, 2050, M_PI-0.25 ),  ObjectRendered | ObjectSimulated  );
+	addObject( new LandingLight( this, 2300, 0.25 ),  ObjectRendered | ObjectSimulated  );
 	
 	// AA batteries
-	addObject( new AntiAirBattery( this, 3000, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRendered | ObjectSide2 | ObjectRenderedMap   );
-	addObject( new AntiAirBattery( this, 3050, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRendered | ObjectSide2 | ObjectRenderedMap  );
-	addObject( new AntiAirBattery( this, 3100, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRendered | ObjectSide2 | ObjectRenderedMap  );
+	//addObject( new AntiAirBattery( this, 3000, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRendered | ObjectSide2 | ObjectRenderedMap   );
+	//addObject( new AntiAirBattery( this, 3050, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRendered | ObjectSide2 | ObjectRenderedMap  );
+	//addObject( new AntiAirBattery( this, 3100, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRendered | ObjectSide2 | ObjectRenderedMap  );
 	addObject( new AntiAirBattery( this, -1500, 1.2 ), ObjectInstallation | ObjectSimulated | ObjectRendered| ObjectSide2 | ObjectRenderedMap   );
 	
 	// sky gradient

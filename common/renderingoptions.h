@@ -17,7 +17,7 @@
 #ifndef FLYERRENDERINGOPTIONS_H
 #define FLYERRENDERINGOPTIONS_H
 
-#include "texture.h"
+#include <QSize>
 
 namespace Flyer
 {
@@ -32,7 +32,8 @@ class RenderingOptions
 public:
 	RenderingOptions();
 	
-	Texture::Style textureStyle;		///< Texture style to use
+	int		textureStyle;		///< Texture style to use
+	QSize	viewportSize;		///< Vieport size, in pixels
 
 };
 

@@ -33,7 +33,7 @@ namespace Flyer {
 class LandingLight : public Machine
 {
 public:
-	LandingLight( World* pWorld, double x, double y, double angle );
+	LandingLight( World* pWorld, double x, double angle );
 	virtual ~LandingLight();
 	
 	virtual QRectF boundingRect() const;

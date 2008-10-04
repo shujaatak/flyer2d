@@ -21,17 +21,18 @@
 #include "Box2D.h"
 
 #include "world.h"
+#include "ground.h"
 #include "common.h"
 
 #include "landinglight.h"
 
 namespace Flyer {
 
-LandingLight::LandingLight(World* pWorld, double x, double y, double angle )
+LandingLight::LandingLight( World* pWorld, double x, double angle )
 	: Machine(pWorld)
 {
 	_x = x;
-	_y = y;
+	_y = pWorld->ground()->height( x );
 	_angle = angle;
 	
 	setLayers( LayerBuildings );
@@ -50,7 +51,7 @@ LandingLight::LandingLight(World* pWorld, double x, double y, double angle )
 	shape.userData = _damageManager;
 	
 	b2BodyDef def;
-	def.position.Set( x, y + 0.5 );
+	def.position.Set( x, _y + 0.5 );
 	
 	_body = new Body("Main");
 	_body->create( def, pWorld->b2world() );

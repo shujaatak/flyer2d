@@ -32,17 +32,9 @@ class Ground : public WorldObject
 public:
 	Ground ( World* pWorld );
 	virtual ~Ground();
-
-	virtual void render ( QPainter& painter, const QRectF& rect, const RenderingOptions& options  );
-	virtual void renderOnMap( QPainter& painter, const QRectF& rect );
-	double height( double x ) const;					///< Calculates ground height at specified x
 	
-	void setHeightmap( const QPolygonF& heightMap );	///< Sets heightmap
-
-private:
-
-	// random generation
-	struct RGSection	///< Ground section
+	/// Section description for terain generation
+	struct Section		///< Ground section
 	{
 		double x;			///< x-coord of left point
 		double y;			///< y -ccord of left point
@@ -62,18 +54,28 @@ private:
 		double maxSlope;	///< max slope in this section
 		
 		// kids
-		RGSection* pLeft, *pRight;
+		Section* pLeft, *pRight;
 		
-		RGSection() { pLeft = NULL; pRight = NULL; }
-		~RGSection() { delete pLeft; delete pRight; }
+		Section() { pLeft = NULL; pRight = NULL; }
+		~Section() { delete pLeft; delete pRight; }
 	};
+
+	virtual void render ( QPainter& painter, const QRectF& rect, const RenderingOptions& options  );
+	virtual void renderOnMap( QPainter& painter, const QRectF& rect );
+	double height( double x ) const;					///< Calculates ground height at specified x
 	
-	void divideRight( RGSection& section ); // divides section on right
-	void divideLeft( RGSection& section );	// divides section on left
+	void setHeightmap( const QPolygonF& heightMap );	///< Sets heightmap
+	void random( QList<Section> seed );				///< Generates random ground
+
+private:
+
+	
+	void divideRight( Section& section ); // divides section on right
+	void divideLeft( Section& section );	// divides section on left
 	static double rand( double start, double end );
-	void traverseSection( RGSection& section, QPolygonF& points );
+	void traverseSection( Section& section, QPolygonF& points );
 	
-	QPolygonF generate( QList<RGSection> seed );
+	QPolygonF generate( QList<Section> seed );
 	
 	void random();					///< Generates random ground
 
@@ -90,7 +92,7 @@ private:
 	// texturing
 	
 	void prepareTextures();						///< Genrerates textures which will be used to render the ground
-	QList<QImage>		_textures;				///< Textures used to draw ground
+	QList<Texture>		_textures;				///< Textures used to draw ground
 
 };
 

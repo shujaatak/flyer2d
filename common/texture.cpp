@@ -14,24 +14,51 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+#include <math.h>
+
 #include <QPainter>
+#include <QGLWidget>
 
 #include "texture.h"
 
 namespace Flyer
 {
 
+static const double DEFAULT_RESOLUTION = 0.05; // 5 cm per pixel
+
 // ============================================================================
 // Default (and hopefully not used) constructor.
 Texture::Texture()
 {
+	_resolution = DEFAULT_RESOLUTION;
+	_isSprite = false;
 }
 
 // ============================================================================
-// Constructor
-Texture::Texture( const QImage& baseImage )
+/// Constructor - creates texture using supplied basic image
+Texture::Texture( const QImage& baseImage, double resolution )
 {
 	_images.insert( Normal, baseImage );
+	
+	if ( resolution > 0 ) _resolution = resolution;
+	else _resolution = DEFAULT_RESOLUTION; // TODO read resolution form image
+	_isSprite = false;
+}
+
+// ============================================================================
+///. Creates empty texture
+Texture::Texture( double width, double height, double resolution )
+{
+	if ( resolution > 0 ) _resolution = resolution;
+	else _resolution = DEFAULT_RESOLUTION;
+	
+	int pixelsWidth = int( ceil( width / _resolution ) );
+	int pixelsHeight = int( ceil( height / _resolution ) );
+	
+	QImage base( pixelsWidth, pixelsHeight, QImage::Format_ARGB32_Premultiplied );
+	base.fill( 0x00000000 ); // fill with transparency
+	_images.insert( Normal, base  );
+	_isSprite = false;
 }
 
 // ============================================================================
@@ -42,20 +69,20 @@ Texture::~Texture()
 
 // ============================================================================
 /// Returns image in specified version
-QImage Texture::image( Style style )
+QImage& Texture::image( int style )
 {
 	if ( _images.contains( style ) )
 	{
 		return _images[ style ];
 	}
 	
-	_images.insert( style, applyStyle( _images[ Normal ], style ) );
+	_images.insert( style, applyStyle( _images[ int(Normal) ], style ) );
 	return _images[ style ];
 }
 
 // ============================================================================
 /// Applies effects to pixmap
-QImage Texture::applyStyle( const QImage& src, Style style )
+QImage Texture::applyStyle( const QImage& src, int style )
 {
 	switch( style )
 	{
@@ -76,5 +103,92 @@ QImage Texture::applyStyle( const QImage& src, Style style )
 	}
 }
 
+// ============================================================================
+/// Returns texture width [in meters]
+double Texture::width() const
+{
+	return _images[Normal].width() * _resolution;
+}
+
+// ============================================================================
+/// Returns texture height [in meters]
+double Texture::height() const
+{
+	return _images[Normal].height() * _resolution;
+}
+
+// ============================================================================
+/// Renders texture on painter.
+///\param pos - left-top corner position in painter corrdinates
+///\param p - painter
+///\param o - options
+void Texture::render( QPainter& painter, const QPointF& pos, const RenderingOptions o )
+{
+	// fast rendering using glDrawPixels
+	// TODO system meory-> video memroy copy is death slow!
+	// TODO this trick will be useful when i find out how to store sprite in vmem
+	/*
+	if ( _isSprite )
+	{
+		QPointF center( o.viewportSize.width() / 2, o.viewportSize.height() / 2 );
+		QPointF topLeftPixel		= painter.transform().map( pos ) - center;
+		QPointF bottomRightPixel	= painter.transform().map( pos + QPointF( width(), height() ) ) - center;
+		
+		int w = bottomRightPixel.x() - topLeftPixel.x();
+		int h = topLeftPixel.y() - bottomRightPixel.y();
+		
+		QImage& s = sprite( o.textureStyle );
+		
+		// TODO glPixelZoom here
+		//glRasterPos2d( topLeftPixel.x(), topLeftPixel.y() );
+		glDrawPixels( s.width(), s.height(), GL_RGBA, GL_UNSIGNED_BYTE, s.bits() );
+		glFlush();
+	}
+	// normal rendering
+	else
+	*/
+	{
+		QTransform old = painter.transform();
+		QTransform t = old;
+		t.scale( _resolution, - _resolution );
+		painter.setTransform( t, false );
+		
+		QPointF position( pos.x(), - pos.y() );
+		
+		// debug
+		//QPointF p = position/_resolution;
+		//QPointF pixelPos = painter.transform().map( p );
+		
+		painter.drawImage( position/_resolution, image( o.textureStyle ) );
+		
+		// restore previous trransform
+		painter.setTransform( old );
+	}
+}
+
+// ============================================================================
+/// Makes texture a sprite. Sprites are draw using glDrawPixels, which is deadly fast.
+void Texture::setIsSprite( bool sprite )
+{
+	if ( _isSprite != sprite )
+	{
+		_isSprite = sprite;
+	}
+}
+
+// ============================================================================
+/// Returns image converted to OpenGL format
+QImage& Texture::sprite( int style )
+{
+	if (  ! _sprites.contains( style ) )
+	{
+		QImage& src = image( style );
+		QImage converted = QGLWidget::convertToGLFormat( src );
+		
+		_sprites.insert( style, converted );
+	}
+	
+	return _sprites[ style ];
+}
 
 }

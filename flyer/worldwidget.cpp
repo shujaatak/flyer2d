@@ -18,15 +18,16 @@
 #include <QPainter>
 
 #include "world.h"
-
-#include "worldwidget.h"
 #include "plane.h"
 #include "b2dqt.h"
+#include "common.h"
+
+#include "worldwidget.h"
 
 namespace Flyer
 {
 
-static const double FPS = 15; //const FPS
+static const double FPS = 10; //const FPS
 
 // ============================================================================
 // Constructor
@@ -48,6 +49,12 @@ WorldWidget::WorldWidget ( QWidget* parent, Qt::WindowFlags f ) : QGLWidget ( pa
 	_timer.setInterval( 1000/FPS );
 	_frames = 0;
 	_zoom = ZOOM1;
+	_lastRenderTime = 0;
+	
+#ifndef FLYER_NO_OPENGL
+	setAutoBufferSwap( false );
+#endif
+
 }
 
 // ============================================================================
@@ -61,6 +68,11 @@ WorldWidget::~WorldWidget()
 // Renders widget
 void WorldWidget::render( QPainter& painter )
 {
+	// calculate fps
+	double now = getms();
+	double FPS = _lastRenderTime == 0.0 ? 0.0 : 1000.0 / ( now - _lastRenderTime );
+	_lastRenderTime = now;
+	
 	painter.setRenderHint( QPainter::Antialiasing, true );
 	painter.setRenderHint( QPainter::HighQualityAntialiasing, true );
 	
@@ -109,6 +121,11 @@ void WorldWidget::render( QPainter& painter )
 	{
 		painter.drawText( 10, 55, "autopilot" );
 	}
+	
+	// fps
+	QString fps;
+	fps.sprintf("FPS: %.1f", FPS );
+	painter.drawText( 10, height() - 15, fps );
 	
 	// throttle
 	QString throttle;
@@ -227,6 +244,7 @@ void WorldWidget::stop()
 {
 	_timer.stop();
 	repaint();
+	_lastRenderTime = 0;
 }
 
 // ============================================================================
@@ -535,6 +553,7 @@ void WorldWidget::paintGL()
 {
 	QPainter painter( this );
 	render( painter );
+	swapBuffers();
 }
 #endif
 

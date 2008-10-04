@@ -20,6 +20,8 @@
 #include <QMap>
 #include <QImage>
 
+#include "renderingoptions.h"
+
 namespace Flyer
 {
 
@@ -39,20 +41,48 @@ public:
 	};
 
 	Texture();
-	Texture( const QImage& baseImage );
+	Texture( double width, double height, double resolution = 0.0 );
+	Texture( const QImage& baseImage, double resolution = 0.0 );
 	~Texture();
 	
 	/// Applies effect to image to get specified style
-	static QImage applyStyle( const QImage& src, Style style );
+	static QImage applyStyle( const QImage& src, int style );
+	
+	
+	/// Renders texture at specified position
+	void render( QPainter& p, const QPointF& pos, const RenderingOptions o );
+	
+	double width() const;		///< Texture width [m]
+	double height() const;		///< Texture height [m]
+	
+	double resolution() const { return _resolution; }
+	void setResolution( double r ) { _resolution = r; }
+	
+	void setIsSprite( bool sprite );
+	bool isSprite() const { return _isSprite; }
 	
 	/// Provides texture image in specified version.
-	QImage image( Style style );
+	///@obsolete Use render() instead.
+	QImage& image( int style );
 	
+	/// Returns base image of the texture
+	QImage& baseImage() { return image( Normal ); }
+	
+	/// Checks if texture is null
 	bool isNull() const { return _images.isEmpty(); }
-
+	
 private:
 
-	QMap< Style, QImage >	_images;	///< Cached converted images
+	QMap< int, QImage >	_images;		///< Cached converted images
+	double				_resolution;	///< Texture resolution [meters per pixel]
+	
+	// sprite support
+	
+	/// Returns sprite-version of image
+	QImage& sprite( int style );
+	
+	bool				_isSprite;		///< If texture is sprite. Sprite is painted using glDrawPixles. Deadly fast.
+	QMap< int, QImage >	_sprites;		///< Cached converted images
 };
 
 }
