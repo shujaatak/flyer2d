@@ -28,7 +28,7 @@ namespace Flyer {
 class Airfield : public WorldObject
 {
 public:
-	Airfield( World* pWorld, double x1, double x2, double y );
+	Airfield( World* pWorld, double x1, double x2 );
 	
 	virtual ~Airfield();
 	

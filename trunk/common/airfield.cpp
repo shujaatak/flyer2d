@@ -15,6 +15,8 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 #include "common.h"
+#include "world.h"
+#include "ground.h"
 
 #include "airfield.h"
 
@@ -22,14 +24,14 @@ namespace Flyer {
 
 // ============================================================================
 // Constructor
-Airfield::Airfield( World* pWorld, double x1, double x2, double y )
+Airfield::Airfield( World* pWorld, double x1, double x2 )
 	: WorldObject(pWorld)
 {
 	_x1 = x1;
 	_x2 = x2;
-	_y = y;
+	_y = pWorld->ground()->height( (x1+x2) / 2 );
 	setRenderLayer( LayerHud );
-	setName("Aitfield");
+	setName("Airfield");
 }
 
 

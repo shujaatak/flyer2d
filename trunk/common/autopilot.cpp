@@ -21,6 +21,7 @@
 #include "engine.h"
 #include "b2dqt.h"
 #include "wing.h"
+#include "machine.h"
 
 #include "autopilot.h"
 
@@ -165,6 +166,16 @@ void Autopilot::controlFollowPath( double dt )
 		return;
 	}
 	
+	// if order is 'Land', and speed is 0, report success
+	if ( airspeed < 0.01 && segment.orders.contains( Land ) )
+	{
+		parent()->addSystemMessage( "Autopilot has landed, turnining off" );
+		if ( _pEngine ) _pEngine->setThrottle( 0 );
+		if ( _pElevator ) _pElevator->setValue( 0.0 );
+		setOn( false );
+		return;
+	}
+	
 	// find nearest point to line
 	// NOTE similar code used in body flip
 	b2Vec2& p1 = segment.start;
@@ -173,6 +184,9 @@ void Autopilot::controlFollowPath( double dt )
 	double segmentAngle = atan2( p2.y - p1.y, p2.x - p1.x );
 	double ds = (p2 - p1).LengthSquared(); // distance squared between p1 nad p2
 	double u = ( ( pos.x - p1.x ) * (p2.x - p1.x) + (pos.y - p1.y) * (p2.y - p1.y)) / ds; // helper value
+	
+	// find vertica lairspeed that matches segment's slope
+	double segmentVSpeed = airspeed * sin(segmentAngle);
 	
 	// u is conveniet value to detect relative position to segment ends
 	if ( u > 1.0 )
@@ -184,11 +198,11 @@ void Autopilot::controlFollowPath( double dt )
 	}
 	
 	// closest point on track
-	double cx = p1.x+ u * (p2.x - p1.x);
+	//double cx = p1.x+ u * (p2.x - p1.x);
 	double cy = p1.y+ u * (p2.y - p1.y);
 
 	// decide what to do - do aerobatics or simple flight
-	if ( segmentAngle < _settings.safeAngle )
+	if ( segmentAngle < _settings.safeAngle  ) 
 	{
 		// simple flight, minimize vertical distance from track
 		
@@ -202,20 +216,22 @@ void Autopilot::controlFollowPath( double dt )
 			_posErrorIntegral = 0;
 		}
 		
-		double desiredVSpeed = posError * _settings.VVP + _posErrorIntegral * _settings.VVI;
+		
+		double desiredVSpeed = segmentVSpeed + posError * _settings.VVP + _posErrorIntegral * _settings.VVI;
 		double maxVSpeed = _settings.maxClimbRate * fabs( vel.x );
 		double minVSpeed = - _settings.maxDescentRate * fabs( vel.x );
 		
 		if ( desiredVSpeed > maxVSpeed ) desiredVSpeed = maxVSpeed;
 		else if ( desiredVSpeed < minVSpeed ) desiredVSpeed = minVSpeed;
 		
-		//qDebug("vertical error: %g, desired v speed: %g, current v speed: %g", posError, desiredVSpeed, vel.y );
+		//qDebug("vertical error: %g, segment v speed: %g, desired v speed: %g, current v speed: %g"
+		//	, posError, segmentVSpeed, desiredVSpeed, vel.y );
 		
 		// now control vertical speed using The Good Old Way (tm ) (a.k.a. PID )
 		double error = (  vel.y - desiredVSpeed ) / fabs( vel.x );
 		
 		// update integral
-		if ( fabs( error ) < 10 )
+		if ( fabs( error ) < 2 )
 		{
 			_errorIntegral += error*dt;
 		}
@@ -246,7 +262,7 @@ void Autopilot::controlFollowPath( double dt )
 	// control speed
 	if ( segment.airspeed >= 0 && _pEngine )
 	{
-		// TODO this is stupid]
+		// TODO this is stupid
 		double airspeed = vel.Length();
 		double speedError = airspeed - segment.airspeed;
 		double toleratedError = segment.airspeed * 0.03; // +/- 3% error
@@ -279,16 +295,16 @@ void Autopilot::controlFollowPath( double dt )
 
 // ============================================================================
 /// Debug render autopliot track
-void Autopilot::render( QPainter& /*painter*/, const QRectF&, const RenderingOptions& )
+void Autopilot::render( QPainter& painter, const QRectF&, const RenderingOptions& )
 {
-	/* TODO debug draw
+	/* TODO debug draw */
 	painter.setPen( QPen( Qt::blue, 0 ) );
 	
 	foreach( const TrackSegment& segment, _track )
 	{
 		painter.drawLine( vec2point( segment.start ), vec2point( segment.end ) );
 	}
-	*/
+	/**/
 }
 
 }

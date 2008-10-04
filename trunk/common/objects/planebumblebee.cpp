@@ -134,6 +134,13 @@ void PlaneBumblebee::createSystems()
 	_sysTailMounting->setJoint( _jointTail );
 	addSystem( _sysTailMounting, SystemSimulated );
 	
+	// engine mounting
+	_sysEngineMounting	= new Mounting( this, "Engine mounting" );
+	_sysEngineMounting->setTolerance( 30E3 );
+	_sysEngineMounting->setDamageCapacity( 200E3 );
+	_sysEngineMounting->setJoint( _jointEngine );
+	addSystem( _sysEngineMounting, SystemSimulated );
+	
 	// wing
 	_sysWing = new Wing( this, "Wing" );
 	_sysWing->setWidth( WING_WIDTH );
@@ -186,8 +193,8 @@ void PlaneBumblebee::createSystems()
 	apsettings.D = AP_D;
 	apsettings.maxClimbRate = 0.2;
 	apsettings.maxDescentRate = 0.5;
-	apsettings.VVP = 1;
-	apsettings.VVI = 0.5;
+	apsettings.VVP = 0.3;
+	apsettings.VVI = 0.2;
 	apsettings.safeAngle = 0.3;
 	
 	_sysAutopilot->setSettings( apsettings );
@@ -198,44 +205,33 @@ void PlaneBumblebee::createSystems()
 	// pre-climb
 	Autopilot::TrackSegment s;
 	s.start.Set( -200, 400 );
-	s.end.Set( 400, 400 );
+	s.end.Set( 400, 450 );
 	s.airspeed = 60;
 	_sysAutopilot->track().append( s );
 	
-	// climb
-	s.start.Set( 400, 400 );
-	s.end.Set( 3000, 700 );
-	s.airspeed = 40;
-	_sysAutopilot->track().append( s );
-	
-	// climb 2
-	s.start.Set( 3000, 700 );
-	s.end.Set( 5000, 1000 );
-	s.airspeed = 40;
-	_sysAutopilot->track().append( s );
 	
 	// route
-	s.start.Set( 5000, 1000 );
-	s.end.Set( 9300, 1000 );
+	s.start.Set( 400, 450 );
+	s.end.Set( 1300, 500 );
 	s.airspeed = 40;
 	_sysAutopilot->track().append( s );
 	
 	// approach
-	s.start.Set( 9300, 1000 );
-	s.end.Set( 10050, 810 );
-	s.airspeed = 18;
+	s.start.Set( 1300, 500 );
+	s.end.Set( 2050, 310 );
+	s.airspeed = 20;
 	_sysAutopilot->track().append( s );
 	
 	// touch down
-	s.start.Set( 10050, 810 );
-	s.end.Set( 10100, 802 );
+	s.start.Set( 2050, 310 );
+	s.end.Set( 2100, 302 );
 	s.airspeed = 12;
 	s.orders.insert( Autopilot::Land );
 	_sysAutopilot->track().append( s );
 	
 	// stop
-	s.start.Set( 10100, 802 );
-	s.end.Set( 10300, 800 );
+	s.start.Set( 2100, 302 );
+	s.end.Set( 2300, 300 );
 	s.airspeed = 0;
 	_sysAutopilot->track().append( s );
 	
@@ -372,6 +368,7 @@ void PlaneBumblebee::createDamageManagers()
 	// set 90% to engine, 10% unused
 	_dmEngine->addSystem( _sysEngine, 9 );
 	_dmEngine->addSystem( NULL, 0 );
+	_dmEngine->addSystem( _sysEngineMounting, 1 );
 	_bodyEngine->shapeByName("main")->setDamageManager( _dmEngine );
 	addDamageManager( _dmEngine );
 	
@@ -403,6 +400,7 @@ void PlaneBumblebee::createDamageManagers()
 	_dmHull->addSystem( _sysEngine, 2 );
 	_dmHull->addSystem( _sysLegMounting, 1 );
 	_dmHull->addSystem( _sysTailMounting, 1 );
+	_dmHull->addSystem( _sysEngineMounting, 1 );
 	_dmHull->addSystem( NULL, 10 ); // 50% unused
 	addDamageManager( _dmHull );
 	_bodyHull->shapeByName("main")->setDamageManager(_dmHull );

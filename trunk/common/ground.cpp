@@ -31,75 +31,20 @@ namespace Flyer
 // Constructor
 Ground::Ground ( World* pWorld ) : WorldObject ( pWorld )
 {
-	
-	//random();
-	
-	// init seed
-	QList<RGSection> seed;
-	RGSection section;
-	
-	// first section - mountains from -15 to -5 km
-	section.x = -15000;
-	section.y = 2500;
-	section.maxSlope = 1.5;
-	section.canBeDividedRight = true;
-	section.minSectionSize = 50;	// dense terrain
-	section.maxSectionSize = 200;
-	section.maxHeight = 2400;
-	section.minHeight = 400;
-	seed.append( section );
-	
-	// second section - flat land fro -5 km to -50m
-	section.x = -5000;
-	section.y = 500;
-	section.maxSlope = 0.1;
-	section.canBeDividedRight = true;
-	section.minSectionSize = 100;	// smooth terrain
-	section.maxSectionSize = 400;
-	section.maxHeight = 700;
-	section.minHeight = 250;
-	seed.append( section );
-	
-	// third section - airfield
-	section.x = -100;
-	section.y = 300;
-	section.canBeDividedRight = false;
-	seed.append( section );
-	
-	// fourth section - smooth flats gently going up to 10km
-	section.x = 300; // this gives 400m for runway
-	section.y = 300; // flat runway
-	section.maxSlope = 0.1;
-	section.canBeDividedRight = true;
-	section.minSectionSize = 100;
-	section.maxSectionSize = 400;
-	section.maxHeight = 850;
-	section.minHeight = 250;
-	seed.append( section );
-	
-	// fifth section - next airfield
-	section.x = 10000; // at 10th km
-	section.y = 800;
-	section.canBeDividedRight = false;
-	seed.append( section );
-	
-	// sixth section - mountins to the end
-	section.x = 10350; // 250m runway
-	section.y = 800;
-	section.maxSlope = 1.5;
-	section.canBeDividedRight = true;
-	section.minSectionSize = 70;
-	section.maxSectionSize = 200;
-	section.maxHeight = 2400;
-	section.minHeight = 700;
-	seed.append( section );
-	
-	// very last section
-	section.x = 15000;
-	section.y = 2500;
-	section.canBeDividedRight = false;
-	seed.append( section );
-	
+	setName( "Ground" );
+	setRenderLayer( LayerForeground );
+}
+
+// ============================================================================
+// Destructor
+Ground::~Ground()
+{
+}
+
+// ============================================================================
+/// Gemnerates random terrain using provided description
+void Ground::random( QList<Section> seed )
+{
 	_heightmap = generate( seed );
 	
 	// create ground
@@ -107,7 +52,7 @@ Ground::Ground ( World* pWorld ) : WorldObject ( pWorld )
 	groundBodyDef.position.SetZero();
 	
 	_pGround = new Body("Ground");
-	_pGround->create( groundBodyDef, pWorld->b2world() );
+	_pGround->create( groundBodyDef, world()->b2world() );
 	_pGround->setLayers( 0xffff ); //all!
 	
 	QList<b2PolygonDef*> shapes = createShape();
@@ -126,17 +71,7 @@ Ground::Ground ( World* pWorld ) : WorldObject ( pWorld )
 	
 	prepareTextures();
 	
-	setName( "Ground" );
-	setRenderLayer( LayerForeground );
-	
 }
-
-// ============================================================================
-// Destructor
-Ground::~Ground()
-{
-}
-
 
 // ================================= set heightmap =====================
 /// Sets height map
@@ -254,7 +189,7 @@ void Ground::random()
 
 // ============================================================================
 // Recursively generates random terrain using provided seed
-QPolygonF Ground::generate( QList<RGSection> seed )
+QPolygonF Ground::generate( QList<Section> seed )
 {
 	
 	QPolygonF result;
@@ -262,18 +197,19 @@ QPolygonF Ground::generate( QList<RGSection> seed )
 	int seedSize = seed.size();
 	for( int i =0; i< seedSize; i++ )
 	{
+		Section& section = seed[i];
 		// common
-		seed[i].canBeDividedLeft = false; // we divining only to the right
+		section.canBeDividedLeft = false; // we divining only to the right
 		
-		if ( seed[i].canBeDividedRight && i < seedSize-1 )
+		if ( section.canBeDividedRight && i < seedSize-1 )
 		{
-			seed[i].nextX = seed[i+1].x;
-			seed[i].nextY = seed[i+1].y;
+			section.nextX = seed[i+1].x;
+			section.nextY = seed[i+1].y;
 			
-			divideRight( seed[i] );
+			divideRight( section );
 		}
 			
-		traverseSection( seed[i], result );
+		traverseSection( section, result );
 		
 	}
 	
@@ -282,7 +218,7 @@ QPolygonF Ground::generate( QList<RGSection> seed )
 
 // ============================================================================
 // Traverses section in-order and appends result to polygon
-void Ground::traverseSection( RGSection& section, QPolygonF& points )
+void Ground::traverseSection( Section& section, QPolygonF& points )
 {
 	if ( section.pLeft )
 	{
@@ -298,7 +234,7 @@ void Ground::traverseSection( RGSection& section, QPolygonF& points )
 
 // ============================================================================
 // Divides scetion to the right
-void Ground::divideRight( RGSection& section )
+void Ground::divideRight( Section& section )
 {
 	double width = section.nextX - section.x;
 	
@@ -325,7 +261,7 @@ void Ground::divideRight( RGSection& section )
 	//qDebug("divide right between %.0f,%0.f and %.0f,%.0f: new point: %.0f,%.0f",
 	//	section.x, section.y, section.nextX, section.nextY, newX, newY );
 	
-	RGSection* newSection = new RGSection;
+	Section* newSection = new Section;
 	
 	newSection->minSectionSize = section.minSectionSize;
 	newSection->maxSectionSize = section.maxSectionSize;
@@ -351,7 +287,7 @@ void Ground::divideRight( RGSection& section )
 
 // ============================================================================
 // Divides scetion to the left
-void Ground::divideLeft( RGSection& section )
+void Ground::divideLeft( Section& section )
 {
 	double width = section.x - section.prevX;
 	
@@ -375,7 +311,7 @@ void Ground::divideLeft( RGSection& section )
 	//qDebug("divide left between %.0f,%0.f and %.0f,%.0f: new point: %.0f,%.0f",
 	//	section.prevX, section.prevY, section.x, section.y, newX, newY );
 	
-	RGSection* newSection = new RGSection;
+	Section* newSection = new Section;
 	
 	newSection->minSectionSize = section.minSectionSize;
 	newSection->maxSectionSize = section.maxSectionSize;
@@ -538,15 +474,44 @@ void Ground::renderOnMap( QPainter& painter, const QRectF& /*rect*/ )
 /// It is assumed that heightmap is already generated.
 void Ground::prepareTextures()
 {
+	const double TEXTURE_LENGTH = 50; // texture length, in meters
+	
 	// first - get list of source images
-	_textures.clear();
-	for( int i = 0; i < 7; i++ ) // TODO umebr of pixmaps shoudl be read by scaning proper directory
+	QList<Texture> components;
+	double maxHeight = 0;
+	double resolution = 1.0;
+	for( int i = 0; i < 7; i++ ) // TODO number of pixmaps shoudl be read by scaning proper directory
 	{
 		QString fileName = QString("ground/grass_low%1.png").arg(i+1);
 		Texture t =TextureProvider::loadTexture( fileName );
-		_textures.append( t.image( Texture::Normal ) );
+		components.append( t );
+		maxHeight = qMax( maxHeight, t.height() );
+		resolution = t.resolution();
 	}
 	
+	// create set of long textures using random conbination of images
+	_textures.clear();
+	for( int i =0; i < 8; i++ )
+	{
+		// assmebly 200m long image here
+		Texture assembled( TEXTURE_LENGTH, maxHeight );
+		
+		QPainter p( & assembled.baseImage() );
+		double x = 0;
+		while( x < TEXTURE_LENGTH )
+		{
+			int r = qrand() % components.size();
+			Texture& c = components[r];
+			int pixelX = x / assembled.resolution();
+			int pixelY = assembled.baseImage().height() - c.baseImage().height();
+			p.drawImage( pixelX, pixelY, c.baseImage() );
+			
+			x += c.width();
+		}
+		p.end();
+		
+		_textures.append( assembled );
+	}
 	
 	// ok, now generate randomsequences for each ground segment
 	for( int i = 0; i < _heightmap.size()-1; i++ )
@@ -554,9 +519,8 @@ void Ground::prepareTextures()
 		// random texture images
 		
 		QList<int> textureIndices;
-		// TODO this assumes that each pixmap is 4m long
 		double segmentLength = _heightmap[i+1].x() - _heightmap[i].x();
-		int imageCount = int( ceil( segmentLength / 4.0 ) );
+		int imageCount = int( ceil( segmentLength / TEXTURE_LENGTH ) );
 		for( int j = 0; j < imageCount; j++ )
 		{
 			textureIndices.append( qrand() % _textures.size() );

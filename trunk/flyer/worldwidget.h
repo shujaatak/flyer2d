@@ -106,6 +106,7 @@ private:
 	
 	int _frames;				///< Frame counter
 	Zoom _zoom;					///< Current zoom level
+	double _lastRenderTime;		///< Lat time when rendering started. Helps in FPS calculation
 	
 };
 

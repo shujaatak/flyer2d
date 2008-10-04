@@ -4,10 +4,9 @@
 
 TEMPLATE = lib
 TARGET = flyercommon
-DEPENDPATH += 
 INCLUDEPATH += ../include objects
-LIBS += -lbox2d -L../lib
-CONFIG += staticlib release
+CONFIG += staticlib \
+ opengl
 DESTDIR = ../lib
 
 # Input
@@ -102,5 +101,11 @@ SOURCES += activeattachpoint.cpp \
            objects/planebumblebee.cpp \
  grounddecoration.cpp \
  hangar.cpp \
- message.cpp
+ message.cpp \
+ common.cpp
+
+LIBS += -L../lib \
+  -lbox2d
+
+QT += opengl
 

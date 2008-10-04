@@ -109,6 +109,12 @@ void Body::create( b2World* pWorld )
 	{
 		_pBody->SetMassFromShapes();
 	}
+	
+	// if body is static - make texture sprite
+	if ( _pBody->IsStatic() )
+	{
+		_texture.setIsSprite( true );
+	}
 }
 
 // ============================================================================
@@ -290,11 +296,19 @@ void Body::render( QPainter& painter, const RenderingOptions& options )
 		if ( ! _texture.isNull() )
 		{
 			painter.save();
+			/* old code, using Texture::image
 				QImage texture = _texture.image( options.textureStyle );
 				t.scale( _textureScale, -_textureScale * _orientation );
 				painter.setTransform( t, true );
 				QPointF position( _texturePosition.x(), - _texturePosition.y() );
 				painter.drawImage( position/_textureScale, texture );
+			*/
+			// new code, using Texture::render
+				t.scale( 1.0,  _orientation );
+				painter.setTransform( t, true );
+				
+				_texture.render( painter,  _texturePosition, options );
+			
 			painter.restore();
 			
 			/* Debug collisiton draw

@@ -54,7 +54,8 @@ void GroundDecoration::render( QPainter& painter, const QRectF& /*rect*/, const 
 		double x = 0;
 		foreach( int index, _textureIndices )
 		{
-			const QImage& image = (*_pTextures)[ index ];
+			Texture& t = (*_pTextures)[ index ];
+			const QImage& image = t.baseImage(); // TODO use Texture::render here
 			painter.drawImage( x, -image.height(), image );
 			//painter.setPen( Qt::red );
 			//painter.drawRect( x, -1, 4, 1 );
@@ -66,7 +67,7 @@ void GroundDecoration::render( QPainter& painter, const QRectF& /*rect*/, const 
 // ============================================================================
 /// Initializes decoration
 void GroundDecoration::init( const QList<int>& textureIndices, const QRectF& boundingRect
-	, const QTransform& transform, QList<QImage>* pTextures  )
+	, const QTransform& transform, QList<Texture>* pTextures  )
 {
 	_boundingRect = boundingRect;
 	_textureIndices = textureIndices;
