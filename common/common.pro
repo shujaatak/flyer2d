@@ -6,7 +6,8 @@ TEMPLATE = lib
 TARGET = flyercommon
 INCLUDEPATH += ../include objects
 CONFIG += staticlib \
- opengl
+ opengl \
+ debug
 DESTDIR = ../lib
 
 # Input
@@ -110,4 +111,6 @@ LIBS += -L../lib \
   -lbox2d
 
 QT += opengl
+
+CONFIG -= release
 

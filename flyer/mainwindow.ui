@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>556</width>
-    <height>472</height>
+    <width>642</width>
+    <height>557</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -14,12 +14,18 @@
   </property>
   <layout class="QVBoxLayout" >
    <item>
-    <widget class="Flyer::WorldWidget" native="1" name="worldWidget" >
+    <widget class="Flyer::WorldWidget" name="worldWidget" >
+     <property name="cursor" stdset="0" >
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
      <property name="mouseTracking" >
       <bool>true</bool>
      </property>
      <property name="focusPolicy" >
       <enum>Qt::StrongFocus</enum>
+     </property>
+     <property name="frameShape" >
+      <enum>QFrame::NoFrame</enum>
      </property>
     </widget>
    </item>
@@ -28,7 +34,7 @@
  <customwidgets>
   <customwidget>
    <class>Flyer::WorldWidget</class>
-   <extends>QWidget</extends>
+   <extends>QGraphicsView</extends>
    <header>worldwidget.h</header>
   </customwidget>
  </customwidgets>

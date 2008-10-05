@@ -18,3 +18,7 @@ INCLUDEPATH += ../common \
 
 TARGETDEPS += ../lib/libflyercommon.a
 
+CONFIG -= release
+
+CONFIG += debug
+

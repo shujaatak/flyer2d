@@ -147,6 +147,13 @@ World::~World()
 // Renders region of the world on painter. Region is defined in world coorindates.
 void World::render( QPainter& painter, const QRectF& rect )
 {
+	// check validity
+	if ( rect.isNull() )
+	{
+		qWarning("World rectangle is null");
+		return;
+	}
+	
 	// render athmosphere
 	renderAthmosphere( painter, rect );
 	
