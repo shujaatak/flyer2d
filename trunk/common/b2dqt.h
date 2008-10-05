@@ -29,6 +29,14 @@ inline b2Vec2 point2vec( const QPointF& p ) { return b2Vec2( p.x(), p.y() ); }
 /// Converts b2Vec2 to QPointF
 inline QPointF vec2point( const b2Vec2& v ) { return QPointF( v.x, v.y ); }
 
+inline b2AABB rect2aabb( const QRectF& r )
+{
+	b2AABB ab;
+	ab.lowerBound = point2vec( r.topLeft() );
+	ab.upperBound = point2vec( r.bottomRight() );
+	return ab;
+}
+
 /// Creates polygon shape definition useing shape described by QPolygonF
 b2PolygonDef shapeToDef( const QPolygonF& shape, bool reversed );
 

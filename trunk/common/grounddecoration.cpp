@@ -15,6 +15,7 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 #include "common.h"
+#include "world.h"
 
 #include "grounddecoration.h"
 
@@ -73,6 +74,8 @@ void GroundDecoration::init( const QList<int>& textureIndices, const QRectF& bou
 	_textureIndices = textureIndices;
 	_transform = transform;
 	_pTextures = pTextures;
+	
+	world()->addDecoration( this );
 }
 
 }

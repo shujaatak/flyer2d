@@ -17,8 +17,7 @@
 #ifndef FLYERBULLET_H
 #define FLYERBULLET_H
 
-#include "worldobject.h"
-#include "body.h"
+#include "physicalobject.h"
 #include "damagemanager.h"
 
 namespace Flyer
@@ -28,7 +27,7 @@ namespace Flyer
 	This is a bullet. Small, simple object with short lifespan.
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class Bullet : public WorldObject
+class Bullet : public PhysicalObject
 {
 public:
 	Bullet ( World* pWorld );
@@ -59,7 +58,7 @@ public:
 	double _lifespan;	///< Lifespan [seconds]
 	
 	// variables
-	Body	_body;		///< Bullet's body
+	Body*	_pBody;		///< Bullet's body
 	double	_age;		///< Bullet's age
 };
 

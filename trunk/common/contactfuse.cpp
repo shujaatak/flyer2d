@@ -54,6 +54,7 @@ void ContactFuse::damage ( double force )
 	
 		//add explosion to the world, remove parent
 		parent()->world()->addObject( pExplosion, World::ObjectSimulated | World::ObjectRendered );
+		parent()->world()->addDecoration( pExplosion ); // TODO explosion should add itself
 		parent()->world()->removeObject( parent() );
 		_destroyed = true;
 	}

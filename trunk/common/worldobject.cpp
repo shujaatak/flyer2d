@@ -26,6 +26,7 @@ WorldObject::WorldObject( World* pWorld )
 	_pWorld = pWorld;
 	_pParent = NULL;
 	_renderLayer = 0;
+	worldPrivateData = NULL;
 }
 
 // ============================================================================

@@ -34,7 +34,8 @@ Body::Body( const QString& name ) : Serializable()
 	_layers = 0;
 	_textureScale = 0.05; // 20 px per meter, 5cm per pixel
 	_orientation = 1.0;
-	_pParentMachine = NULL;
+	_pParent = NULL;
+	_pDamageManager = NULL;
 }
 
 // ============================================================================
@@ -61,6 +62,11 @@ Body::Body( const Body& src ) : Serializable( src )
 		_pBody->SetLinearVelocity( src._pBody->GetLinearVelocity() );
 		_pBody->SetAngularVelocity( src._pBody->GetAngularVelocity() );
 	}
+	
+	 // do not inherit damage manager or parent
+	_pDamageManager = NULL;
+	_pParent = NULL;
+	
 }
 
 // ============================================================================
@@ -337,6 +343,7 @@ bool Body::isConnectedTo( Body* pBody ) const
 {
 	if ( ! pBody ) return false;
 	if ( ! _pBody ) return false;
+	if ( pBody == this ) return true;
 	
 	QList<const Body*> visited ;
 	return doIsConnectedTo( pBody, visited );
@@ -555,6 +562,14 @@ b2Vec2 Body::position() const
 {
 	if ( _pBody ) return _pBody->GetPosition();
 	else return _definition.position;
+}
+
+// ============================================================================
+/// Returns body linear velocity.
+b2Vec2 Body::velocity() const
+{
+	if ( _pBody ) return _pBody->GetLinearVelocity();
+	else return b2Vec2();
 }
 
 // ============================================================================

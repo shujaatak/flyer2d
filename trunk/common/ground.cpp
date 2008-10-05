@@ -29,7 +29,7 @@ namespace Flyer
 
 // ============================================================================
 // Constructor
-Ground::Ground ( World* pWorld ) : WorldObject ( pWorld )
+Ground::Ground ( World* pWorld ) : PhysicalObject ( pWorld )
 {
 	setName( "Ground" );
 	setRenderLayer( LayerForeground );
@@ -46,6 +46,7 @@ Ground::~Ground()
 void Ground::random( QList<Section> seed )
 {
 	_heightmap = generate( seed );
+	setLayers( 0xffff ); //all!
 	
 	// create ground
 	b2BodyDef groundBodyDef;
@@ -53,7 +54,6 @@ void Ground::random( QList<Section> seed )
 	
 	_pGround = new Body("Ground");
 	_pGround->create( groundBodyDef, world()->b2world() );
-	_pGround->setLayers( 0xffff ); //all!
 	
 	QList<b2PolygonDef*> shapes = createShape();
 	foreach( b2PolygonDef* pShape, shapes )
@@ -68,6 +68,9 @@ void Ground::random( QList<Section> seed )
 		_pGround->addShape( pShape );
 		delete pShape;
 	}
+	
+	addBody( _pGround, BodyRendered1 );
+	setMainBody( _pGround );
 	
 	prepareTextures();
 	

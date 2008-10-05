@@ -58,7 +58,7 @@ void IronBomb::init( const QPointF& position, double angle )
 	
 	// create dm
 	_dmFuse = new DamageManager( 10E3 ); // small value
-	_bodyMain->shapeByName("main")->setDamageManager( _dmFuse );
+	_bodyMain->setDamageManager( _dmFuse );
 	addDamageManager( _dmFuse );
 	
 	

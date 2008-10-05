@@ -59,7 +59,7 @@ AntiAirBattery::AntiAirBattery ( World* pWorld, double location, double angle  )
 	addBody( _bodyBase, BodyRendered1 );
 	setMainBody( _bodyBase );
 	
-	_bodyMain->shapeByName( "main" )->setDamageManager( _dmMain );
+	_bodyMain->setDamageManager( _dmMain );
 	
 	// create gun
 	_sysGun = Gun::berezin( this, "Gun" );

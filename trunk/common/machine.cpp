@@ -30,12 +30,8 @@ namespace Flyer
 
 // ============================================================================
 // Constructor
-Machine::Machine ( World* pWorld ) : WorldObject ( pWorld )
+Machine::Machine ( World* pWorld ) : PhysicalObject ( pWorld )
 {
-	_orientation = 1.0;
-	_layers = 0;
-	_size = 10; // some default value
-	_pMainBody = NULL;
 }
 
 // ============================================================================
@@ -54,12 +50,6 @@ Machine::~Machine()
 		//qDebug("deleting system: %p (%s)", pSystem, qPrintable( pSystem->name() ) );
 		delete pSystem;
 	}
-	
-	foreach ( Body* pBody, _allBodies )
-	{
-		delete pBody;
-	}
-	
 	foreach( ActiveAttachPoint* pPoint, _activeAttachPoints )
 	{
 		delete pPoint;
@@ -73,22 +63,9 @@ Machine::~Machine()
 
 // ============================================================================
 // Renders machine
-void Machine::render ( QPainter& painter, const QRectF& rect, const RenderingOptions& options )
+void Machine::render( QPainter& painter, const QRectF& rect, const RenderingOptions& options )
 {
-	// draw bodies 
-	
-	foreach( Body* pBody, _bodies[ BodyRendered3 ] )
-	{
-		pBody->render( painter, options );
-	}
-	foreach( Body* pBody, _bodies[ BodyRendered2 ] )
-	{
-		pBody->render( painter, options );
-	}
-	foreach( Body* pBody, _bodies[ BodyRendered1 ] )
-	{
-		pBody->render( painter, options );
-	}
+	PhysicalObject::render( painter, rect, options );
 	
 	// draw systems 
 	
@@ -111,11 +88,7 @@ void Machine::render ( QPainter& painter, const QRectF& rect, const RenderingOpt
 // Simulates machine
 void Machine::simulate ( double dt )
 {
-	// proceed with scheduled joint breakages
-	while ( ! _jointsToBreak.isEmpty() )
-	{
-		doBreakJoint( _jointsToBreak.takeFirst() );
-	}
+	PhysicalObject::simulate( dt );
 	
 	// simulate systems
 	foreach ( System* pSystem, _systems[ SystemSimulated ] )
@@ -153,76 +126,6 @@ void Machine::removeSystem( System* pSystem )
 }
 
 // ============================================================================
-// Adds body to allappropriate lists
-void Machine::addBody( Body* pBody, int types )
-{
-	for ( int i = 0; i < 8; i++ ) // scaning only first 8 bits
-	{
-		int bit = 1<<i;
-		if ( types & bit )
-		{
-			_bodies[ bit ].append( pBody );
-		}
-	}
-	
-	_allBodies.append( pBody );
-	pBody->setLayers( _layers );
-	pBody->setParentMachine( this );
-	
-	updateSize();
-}
-
-// ============================================================================
-// Removes body from all lists
-void Machine::removeBody( Body* pBody )
-{
-	for ( int i = 0; i < 8; i++ ) // scaning only first 8 bits
-	{
-		_bodies[ 1<<i ].removeAll( pBody );
-	}
-	
-	_allBodies.removeAll( pBody );
-	updateSize();
-	pBody->setParentMachine( NULL );
-}
-
-
-// ============================================================================
-/// Updates size
-void Machine::updateSize()
-{
-	QRectF boundingRect;
-	foreach( Body* pBody, _allBodies )
-	{
-		if ( boundingRect.isNull() )
-		{
-			boundingRect = pBody->shape().boundingRect();
-		}
-		else
-		{
-			boundingRect |= pBody->shape().boundingRect();
-		}
-	}
-	
-	_size = qMax( boundingRect.width(), boundingRect.height() );
-	//qDebug("%s: size updated to: %g", qPrintable( name() ),_size );
-}
-
-// ============================================================================
-// Adds joint to list
-void Machine::addJoint( Joint* pJoint )
-{
-	_allJoints.append( pJoint );
-}
-
-// ============================================================================
-// Removes joint from list
-void Machine::removeJoint( Joint* pJoint )
-{
-	_allJoints.removeAll( pJoint );
-}
-
-// ============================================================================
 // Adds damage manager
 void Machine::addDamageManager( DamageManager* pManager )
 {
@@ -241,137 +144,13 @@ void Machine::removeDamageManager( DamageManager* pManager )
 /// Each flip changes the _orientation sign.
 void Machine::flip( const QPointF& p1, const QPointF& p2 )
 {
-	_orientation = _orientation * -1;
-	
-	// flip bodies
-	foreach( Body* pBody, _allBodies )
-	{
-		pBody->flip( p1, p2 );
-	}
+	PhysicalObject::flip( p1, p2 );
 	
 	// flip attached machines
 	foreach( ActiveAttachPoint* pPoint, _activeAttachPoints )
 	{
 		pPoint->flip( p1, p2 );
 	}
-	
-	// flip joints
-	foreach( Joint* pJoint, _allJoints )
-	{
-		pJoint->flip( p1, p2 );
-	}
-}
-
-// ============================================================================
-/// Returns machine position in world coorindates, using main body position. Returns null pointif ther's no main body.
-QPointF Machine::position() const
-{
-	if ( _pMainBody && _pMainBody->b2body() )
-	{
-		return vec2point( _pMainBody->b2body()->GetPosition() );
-	}
-	
-	return QPointF();
-}
-
-// ============================================================================
-/// Breaks specified joint. Detaches part of machine if needed.
-void Machine::breakJoint( Joint* pJoint )
-{
-	_jointsToBreak.append( pJoint );
-	qDebug("Joint broken");
-}
-
-// ============================================================================
-/// Actually breaks joint. Detaches parts of machine if neccesary.
-void Machine::doBreakJoint( Joint* pJoint )
-{
-	// get connected bodies
-	Body* pBody1 = pJoint->body1();
-	Body* pBody2 = pJoint->body2();
-	
-	// break joint itself
-	pJoint->breakJoint();
-	
-	// check whcih bodies are detached
-	if ( pBody1 && ! pBody1->isConnectedTo( mainBody() ) )
-	{
-		detachBody( pBody1 );
-	}
-	else if ( pBody2 && ! pBody2->isConnectedTo( mainBody() ) )
-	{
-		detachBody( pBody2 );
-	}
-	else
-	{
-		qFatal("Machine bodies not connected to main body");
-	}
-}
-
-// ============================================================================
-/// Detaches body from machine, turning it into shrapnell
-void Machine::detachBody( Body* pBody )
-{
-	if ( pBody->b2body() )
-	{
-		Body*		pCopy = pBody->createCopy();
-		Shrapnel*	pShrapnel = new Shrapnel( world() );
-		pShrapnel->addBody( pCopy );
-		world()->addObject( pShrapnel, World::ObjectSimulated | World::ObjectRendered );
-		
-		QList<Body*> connectedBodies;
-		b2JointEdge* pJoint = pBody->b2body()->GetJointList();
-		while( pJoint )
-		{
-			Body* pOther =  static_cast<Body*>( pJoint->other->GetUserData() );
-			if ( pOther ) connectedBodies.append( pOther );
-			pJoint = pJoint->next;
-		}
-		
-		pBody->destroy();
-		qDebug("Body %s detached", qPrintable( pBody->name() ) );
-		
-		// detach connected bodies
-		foreach( Body* pConnected, connectedBodies )
-		{
-			detachBody( pConnected );
-		}
-	}
-}
-
-// ============================================================================
-/// Returns machine's linear velocity, or 0 if none
-b2Vec2 Machine::linearVelocity() const
-{
-	if ( _pMainBody && _pMainBody->b2body() )
-	{
-		return _pMainBody->b2body()->GetLinearVelocity();
-	}
-	
-	return b2Vec2(0,0);
-}
-
-// ============================================================================
-/// Returns mahcine orenitation.
-double Machine::angle() const
-{
-	if ( _pMainBody && _pMainBody->b2body() )
-	{
-		return _pMainBody->b2body()->GetAngle();
-	}
-	
-	return 0.0;
-}
-
-// ============================================================================
-/// Sets layer this machine lives in.
-void Machine::setLayers( int layers )
-{
-	_layers = layers;
-	foreach( Body* pBody, _allBodies )
-	{
-		pBody->setLayers( layers );
-	}	
 }
 
 // ============================================================================
@@ -394,14 +173,6 @@ void Machine::addPassiveAttachPoint( PassiveAttachPoint* pPoint )
 		pPoint->setParent( this );
 	}
 	_passiveAttachPoints.append( pPoint );
-}
-
-// ============================================================================
-/// Calculates rough bounding rectangle of the machine.
-QRectF Machine::boundingRect() const
-{
-	QPointF pos = position();
-	return QRectF( pos.x() - _size, pos.y() - _size, _size*2, _size*2 );
 }
 
 // ============================================================================

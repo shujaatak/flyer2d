@@ -47,7 +47,7 @@ void ActiveAttachPoint::setParent( Machine* p )
 	
 	_pJoint = new Joint();
 	
-	p->addJoint( _pJoint );
+	//p->addJoint( _pJoint ); TODO experimental
 }
 
 // ============================================================================
@@ -74,7 +74,7 @@ void ActiveAttachPoint::attach( PassiveAttachPoint* pPoint )
 	// sync orientation
 	if ( pMasterBody->orientation() * pSlaveBody->orientation() < 0 )
 	{
-		Machine* pSlaveMachine = pSlaveBody->parentMachine();
+		PhysicalObject* pSlaveMachine = pSlaveBody->parent();
 		if ( pSlaveMachine )
 		{
 			double x = pSlaveMachine->position().x();
@@ -127,6 +127,7 @@ void ActiveAttachPoint::release()
 void ActiveAttachPoint::flip( const QPointF& p1, const QPointF& p2 )
 {
 	if ( _pAttachedPoint ) _pAttachedPoint->flip( p1, p2 );
+	if ( _pJoint ) _pJoint->flip( p1, p2 );
 }
 
 }

@@ -35,7 +35,7 @@ namespace Flyer
 {
 
 class RenderingOptions;
-class Machine;
+class PhysicalObject;
 
 /**
 	Wrap around b2Body. It rembeers it's shapes and know how to re-create itself.
@@ -70,6 +70,7 @@ public:
 	void setPosition( const b2Vec2& pos );
 	
 	b2Vec2 position() const;
+	b2Vec2 velocity() const;
 	
 	/// Sets body angle
 	void setAngle( double angle );
@@ -125,8 +126,12 @@ public:
 	void setTextureScale( double s );
 	double textureScale() const { return _textureScale; }
 	
-	Machine* parentMachine() const { return _pParentMachine; }
-	void setParentMachine( Machine* p ) { _pParentMachine = p; }
+	PhysicalObject* parent() const { return _pParent; }
+	void setParent( PhysicalObject* p ) { _pParent = p; }
+
+	///< Associates damage manager with body
+	void setDamageManager( DamageManager* pManager ){ _pDamageManager = pManager; }
+	DamageManager* damageManager() const { return _pDamageManager; }
 
 protected:
 
@@ -149,7 +154,8 @@ private:
 	QList<Shape>	_shapes;
 	int			_layers;		///< Collision layers
 	double		_orientation;	///< Body orientation [-1 - flipped, +1 - not flipped]
-	Machine*	_pParentMachine;	///> Machine which owns this body
+	PhysicalObject*	_pParent;	///< Object which owns this body
+	DamageManager*	_pDamageManager;	///< Associated damage manager
 	
 	// texturing support
 	

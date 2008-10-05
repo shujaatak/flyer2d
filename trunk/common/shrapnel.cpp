@@ -26,7 +26,7 @@ namespace Flyer
 // ============================================================================
 // Constructor
 Shrapnel::Shrapnel( World* pWorld )
-		: WorldObject(pWorld)
+		: PhysicalObject(pWorld)
 {
 	_lifespan = 30; // resonable default
 	_age = 0;
@@ -37,21 +37,6 @@ Shrapnel::Shrapnel( World* pWorld )
 // Destructor
 Shrapnel::~Shrapnel()
 {
-	// destriyo bodies
-	foreach( Body* pBody, _bodies )
-	{
-		delete pBody;
-	}
-}
-
-// ============================================================================
-/// Renders shrapnel
-void Shrapnel::render( QPainter& painter, const QRectF&, const RenderingOptions& options )
-{
-	foreach( Body* pBody, _bodies )
-	{
-		pBody->render( painter, options );
-	}
 }
 
 // ============================================================================
@@ -62,6 +47,17 @@ void Shrapnel::simulate( double dt )
 	if ( _age >= _lifespan )
 	{
 		world()->removeObject( this );
+	}
+}
+
+// ============================================================================
+/// Adds body to shrapnel.
+void Shrapnel::addBody( Body* pBody )
+{
+	PhysicalObject::addBody( pBody, BodyRendered1 );
+	if ( ! mainBody() )
+	{
+		setMainBody( pBody );
 	}
 }
 

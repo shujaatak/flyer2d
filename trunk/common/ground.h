@@ -17,7 +17,7 @@
 #ifndef FLYERGROUND_H
 #define FLYERGROUND_H
 
-#include "worldobject.h"
+#include "physicalobject.h"
 #include "body.h"
 
 
@@ -27,7 +27,7 @@ namespace Flyer
 /**
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class Ground : public WorldObject
+class Ground : public PhysicalObject
 {
 public:
 	Ground ( World* pWorld );

@@ -17,23 +17,17 @@
 #ifndef FLYERMACHINE_H
 #define FLYERMACHINE_H
 
-class QPainter;
-#include <QMap>
-#include <QList>
-#include <QPointF>
 
 #include "Box2D.h"
 
 #include "message.h"
 
-#include "worldobject.h"
+#include "physicalobject.h"
 
 namespace Flyer
 {
 
 class System;
-class Body;
-class Joint;
 class DamageManager;
 class ActiveAttachPoint;
 class PassiveAttachPoint;
@@ -42,7 +36,7 @@ class PassiveAttachPoint;
 	Base class for machines. Machine is a set of systems, bodies and joints.
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class Machine : public WorldObject
+class Machine : public PhysicalObject
 {
 public:
 	Machine ( World* pWorld );
@@ -50,7 +44,7 @@ public:
 
 	virtual void render ( QPainter& painter, const QRectF& rect, const RenderingOptions& options );
 	virtual void simulate ( double dt );
-	virtual QRectF boundingRect() const;
+	virtual void flip( const QPointF& p1, const QPointF& p2 );
 	
 	// system classes and manipulation
 	enum SystemType {				/// system type
@@ -64,49 +58,9 @@ public:
 	void removeSystem( System* pSystem );
 	const QList<System*>& systems() const { return _allSystems; }
 	
-	// bodies classes and manipulation
-	enum BodyType {					/// Body type
-		BodyRendered1	= 1,		///< Render layer 1
-		BodyRendered2	= 2,		///< Render layer 1
-		BodyRendered3	= 4			///< Render layer 1
-		};
-		
-	void addBody( Body* pBody, int types );
-	void removeBody( Body* pBody );
-	
-	void setMainBody( Body* pBody ) { _pMainBody = pBody; }
-	Body* mainBody() const { return _pMainBody; }
-	
-	// joints
-	void addJoint( Joint* pJoint );
-	void removeJoint( Joint* pJoint );
-
 	// damage managers
 	void addDamageManager( DamageManager* pManager );
 	void removeDamageManager( DamageManager* pManager );
-	
-	// damage modifiacations
-	void breakJoint( Joint* pJoint );
-	
-	// geometrical operations
-	
-	/// Flip machine around axis of symmetry
-	void flip( const QPointF& p1, const QPointF& p2 );
-	
-	/// Returns current orientation (flip) sign
-	double orientation() const { return _orientation; }
-	
-	/// Returns estimated position, using main's body position.
-	QPointF position() const;
-	
-	/// Returns machine angle
-	double angle() const;
-	
-	/// Returns linear velocity
-	b2Vec2 linearVelocity() const;
-	
-	/// Sets layers on whic hthis machine lives
-	void setLayers( int layers );
 	
 	// attach points 
 	
@@ -127,27 +81,12 @@ public:
 protected:
 
 	
-	// operations
-	void doBreakJoint( Joint* pJoint );	///< Actually breaks joint
-	void detachBody( Body* pBody );		///< Detaches body from machine
-	
 	// special designated items
-	/// Machines main body. Machine position is determined using it's pos, and destructicion of
-	/// the body destroys machine.
-	Body* _pMainBody;
 	
 	// systems
 	QMap<int, QList<System*> >	_systems;
 	QList<System*> _allSystems;
 	
-	// bodies
-	QMap<int, QList<Body*> > _bodies;
-	QList<Body*>	_allBodies;
-	int				_layers;
-	
-	// joints
-	QList<Joint*>	_allJoints;
-	QList<Joint*>	_jointsToBreak; ///< Temporary list of joints that are to be break during next sim step
 	
 	// damage managers
 	QList<DamageManager*> _allDamageManagers;
@@ -155,13 +94,6 @@ protected:
 	// attach points
 	QList<ActiveAttachPoint*>		_activeAttachPoints;
 	QList<PassiveAttachPoint*>		_passiveAttachPoints;
-	
-	// variables
-	
-	double _orientation;	//!< Orientation - 1 - normal, -1 - mirrored. 
-	
-	void updateSize();		///< Calculates _size;
-	double	_size;			///< Approx. size used to calculate rough bounding rect.
 	
 	QList<Message> _messages;
 };
