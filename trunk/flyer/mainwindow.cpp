@@ -17,6 +17,8 @@
 #include <QKeyEvent>
 #include <QGLFormat>
 #include <QTextEdit>
+#include <QDialog>
+#include <QStyleFactory>
 
 #include "mainwindow.h"
 #include "plane.h"
@@ -36,9 +38,6 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags f): QWidget(parent, f)
 	QGLFormat::setDefaultFormat( format );
 	
  	setupUi( this );
-	connect( worldWidget, SIGNAL(elevatorChanged(double)), SLOT(elevatorChanged(double)) );
-	connect( worldWidget, SIGNAL(throttleChanged(double)), SLOT(throttleChanged(double)) );
-	connect( worldWidget, SIGNAL(flapsChanged(double)), SLOT(flapsChanged(double)) );
 
 	// status window
 	_pStatusWindow = new StatusWindow();
@@ -65,34 +64,33 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags f): QWidget(parent, f)
 	"A\t- toggle autopilot\n"
 	"P\t- pause";
 	
-	QTextEdit *pHelp = new QTextEdit();
+	QDialog* pHelpDialog = new QDialog
+		( NULL, Qt::CustomizeWindowHint | Qt::WindowTitleHint 
+			| Qt::WindowShadeButtonHint | Qt::WindowSystemMenuHint
+			| Qt::WindowMinimizeButtonHint
+		);
+		
+	pHelpDialog->setWindowOpacity( 0.8 );
+	pHelpDialog->setWindowTitle( "Help" );
+	pHelpDialog->setLayout( new QVBoxLayout );
+	pHelpDialog->setSizeGripEnabled( true );
+	pHelpDialog->setStyle( QStyleFactory::create( "plastique" ) );
+	
+	
+	QTextEdit *pHelp = new QTextEdit( pHelpDialog );
+	pHelp->setStyle( QStyleFactory::create( "plastique" ) );
+	pHelpDialog->layout()->addWidget( pHelp );
 	pHelp->setText( help );
 	pHelp->setReadOnly( true );
-	pHelp->setWindowTitle( "Help" );
-	pHelp->show();
+	worldWidget->addWidget( pHelpDialog );
+	
+	
+	
 }
 
 // ============================================================================
 // Destructor
 MainWindow::~MainWindow()
-{
-}
-
-// ============================================================================
-// Handles plane elevator change
-void MainWindow::elevatorChanged( double /*e*/ )
-{
-}
-
-// ============================================================================
-// Handle throttle change
-void MainWindow::throttleChanged( double /*t*/ )
-{
-}
-
-// ============================================================================
-// Handles flaps change
-void MainWindow::flapsChanged( double /*f*/ )
 {
 }
 

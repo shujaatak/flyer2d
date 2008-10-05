@@ -17,7 +17,7 @@
 #ifndef WORLDWIDGET_H
 #define WORLDWIDGET_H
 
-#include <QGLWidget>
+#include <QGraphicsView>
 #include <QTransform>
 #include <QTimer>
 
@@ -27,87 +27,35 @@ namespace Flyer
 
 class Plane;
 class World;
+class WorldScene;
 
 /**
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-#ifdef FLYER_NO_OPENGL
-class WorldWidget : public QWidget
-#else
-class WorldWidget : public QGLWidget
-#endif
+class WorldWidget : public QGraphicsView
 {
 	Q_OBJECT
 public:
-	WorldWidget ( QWidget* parent = 0, Qt::WindowFlags f = 0);
+	WorldWidget ( QWidget* parent = 0 );
 
 	virtual ~WorldWidget();
 	
-	// world an it's elements
-	
 	Plane* plane() const;
-	World* world() const { return _pWorld; }
-	
-	// simulation control
-	
-	void start();
-	void stop();
-	bool isRunning() const;
-	void step();
-	
-	// zoom levels
-	enum Zoom
-	{
-		ZOOM1,	///< Level 1 - closeup
-		ZOOM2,	///< Level 2 - as usual
-		ZOOM3	///< Level 3 - far view
-	};
-	
-	
-signals:
+	World* world() const;
 
-	void elevatorChanged( double elevator );
-	void throttleChanged( double throttle );
-	void flapsChanged( double flaps );
-	
+	void addWidget( QWidget* );	///< Adds widget to sidplay
+
 protected:
 
-#ifdef FLYER_NO_OPENGL
-	virtual void paintEvent( QPaintEvent* pEvent );
-#else
-	virtual void initializeGL();
-	virtual void paintGL();
-#endif
 	virtual void resizeEvent( QResizeEvent* );
-	
-	virtual void mouseMoveEvent( QMouseEvent* pEvent );
-	virtual void mousePressEvent( QMouseEvent* pEvent );
-	virtual void mouseReleaseEvent( QMouseEvent* pEvent );
-	virtual void wheelEvent( QWheelEvent* pEvent );
-	virtual void keyPressEvent( QKeyEvent* pEvent );
-	virtual void keyReleaseEvent( QKeyEvent* pEvent );
-	
+
 private slots:
 
 	void onTimer();
 
 private:
-	
-	void render( QPainter& painter );	///< Renders
-	
-	void adjustTransform();		///< Adjusts zoom and position
-	
-	
-	World* _pWorld;
-	
-	QTransform _transform;
 	QTimer _timer;
-	QPointF	_planePos;			///< Current displayed plane pos in pixels
-	
-	int _frames;				///< Frame counter
-	Zoom _zoom;					///< Current zoom level
-	double _lastRenderTime;		///< Lat time when rendering started. Helps in FPS calculation
-	
+	WorldScene* _pScene;
 };
 
 }

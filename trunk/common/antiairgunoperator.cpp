@@ -26,8 +26,10 @@
 namespace Flyer
 {
 
-static const double DEFAULT_ROTATION_SPEED = 1.0; // resonable default
-static const double ACCEPTABLE_DEFLECTION = 0.1;	///< Acceptable deflectin form angle when trigger is pulled
+static const double DEFAULT_ROTATION_SPEED	= 1.0;	// resonable default
+static const double ACCEPTABLE_DEFLECTION	= 0.1;	///< Acceptable deflectin form angle when trigger is pulled
+static const double SIGHT_RANGE				= 500;	///< Gunner's sight range [meters]
+	
 
 // ============================================================================
 // Constructor
@@ -133,8 +135,6 @@ void AntiAirGunOperator::simulate ( double dt )
 /// Seeks for enemy,. Returns it's position, or null QpointF if not found
 QPointF AntiAirGunOperator::getEnemyPos()
 {
-	const double SIGHT_RANGE = 1000; // 1km
-	
 	// player pos
 	QPointF playerPos = parent()->world()->playerPlane()->position();
 	if ( _pGun && _pGun->body() && _pGun->body()->b2body() )

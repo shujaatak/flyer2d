@@ -16,6 +16,12 @@
 
 #include <QMouseEvent>
 #include <QPainter>
+#include <QGLWidget>
+#include <QGraphicsScene>
+#include <QGraphicsSceneMouseEvent>
+#include <QGraphicsSceneWheelEvent>
+#include <QGraphicsProxyWidget>
+#include <QStyleFactory>
 
 #include "world.h"
 #include "plane.h"
@@ -30,14 +36,12 @@ namespace Flyer
 static const double FPS = 10; //const FPS
 
 // ============================================================================
-// Constructor
-#ifdef FLYER_NO_OPENGL
-WorldWidget::WorldWidget ( QWidget* parent, Qt::WindowFlags f ) : QWidget( parent, f )
-#else
-WorldWidget::WorldWidget ( QWidget* parent, Qt::WindowFlags f ) : QGLWidget ( parent, NULL, f )
-#endif
+/// Internal scene class, used to render world
+class WorldScene : public QGraphicsScene
 {
-	connect( & _timer, SIGNAL(timeout()), SLOT(onTimer()) );
+public:
+	WorldScene( QTimer& t, WorldWidget* pView ) : QGraphicsScene(), _timer(t), _pView( pView )
+	{
 	
 	
 	_pWorld = new World();
@@ -46,13 +50,83 @@ WorldWidget::WorldWidget ( QWidget* parent, Qt::WindowFlags f ) : QGLWidget ( pa
 	adjustTransform();
 	
 	// simulate
-	_timer.setInterval( 1000/FPS );
 	_frames = 0;
 	_zoom = ZOOM1;
 	_lastRenderTime = 0;
+	}
+	
+	
+	// world an it's elements
+	
+	Plane* plane() const;
+	World* world() const { return _pWorld; }
+	
+	// simulation control
+	
+	void start();
+	void stop();
+	bool isRunning() const;
+	void step();
+	
+	// zoom levels
+	enum Zoom
+	{
+		ZOOM1,	///< Level 1 - closeup
+		ZOOM2,	///< Level 2 - as usual
+		ZOOM3	///< Level 3 - far view
+	};
+	
+	QTimer& _timer;
+	
+	void onTimer();
+	
+	virtual void resized();
+
+protected:
+	virtual void drawBackground ( QPainter * painter, const QRectF & rect );
+	
+	
+	virtual void mouseMoveEvent( QGraphicsSceneMouseEvent* pEvent );
+	virtual void mousePressEvent( QGraphicsSceneMouseEvent* pEvent );
+	virtual void mouseReleaseEvent( QGraphicsSceneMouseEvent* pEvent );
+	virtual void wheelEvent( QGraphicsSceneWheelEvent* pEvent );
+	virtual void keyPressEvent( QKeyEvent* pEvent );
+	virtual void keyReleaseEvent( QKeyEvent* pEvent );
+
+private:
+	void render( QPainter& painter );	///< Renders
+	
+	void adjustTransform();		///< Adjusts zoom and position
+	
+	
+	World* _pWorld;
+	
+	QTransform _transform;
+	QPointF	_planePos;			///< Current displayed plane pos in pixels
+	
+	int _frames;				///< Frame counter
+	Zoom _zoom;					///< Current zoom level
+	double _lastRenderTime;		///< Last time when rendering started. Helps in FPS calculation
+	
+	WorldWidget* _pView;
+};
+
+// ============================================================================
+// Constructor
+WorldWidget::WorldWidget ( QWidget* parent ) : QGraphicsView ( parent )
+{
+	setStyle( QStyleFactory::create( "plastique" ) );
+	
+	connect( & _timer, SIGNAL(timeout()), SLOT(onTimer()) );
+	_timer.setInterval( 1000/FPS );
+	
+	_pScene = new WorldScene( _timer, this );
+	setScene( _pScene );
 	
 #ifndef FLYER_NO_OPENGL
-	setAutoBufferSwap( false );
+	QGLWidget* pViewport = new QGLWidget();
+	//pViewport->setAutoBufferSwap( false );
+	setViewport( pViewport );
 #endif
 
 }
@@ -63,11 +137,23 @@ WorldWidget::~WorldWidget()
 {
 }
 
+Plane* WorldWidget::plane() const
+{
+	return _pScene->plane();
+}
+
+World* WorldWidget::world() const
+{
+	return _pScene->world();
+}
 
 // ============================================================================
 // Renders widget
-void WorldWidget::render( QPainter& painter )
+void WorldScene::render( QPainter& painter )
 {
+	// init opengl
+	glEnable( GL_LINE_SMOOTH );
+	
 	// calculate fps
 	double now = getms();
 	double FPS = _lastRenderTime == 0.0 ? 0.0 : 1000.0 / ( now - _lastRenderTime );
@@ -79,7 +165,7 @@ void WorldWidget::render( QPainter& painter )
 	painter.save();
 		painter.setTransform( _transform );
 		
-		_pWorld->render( painter, _transform.inverted().mapRect( rect() ) );
+		_pWorld->render( painter, _transform.inverted().mapRect( _pView->rect() ) );
 		
 		// render map
 		QRectF worldRect = _pWorld->boundary();
@@ -212,48 +298,45 @@ void WorldWidget::render( QPainter& painter )
 // On timer. Simulates word
 void WorldWidget::onTimer()
 {
+	_pScene->onTimer();
+}
+
+
+void WorldScene::onTimer()
+{
 	_pWorld->simulate( 1.0/FPS );
 
 	adjustTransform();
-	updateGL();
+	//updateGL();
+	update();
 	
 	_frames ++;
 	
-	// when autopilot is on - update elevator slider
-	if ( plane()->autopilot() )
-	{
-		emit elevatorChanged( plane()->elevatorAngle() );
-		//if ( plane()->autopilot()->mode() == Autopilot::FollowTrack )
-		//{
-			emit flapsChanged( plane()->flaps() );
-			emit throttleChanged( plane()->throttle() );
-		//}
-	}
 }
 
 // ============================================================================
 // Start simulation
-void WorldWidget::start()
+void WorldScene::start()
 {
 	_timer.start();
 }
 
 // ============================================================================
 // Stop simualtion
-void WorldWidget::stop()
+void WorldScene::stop()
 {
 	_timer.stop();
-	repaint();
+	update();
 	_lastRenderTime = 0;
 }
 
 // ============================================================================
 // Single simulation step
-void WorldWidget::step()
+void WorldScene::step()
 {
-	QPixmap pixmap( size() );
+	QPixmap pixmap( _pView->size() );
 	QPainter painter( & pixmap );
-	render( painter );
+	update();
 	
 	pixmap.save( QString("step%1.png").arg( _frames ) );
 	if ( ! _timer.isActive() )
@@ -265,14 +348,14 @@ void WorldWidget::step()
 
 // ============================================================================
 /// Returns \b true if simulation is runing
-bool WorldWidget::isRunning() const
+bool WorldScene::isRunning() const
 {
 	return _timer.isActive();
 }
 
 // ============================================================================
 // Adjusts translation to plane position
-void WorldWidget::adjustTransform()
+void WorldScene::adjustTransform()
 {
 	QPointF pos = plane()->position();
 	//double airspeed = plane()->airspeed();
@@ -368,29 +451,42 @@ void WorldWidget::adjustTransform()
 // Resize event - handles resizing.
 void WorldWidget::resizeEvent( QResizeEvent* )
 {
+	_pScene->setSceneRect( viewport()->rect() );
+	_pScene->resized();
+}
+
+// ============================================================================
+// Resize event - handles resizing.
+void WorldScene::resized()
+{
 	_planePos = QPointF( width()/2.0, height() / 2.0 );
 	adjustTransform();
 }
 
 // ============================================================================
 // Handles mouse movement, Implements mouse steering.
-void WorldWidget::mouseMoveEvent( QMouseEvent* pEvent )
+void WorldScene::mouseMoveEvent( QGraphicsSceneMouseEvent* pEvent )
 {
+	QGraphicsScene::mouseMoveEvent( pEvent );
+	if ( pEvent->isAccepted() ) return;
+	
 	if ( ! plane()->autopilot() )
 	{
-		double y = 2* ( - pEvent->y() / double(height()) + 0.5 );
+		double y = 2* ( - pEvent->scenePos().y() / double(height()) + 0.5 );
 		//double e = y > 0 ? y*y : -y*y; // TODO expoeriment - use 2nd power as input function (3rd is too big, I've checked)
 		double e = y; // neeeeeeeeeey, linear is teh best!
 		plane()->setElevator( e );
-		emit elevatorChanged( e );
 	}
 	setFocus(); // steal focus
 }
 
 // ============================================================================
 // Handles mouse press.
-void WorldWidget::mousePressEvent( QMouseEvent* pEvent )
+void WorldScene::mousePressEvent( QGraphicsSceneMouseEvent* pEvent )
 {
+	QGraphicsScene::mousePressEvent( pEvent );
+	if ( pEvent->isAccepted() ) return;
+	
 	switch ( pEvent->button() )
 	{
 	
@@ -412,8 +508,11 @@ void WorldWidget::mousePressEvent( QMouseEvent* pEvent )
 
 // ============================================================================
 // Handles mouse release.
-void WorldWidget::mouseReleaseEvent( QMouseEvent* pEvent )
+void WorldScene::mouseReleaseEvent( QGraphicsSceneMouseEvent* pEvent )
 {
+	QGraphicsScene::mouseReleaseEvent( pEvent );
+	if ( pEvent->isAccepted() ) return;
+	
 	switch ( pEvent->button() )
 	{
 	
@@ -430,18 +529,23 @@ void WorldWidget::mouseReleaseEvent( QMouseEvent* pEvent )
 
 // ============================================================================
 // Handles wheel. controls thrtottle
-void WorldWidget::wheelEvent( QWheelEvent* pEvent )
+void WorldScene::wheelEvent( QGraphicsSceneWheelEvent* pEvent )
 {
-	double step = pEvent->delta() / 1200.0; // single click - 120, stepping in 0.1 units
-	
-	plane()->setThrottle( plane()->throttle() + step );
-	emit throttleChanged( plane()->throttle() );
+	QGraphicsScene::wheelEvent( pEvent );
+	if ( ! pEvent->isAccepted() )
+	{
+		double step = pEvent->delta() / 1200.0; // single click - 120, stepping in 0.1 units
+		plane()->setThrottle( plane()->throttle() + step );
+	}
 }
 
 // ============================================================================
 // Handles key press
-void WorldWidget::keyPressEvent( QKeyEvent* pEvent )
+void WorldScene::keyPressEvent( QKeyEvent* pEvent )
 {
+	QGraphicsScene::keyPressEvent(pEvent);
+	if ( pEvent->isAccepted() ) return;
+	
 	if ( pEvent->isAutoRepeat() ) return;
 	
 	switch( pEvent->key() )
@@ -454,13 +558,11 @@ void WorldWidget::keyPressEvent( QKeyEvent* pEvent )
 	// V
 	case Qt::Key_V:
 		plane()->setFlaps( plane()->flaps() + 0.33 );
-		emit flapsChanged( plane()->flaps() );
 		break;
 	
 	// F
 	case Qt::Key_F:
 		plane()->setFlaps( plane()->flaps() - 0.33 );
-		emit flapsChanged( plane()->flaps() );
 		break;
 		
 	// B
@@ -496,7 +598,7 @@ void WorldWidget::keyPressEvent( QKeyEvent* pEvent )
 
 // ============================================================================
 // Handles key release
-void WorldWidget::keyReleaseEvent( QKeyEvent* pEvent )
+void WorldScene::keyReleaseEvent( QKeyEvent* pEvent )
 {
 	if ( pEvent->isAutoRepeat() ) return;
 	
@@ -515,47 +617,28 @@ void WorldWidget::keyReleaseEvent( QKeyEvent* pEvent )
 
 // ============================================================================
 // Returns player's plane
-Plane* WorldWidget::plane() const
+Plane* WorldScene::plane() const
 {
 	return _pWorld->playerPlane();
 }
 
-#ifdef FLYER_NO_OPENGL
 // ============================================================================
-// Paints content
-void WorldWidget::paintEvent( QPaintEvent* )
+/// Draws scene backgoruns - render the world
+void WorldScene::drawBackground ( QPainter * pPainter, const QRectF & /*rect*/ )
 {
-	QPainter painter( this );
-	render( painter );
-}
-
-#else
-// ============================================================================
-// Initializes opengl for drawing
-void WorldWidget::initializeGL()
-{
-	// turn on antialiasing, if available
-	// TODO, no my computer has it working, but this returns false
-	//if ( format().sampleBuffers() )
-	//{
-		glEnable( GL_LINE_SMOOTH );
-	//	glEnable( GL_POINT_SMOOTH );
-		//glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
-	//}
-	//glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-    //glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-
+	render( * pPainter );
 }
 
 // ============================================================================
-// paints GL
-void WorldWidget::paintGL()
+/// Adds widget to scene
+void WorldWidget::addWidget( QWidget* pWidget )
 {
-	QPainter painter( this );
-	render( painter );
-	swapBuffers();
+ 	QGraphicsProxyWidget* proxy = _pScene->addWidget( pWidget );
+ 	proxy->setFlag( QGraphicsItem::ItemIsMovable );
+ 	proxy->setCacheMode( QGraphicsItem::DeviceCoordinateCache );
+ 	proxy->setPos( 10, 70 );
+ 	proxy->show();
 }
-#endif
 
 } // ns
 // EOF
