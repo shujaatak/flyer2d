@@ -17,6 +17,7 @@
 #include "b2dqt.h"
 #include "world.h"
 #include "common.h"
+#include "body.h"
 
 #include "bullet.h"
 
@@ -28,15 +29,21 @@ static const double DAMAGE_MULTIPLIER	= 200;	///< Damage multiplier
 
 // ============================================================================
 // Constructor
-Bullet::Bullet ( World* pWorld ) : WorldObject ( pWorld )
+Bullet::Bullet ( World* pWorld ) : PhysicalObject ( pWorld )
 {
 	_lifespan = 0;
 	_mass = 0;
 	_size = 0;
 	_age = 0;
+	setLayers( PhysLayerVehicles | PhysLayerBuildings );
 	_damageManager.setDamageMultiplier( DAMAGE_MULTIPLIER );
 	setName( "Bullet" );
 	setRenderLayer( LayerVehicles );
+	
+	_pBody = new Body( "Bullet" );
+	_pBody->setDamageManager( & _damageManager );
+	addBody( _pBody, 0 );
+	setMainBody( _pBody );
 }
 
 // ============================================================================
@@ -49,44 +56,33 @@ Bullet::~Bullet()
 // Returns bullet's boundong rect
 QRectF Bullet::boundingRect() const
 {
-	if ( _body.b2body() )
-	{
-		// bullet fired, return rect
-		b2Vec2 pos = _body.b2body()->GetPosition();
-		
-		return QRectF( pos.x - _size/2, pos.y - _size/2, _size, _size );
-	}
-	else
-	{
-		// bullet not fired yet, don't paint
-		return QRectF();
-	}
+	// bullet fired, return rect
+	b2Vec2 pos = _pBody->position();
+	
+	return QRectF( pos.x - _size/2, pos.y - _size/2, _size, _size );
 }
 
 // ============================================================================
 // Renders bullet
 void Bullet::render ( QPainter& painter, const QRectF&, const RenderingOptions& /*options*/ )
 {
-	if ( _body.b2body() )
+	// bullet fired, paint
+	b2Vec2 pos = _pBody->position();
+	b2Vec2 vel = _pBody->velocity();
+	
+	double timespan = 0.05; // flame tail lifespan
+	
+	if ( qrand() % 2 == 0 )
 	{
-		// bullet fired, paint
-		b2Vec2 pos = _body.b2body()->GetPosition(); // position
-		b2Vec2 vel = _body.b2body()->GetLinearVelocity();
-		
-		double timespan = 0.05; // flame tail lifespan
-		
-		if ( qrand() % 2 == 0 )
-		{
-			painter.setPen( Qt::red );
-		}
-		else
-		{
-			painter.setPen( QColor( 255, 128, 0 ) );
-		}
-		
-		QPointF endPos = vec2point( pos + timespan* vel );
-		painter.drawLine( vec2point( pos ), endPos );
+		painter.setPen( Qt::red );
 	}
+	else
+	{
+		painter.setPen( QColor( 255, 128, 0 ) );
+	}
+	
+	QPointF endPos = vec2point( pos + timespan* vel );
+	painter.drawLine( vec2point( pos ), endPos );
 }
 
 // ============================================================================
@@ -102,7 +98,7 @@ void Bullet::simulate ( double dt )
 	}
 	
 	// check momentum
-	if ( _body.b2body() && _body.b2body()->GetLinearVelocity().Length() * _mass < MINIMAL_MOMENTUM )
+	if ( _pBody->velocity().Length() * _mass < MINIMAL_MOMENTUM )
 	{
 		world()->removeObject( this );
 		return;
@@ -119,8 +115,7 @@ void Bullet::fire( const QPointF& point, const QPointF& velocity )
 	def.isBullet = true;
 	def.linearDamping = 0.001; // TODO experimental. simluates simple air drag
 	
-	_body.setLayers( PhysLayerVehicles | PhysLayerBuildings );
-	_body.create( def, world()->b2world() );
+	_pBody->create( def, world()->b2world() );
 	
 	// create shape
 	b2CircleDef shape;
@@ -130,10 +125,10 @@ void Bullet::fire( const QPointF& point, const QPointF& velocity )
 	shape.friction = 0.9; // high firction
 	shape.userData = & _damageManager;
 	
-	_body.addShape( & shape );
+	_pBody->addShape( & shape );
 	
 	// init body
-	_body.b2body()->SetLinearVelocity( point2vec( velocity ) );
+	_pBody->b2body()->SetLinearVelocity( point2vec( velocity ) );
 	
 	
 }

@@ -32,6 +32,7 @@ Airfield::Airfield( World* pWorld, double x1, double x2 )
 	_y = pWorld->ground()->height( (x1+x2) / 2 );
 	setRenderLayer( LayerHud );
 	setName("Airfield");
+	pWorld->addDecoration( this );
 }
 
 
@@ -43,7 +44,7 @@ Airfield::~Airfield()
 
 // ============================================================================
 // Returs boundign rect
-QRectF Airfield::boundingRect()
+QRectF Airfield::boundingRect() const
 {
 	QRect br( _x1 - 1, _y -1, (_x2-_x1)+2, 2 );
 	return br;

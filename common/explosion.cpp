@@ -54,7 +54,8 @@ Explosion::~Explosion()
 // Bounding rect
 QRectF Explosion::boundingRect() const
 {
-	return QRectF ( _center.x() - _radius, _center.y() - _radius, _radius*2, _radius*2 );
+	// return max possible bounding rect, to avoid updating broadphase each step
+	return QRectF ( _center.x() - _maxRadius, _center.y() - _maxRadius, _maxRadius*2, _maxRadius*2 );
 }
 
 // ============================================================================
@@ -71,7 +72,6 @@ void Explosion::setEnergy( double e )
 	_maxRadius = (e-minForce)/minForce;
 	_maxFireRadius = _maxRadius/4; // dumb guess
 	_energy = e;
-	
 }
 
 // ============================================================================
@@ -142,31 +142,32 @@ void Explosion::actWithForce()
 	for( int i = 0; i < count; i++ )
 	{
 		// get body
-		b2Body* pBody = shapes[i]->GetBody();
+		b2Body* pb2Body = shapes[i]->GetBody();
 		
 		// find distance, normal vector and force value
-		double distance = ( pBody->GetPosition() - center ).Length();
+		double distance = ( pb2Body->GetPosition() - center ).Length();
 
 		if ( distance < maxRange &&  distance >= minRange )
 		{
-			b2Vec2 diff = pBody->GetPosition() - center;
+			b2Vec2 diff = pb2Body->GetPosition() - center;
 			b2Vec2 normal = diff;
 			normal.Normalize();
 			
 			double force = _energy / ( distance+1);
 		
 			// act with force on body (but only once)
-			if ( ! bodiesTouched.contains( pBody ) )
+			if ( ! bodiesTouched.contains( pb2Body ) )
 			{
-				pBody->ApplyForce( force*normal, pBody->GetPosition() );
-				bodiesTouched.append( pBody );
+				pb2Body->ApplyForce( force*normal, pb2Body->GetPosition() );
+				bodiesTouched.append( pb2Body );
 			}
 			
 			// damge DM
-			if ( shapes[i]->GetUserData() )
+			Body* pBody = static_cast<Body*>( pb2Body->GetUserData() );
+			if ( pBody )
 			{
-				DamageManager* pDM = static_cast<DamageManager*>( shapes[i]->GetUserData() );
-				pDM->contact( force * DAMAGE_MULTIPLIER );
+				DamageManager* pDM = pBody->damageManager();
+				if ( pDM ) pDM->contact( force * DAMAGE_MULTIPLIER );
 			}
 			
 		}

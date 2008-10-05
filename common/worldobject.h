@@ -70,6 +70,10 @@ public:
 	
 	QList<WorldObject*> children() const { return _children; }
 	
+	// other
+	
+	void* worldPrivateData;		///< The world can use it to it's sinister practices.
+	
 private:
 
 	World* _pWorld;					///< World

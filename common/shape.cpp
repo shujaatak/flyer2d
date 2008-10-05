@@ -203,20 +203,12 @@ void Shape::fromStream( QDataStream& stream )
 }
 
 // ============================================================================
-/// Associates damage manager with body
-void Shape::setDamageManager( DamageManager* pManager )
-{
-	if ( _pDef ) _pDef->userData = pManager;
-	if ( _pShape ) _pShape->SetUserData( pManager );
-}
-
-// ============================================================================
 /// Creates b2d shape object using body as context.
 void Shape::create( Body* pBody )
 {
 	Q_ASSERT( pBody );
 	Q_ASSERT( pBody->b2body() );
-	
+	_pDef->userData = this;
 	_pShape = pBody->b2body()->CreateShape( _pDef );
 }
 

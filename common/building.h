@@ -19,8 +19,7 @@
 
 #include <QPainterPath>
 
-#include "body.h"
-#include "worldobject.h"
+#include "physicalobject.h"
 
 namespace Flyer
 {
@@ -31,7 +30,7 @@ or background.
 @author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
 
-class Building : public WorldObject
+class Building : public PhysicalObject
 {
 
 public:
@@ -39,10 +38,11 @@ public:
 	~Building();
 	
 	virtual QRectF boundingRect() const;
-	virtual void render ( QPainter& painter, const QRectF& rect, const RenderingOptions& options );
 	
 	double width() const { return _width; }
 	double location() const { return _position.x; }
+	
+	void initSmallBuilding( double location, bool background );
 	
 	static Building* createSmallBuilding( World* pWorld, double location, bool background );
 	static Building* createLargeBuilding( World* pWorld, double location, bool background );

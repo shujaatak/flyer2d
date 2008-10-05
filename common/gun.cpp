@@ -14,12 +14,14 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#include "gun.h"
 #include "bullet.h"
 #include "world.h"
 #include "common.h"
 #include "plane.h"
 #include "b2dqt.h"
+#include "body.h"
+
+#include "gun.h"
 
 namespace Flyer
 {

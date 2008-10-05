@@ -27,8 +27,9 @@ namespace Flyer
 
 // ============================================================================
 // Constructor
-Building::Building ( World* pWorld ) : WorldObject ( pWorld )
+Building::Building ( World* pWorld ) : PhysicalObject( pWorld )
 {
+	_pBody = NULL;
 }
 
 // ============================================================================
@@ -45,28 +46,30 @@ QRectF Building::boundingRect() const
 }
 
 // ============================================================================
-/// Renders building
-void Building::render ( QPainter& painter, const QRectF& /*rect*/, const RenderingOptions& options  )
+/// Initializes small building.
+void Building::initSmallBuilding( double location, bool background )
 {
-	// TODO both ways here, to compare results
-	_pBody->render( painter, options );
-	/*
-	painter.save();
+	int housenum = ( qrand() % 4 ) + 1;
+	QString fileName = QString("house_small_%1.body").arg( housenum );
+	_pBody = BodyProvider::loadBody( fileName );
 	
-		
-		painter.setTransform( _pBody->transform(), true );
-		QPen pen;
-		pen.setWidth( 1 );
-		pen.setCosmetic( true );
-		pen.setColor( _background ? Qt::lightGray : Qt::black );
-		painter.setPen( pen );
-		
-		painter.setBrush( _color );
-		
-		painter.drawPath( _path );
-		
-	painter.restore();
-	*/
+	// set physical layer
+	if ( background ) setLayers( PhysLayerBackground );
+	else setLayers( PhysLayerBuildings );
+	
+	// set rendering layer
+	if ( background ) setRenderLayer( LayerBackground );
+	else setRenderLayer( LayerBuildings );
+	
+	b2Vec2 pos = b2Vec2(location, world()->ground()->height( location ) );
+	_width = 9;
+	_pBody->setPosition( pos );
+	_pBody->create( world()->b2world() );
+	setName( "Small building" );
+	_boundingRect = _pBody->shape().boundingRect().translated( vec2point( pos ));
+	addBody( _pBody, BodyRendered1 );
+	setMainBody( _pBody );
+	
 }
 
 // ============================================================================
@@ -74,26 +77,7 @@ void Building::render ( QPainter& painter, const QRectF& /*rect*/, const Renderi
 Building* Building::createSmallBuilding( World* pWorld, double location, bool background )
 {
 	Building* pBuilding = new Building( pWorld );
-	
-	int housenum = ( qrand() % 4 ) + 1;
-	QString fileName = QString("house_small_%1.body").arg( housenum );
-	pBuilding->_pBody = BodyProvider::loadBody( fileName );
-	
-	b2Vec2 pos = b2Vec2(location, pWorld->ground()->height( location ) );
-	pBuilding->_width = 9;
-	pBuilding->_pBody->setPosition( pos );
-	pBuilding->_pBody->create( pWorld->b2world() );
-	pBuilding->setName( "Small building" );
-	pBuilding->_boundingRect = pBuilding->_pBody->shape().boundingRect().translated( vec2point( pos ));
-	
-	// set physical layer
-	if ( background ) pBuilding->_pBody->setLayers( PhysLayerBackground );
-	else pBuilding->_pBody->setLayers( PhysLayerBuildings );
-	
-	// set rendering layer
-	if ( background ) pBuilding->setRenderLayer( LayerBackground );
-	else pBuilding->setRenderLayer( LayerBuildings );
-	
+	pBuilding->initSmallBuilding( location, background );
 	
 	// add object
 	int objectClass = World::ObjectStatic | World::ObjectRendered;

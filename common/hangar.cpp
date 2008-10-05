@@ -81,7 +81,7 @@ void Hangar::timer1()
 			{
 				if ( pSystem->status() < 1.0 )
 				{
-					systems.insert( pSystem->status(), pSystem );
+					systems.insert( -pSystem->status(), pSystem );
 				}
 			}
 		}

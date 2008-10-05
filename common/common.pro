@@ -55,7 +55,8 @@ HEADERS += activeattachpoint.h \
  common.h \
  grounddecoration.h \
  hangar.h \
- message.h
+ message.h \
+ physicalobject.h
 
 
 SOURCES += activeattachpoint.cpp \
@@ -102,7 +103,8 @@ SOURCES += activeattachpoint.cpp \
  grounddecoration.cpp \
  hangar.cpp \
  message.cpp \
- common.cpp
+ common.cpp \
+ physicalobject.cpp
 
 LIBS += -L../lib \
   -lbox2d

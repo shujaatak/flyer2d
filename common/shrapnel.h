@@ -17,7 +17,7 @@
 #ifndef FLYERSHRAPNEL_H
 #define FLYERSHRAPNEL_H
 
-#include <worldobject.h>
+#include "physicalobject.h"
 
 namespace Flyer
 {
@@ -26,20 +26,15 @@ class Body;
 
 /**
 	Shrapnel is an short-lived objects that is created as a result of bodies being
-	detached or destroyen in explosion.
-	Shrapnel maintains list of it's bodies.
+	detached or destroyed in explosion.
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-
-class Shrapnel : public WorldObject
+class Shrapnel : public PhysicalObject
 {
 
 public:
 	Shrapnel( World* pWorld );
 	~Shrapnel();
-	
-	/// Renders object
-	virtual void render( QPainter& painter, const QRectF& rect, const RenderingOptions& options );
 	
 	/// Simualtes object
 	virtual void simulate( double dt );
@@ -47,7 +42,7 @@ public:
 	// config
 	
 	void setLifespan( double l ) { _lifespan = l; }
-	void addBody( Body* pBody ){ _bodies.append( pBody ); }
+	void addBody( Body* pBody );
 
 private:
 
@@ -55,8 +50,6 @@ private:
 	double _lifespan;	///< Maximum lifespan
 
 	// variables
-	QList<Body*> _bodies;
-	
 	double	_age;
 
 };

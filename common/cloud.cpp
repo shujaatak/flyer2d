@@ -110,6 +110,7 @@ Cloud* Cloud::createSmoke( World* pWorld, const b2Vec2& pos )
 	pSmoke->setName( "Smoke" );
 	
 	pWorld->addObject( pSmoke, World::ObjectStatic | World::ObjectRendered );
+	pWorld->addDecoration( pSmoke );
 	
 	return pSmoke;
 }

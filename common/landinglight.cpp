@@ -75,6 +75,9 @@ LandingLight::LandingLight( World* pWorld, double x, double angle )
 	
 	_damageManager->addSystem( _sysLight, 1 ); // 50/50
 	_damageManager->addSystem( NULL, 1 );
+	
+	// addself to decoration list
+	pWorld->addDecoration( this );
 }
 
 // ============================================================================

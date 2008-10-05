@@ -212,26 +212,26 @@ void PlaneBumblebee::createSystems()
 	
 	// route
 	s.start.Set( 400, 450 );
-	s.end.Set( 1300, 500 );
+	s.end.Set( 4300, 500 );
 	s.airspeed = 40;
 	_sysAutopilot->track().append( s );
 	
 	// approach
-	s.start.Set( 1300, 500 );
-	s.end.Set( 2050, 310 );
+	s.start.Set( 4300, 500 );
+	s.end.Set( 5050, 310 );
 	s.airspeed = 20;
 	_sysAutopilot->track().append( s );
 	
 	// touch down
-	s.start.Set( 2050, 310 );
-	s.end.Set( 2100, 302 );
+	s.start.Set( 5050, 310 );
+	s.end.Set( 5100, 302 );
 	s.airspeed = 12;
 	s.orders.insert( Autopilot::Land );
 	_sysAutopilot->track().append( s );
 	
 	// stop
-	s.start.Set( 2100, 302 );
-	s.end.Set( 2300, 300 );
+	s.start.Set( 5100, 302 );
+	s.end.Set( 5300, 300 );
 	s.airspeed = 0;
 	_sysAutopilot->track().append( s );
 	
@@ -369,7 +369,7 @@ void PlaneBumblebee::createDamageManagers()
 	_dmEngine->addSystem( _sysEngine, 9 );
 	_dmEngine->addSystem( NULL, 0 );
 	_dmEngine->addSystem( _sysEngineMounting, 1 );
-	_bodyEngine->shapeByName("main")->setDamageManager( _dmEngine );
+	_bodyEngine->setDamageManager( _dmEngine );
 	addDamageManager( _dmEngine );
 	
 	// wheel
@@ -379,7 +379,7 @@ void PlaneBumblebee::createDamageManagers()
 	_dmWheel->addSystem( _sysBrake, 1 );
 	_dmWheel->addSystem( _sysWheelMounting, 1 );
 	_dmWheel->addSystem( NULL, 8 );
-	_bodyWheel->shapeByName("main")->setDamageManager( _dmWheel );
+	_bodyWheel->setDamageManager( _dmWheel );
 	addDamageManager( _dmWheel );
 	
 	// leg
@@ -389,7 +389,7 @@ void PlaneBumblebee::createDamageManagers()
 	_dmLeg->addSystem( _sysLegMounting, 1 );
 	_dmLeg->addSystem( NULL, 3 );
 	addDamageManager( _dmLeg );
-	_bodyLeg->shapeByName("main")->setDamageManager( _dmLeg );
+	_bodyLeg->setDamageManager( _dmLeg );
 	
 	// hull
 	_dmHull = new DamageManager( 4E4 );
@@ -403,7 +403,7 @@ void PlaneBumblebee::createDamageManagers()
 	_dmHull->addSystem( _sysEngineMounting, 1 );
 	_dmHull->addSystem( NULL, 10 ); // 50% unused
 	addDamageManager( _dmHull );
-	_bodyHull->shapeByName("main")->setDamageManager(_dmHull );
+	_bodyHull->setDamageManager(_dmHull );
 	
 	// tail - wings and engin also could be damaged
 	_dmTail = new DamageManager( 3E4 );
@@ -413,7 +413,7 @@ void PlaneBumblebee::createDamageManagers()
 	_dmTail->addSystem( _sysTailMounting, 1 );
 	_dmTail->addSystem( NULL, 5 );
 	addDamageManager( _dmTail );
-	_bodyTail->shapeByName("main")->setDamageManager( _dmTail );
+	_bodyTail->setDamageManager( _dmTail );
 	
 }
 

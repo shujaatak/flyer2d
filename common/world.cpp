@@ -30,6 +30,7 @@
 #include "activeattachpoint.h"
 #include "common.h"
 #include "hangar.h"
+#include "b2dqt.h"
 
 #include "world.h"
 
@@ -52,12 +53,15 @@ class WorldContactListener : public b2ContactListener
 	virtual void Result(const b2ContactResult* pPoint )
 	{
 		// apply damage to directly involved shapes
-		void *pData1 = pPoint->shape1->GetUserData();
-		void *pData2 = pPoint->shape2->GetUserData();
+		void *pData1 = pPoint->shape1->GetBody()->GetUserData();
+		void *pData2 = pPoint->shape2->GetBody()->GetUserData();
 		double force = pPoint->normalImpulse / TIMESTEP;
 		
-		DamageManager* pDM1 = static_cast<DamageManager*>( pData1 );
-		DamageManager* pDM2 = static_cast<DamageManager*>( pData2 );
+		Body* pBody1 = static_cast<Body*>( pData1 );
+		Body* pBody2 = static_cast<Body*>( pData2 );
+		
+		DamageManager* pDM1 = pBody1 ? pBody1->damageManager() : NULL;
+		DamageManager* pDM2 = pBody2 ? pBody2->damageManager() : NULL;
 		 
 		double multiplier1 = 1.0;
 		double multiplier2 = 1.0;
@@ -97,7 +101,34 @@ class DestructionListener: public b2DestructionListener
 	virtual void SayGoodbye(b2Shape* ){}
 };
 
+/// Decoration pair callback (does nothing)
+class NullPairCallback : public b2PairCallback
+{
+public:
+	virtual ~NullPairCallback() {}
 
+	// This should return the new pair user data. It is ok if the
+	// user data is null.
+	virtual void* PairAdded(void* /*proxyUserData1*/, void* /*proxyUserData2*/){ return NULL; }
+
+	// This should free the pair's user data. In extreme circumstances, it is possible
+	// this will be called with null pairUserData because the pair never existed.
+	virtual void PairRemoved(void* /*proxyUserData1*/, void* /*proxyUserData2*/, void* /*pairUserData*/){}
+};
+
+/// Private data attached to each world object
+class ObjectPrivateData
+{
+public:
+	ObjectPrivateData()
+	{
+		lastRenderedIn = -1;
+		proxyId = -1;
+	}
+	
+	int lastRenderedIn;	///< No of step when the body was last renderd. Used ot prevent multiple rendering
+	int proxyId;		///< Id of proxy in decorations broadphase
+};
 
 // ============================================================================
 // Constructor
@@ -127,7 +158,8 @@ void World::render( QPainter& painter, const QRectF& rect )
 	
 	// get objects to be rendered in this bounding rect (TODO: use broadphase here)
 	QMultiMap<int, WorldObject* > objectsToRender;
-	// render
+	
+	/* TODO obsolete, non-broadphase-based search
 	foreach( WorldObject* pObject, _objects[ObjectRendered] )
 	{
 		QRectF br = pObject->boundingRect();
@@ -136,6 +168,59 @@ void World::render( QPainter& painter, const QRectF& rect )
 			objectsToRender.insert( pObject->renderLayer(), pObject );
 		}
 	}
+	*/
+	{
+		const int MAX_SHAPES = 2048; // max shapes in visible area. wild guess
+		QVector<b2Shape*> shapes( MAX_SHAPES );
+		int found = _pb2World->Query( rect2aabb( rect ), shapes.data(), MAX_SHAPES );
+		if ( found > MAX_SHAPES )
+		{
+			qDebug("More shapes than space in receiver!!!");
+		}
+		for( int i = 0; i < found; i++ )
+		{
+			b2Shape* pShape = shapes[i];
+			Body* pBody = static_cast<Body*>( pShape->GetBody()->GetUserData() );
+			if ( pBody )
+			{
+				// check if isnt already on the list
+				PhysicalObject* pObject = pBody->parent();
+				Q_ASSERT( pObject );
+				
+				ObjectPrivateData* pPrivate = static_cast<ObjectPrivateData*>( pObject->worldPrivateData );
+				if ( pPrivate && pPrivate->lastRenderedIn != _renders ) // NOTE body may be alredy destroye and thus not have private data attached
+				{
+					pPrivate->lastRenderedIn = _renders;
+					objectsToRender.insert( pObject->renderLayer(), pObject );
+				}
+			}
+		}
+	}
+	
+	// repeat search in decoration briad phase
+	{
+		const int MAX_OBJECTS = 1024; // max shapes in visible area. wild guess
+		QVector<WorldObject*> ojects( MAX_OBJECTS );
+		int found = _pDecorationBroadPhase->Query( rect2aabb( rect ), (void**)ojects.data(), MAX_OBJECTS );
+		if ( found > MAX_OBJECTS )
+		{
+			qDebug("More decrotions than space in receiver!!!");
+		}
+		for( int i = 0; i < found; i++ )
+		{
+			WorldObject* pObject = ojects[i];
+			
+			ObjectPrivateData* pPrivate = static_cast<ObjectPrivateData*>( pObject->worldPrivateData );
+			if ( pPrivate && pPrivate->lastRenderedIn != _renders ) // NOTE object may be alredy destroye and thus not have private data attached
+			{
+				pPrivate->lastRenderedIn = _renders;
+				objectsToRender.insert( pObject->renderLayer(), pObject );
+			}
+		}
+	}
+	
+	
+	
 	// TODO debug
 	//qDebug("Rendering %d of %d renderable objects"
 	//	, objectsToRender.size(), _objects[ObjectRendered].size() );
@@ -160,7 +245,7 @@ void World::render( QPainter& painter, const QRectF& rect )
 	}
 	
 	
-	
+	_renders ++;
 }
 
 // ============================================================================
@@ -188,18 +273,21 @@ void World::renderMap( QPainter& painter, const QRectF& rect )
 void World::initWorld()
 {
 	_steps = 0;
+	_renders = 0;
 	_timer1Time = 0.0;
+	_decorationsDirty = false;
 	
 	_boundary = QRectF( -15000, -500, 30000, 3000 ); // 30x3 km box
 	// create world
-	b2AABB worldAABB;
-	worldAABB.lowerBound.Set( _boundary.left(), _boundary.top() );
-	worldAABB.upperBound.Set(_boundary.right(), _boundary.bottom() );
+	b2AABB worldAABB = rect2aabb( _boundary );
+	//worldAABB.lowerBound.Set( _boundary.left(), _boundary.top() );
+	//worldAABB.upperBound.Set(_boundary.right(), _boundary.bottom() );
 	
 	// gravity
 	b2Vec2 gravity(0.0, -9.81);
 
 	_pb2World = new b2World(  worldAABB, gravity, true );
+	_pDecorationBroadPhase = new b2BroadPhase( worldAABB, new NullPairCallback() );
 	
 	// add contact listener to detect damage
 	_pb2World->SetContactListener( new WorldContactListener() );
@@ -256,13 +344,13 @@ void World::initWorld()
 		seed.append( section );
 		
 		// fifth section - next airfield
-		section.x = 2000; // at 10th km // TODO temporarly reduced
+		section.x = 5000; // at 10th km // TODO temporarly reduced
 		section.y = 300;
 		section.canBeDividedRight = false;
 		seed.append( section );
 		
 		// between airport and mountains
-		section.x = 2350;
+		section.x = 5350;
 		section.y = 300;
 		section.maxSlope = 0.2;
 		section.canBeDividedRight = true;
@@ -306,30 +394,28 @@ void World::initWorld()
 	_pPlayerPlane->activeAttachPoints().first()->attach( pBomb->attachPoint() );
 	
 	// enemy plane (!)
-	/*
+	_pEnemyPlane = NULL;
 	PlaneBumblebee* pEnemy = new PlaneBumblebee( this, QPointF( -200, 400 ), 0.0 );
 	pEnemy->mainBody()->b2body()->SetLinearVelocity( b2Vec2( 30, 0 ) ); // some initial speed
 	pEnemy->setAutopilot( true ); // turn on autopilot
 	addObject( pEnemy, ObjectRendered | ObjectSide2 | ObjectSimulated | ObjectPlane | ObjectRenderedMap );
 	_pEnemyPlane = pEnemy; // debug variable
-	*/
-	_pEnemyPlane = NULL;
 	
 	// airfields
 	addObject( new Airfield( this, -50, 250 ), ObjectRendered | ObjectAirfield | ObjectSide1 | ObjectRenderedMap  );
-	addObject( new Airfield( this, 2050, 2300 ), ObjectRendered | ObjectAirfield | ObjectSide1 | ObjectRenderedMap  );
+	addObject( new Airfield( this, 5050, 5300 ), ObjectRendered | ObjectAirfield | ObjectSide1 | ObjectRenderedMap  );
 	
 	// landing lights
 	addObject( new LandingLight( this, -50, M_PI-0.25 ),  ObjectRendered | ObjectSimulated );
 	addObject( new LandingLight( this, 250, 0.25 ),  ObjectRendered| ObjectSimulated  );
 	
-	addObject( new LandingLight( this, 2050, M_PI-0.25 ),  ObjectRendered | ObjectSimulated  );
-	addObject( new LandingLight( this, 2300, 0.25 ),  ObjectRendered | ObjectSimulated  );
+	addObject( new LandingLight( this, 5050, M_PI-0.25 ),  ObjectRendered | ObjectSimulated  );
+	addObject( new LandingLight( this, 5300, 0.25 ),  ObjectRendered | ObjectSimulated  );
 	
 	// AA batteries
-	//addObject( new AntiAirBattery( this, 3000, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRendered | ObjectSide2 | ObjectRenderedMap   );
-	//addObject( new AntiAirBattery( this, 3050, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRendered | ObjectSide2 | ObjectRenderedMap  );
-	//addObject( new AntiAirBattery( this, 3100, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRendered | ObjectSide2 | ObjectRenderedMap  );
+	addObject( new AntiAirBattery( this, 4750, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRendered | ObjectSide2 | ObjectRenderedMap   );
+	addObject( new AntiAirBattery( this, 4800, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRendered | ObjectSide2 | ObjectRenderedMap  );
+	addObject( new AntiAirBattery( this, 5500, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRendered | ObjectSide2 | ObjectRenderedMap  );
 	addObject( new AntiAirBattery( this, -1500, 1.2 ), ObjectInstallation | ObjectSimulated | ObjectRendered| ObjectSide2 | ObjectRenderedMap   );
 	
 	// sky gradient
@@ -383,7 +469,12 @@ void World::simulate( double dt )
 	}
 	_timer1Time += dt;
 	
-	
+	// commit changes to decroation broadphase
+	if ( _decorationsDirty )
+	{
+		_pDecorationBroadPhase->Commit();
+		_decorationsDirty = false;
+	}
 	
 	_steps += dt/TIMESTEP;
 }
@@ -410,6 +501,12 @@ void World::addObject( WorldObject* pObject, int objectClass )
 			_objects[bit].append( pObject );
 		}
 	}
+	
+	// attach private data
+	if ( ! pObject->worldPrivateData )
+	{
+		pObject->worldPrivateData = new ObjectPrivateData();
+	}
 }
 
 // ============================================================================
@@ -430,6 +527,18 @@ void World::removeObject( WorldObject* pObject, bool destroy )
 	if ( destroy )
 	{
 		_objectsToDestroy.append( pObject );
+	}
+	
+	// remove private data
+	ObjectPrivateData* pPrivate = static_cast<ObjectPrivateData*>( pObject->worldPrivateData );
+	if ( pPrivate )
+	{
+		if ( pPrivate->proxyId >= 0 )
+		{
+			removeDecoration( pObject );
+		}
+		delete pPrivate;
+		pObject->worldPrivateData = NULL;
 	}
 }
 
@@ -496,6 +605,86 @@ QList<Machine*> World::findMachines( const QRectF& area, int types ) const
 	
 	return result;
 	
+}
+
+// ============================================================================
+/// Adds object to decartion list. Objects ounding rect will be used to lacate, and it will be
+/// rendered when approrpiate.
+/// Object should be already add to the world using addObject().
+void World::addDecoration( WorldObject* pObject )
+{
+	Q_ASSERT( pObject );
+	
+	// create p[rovate data, if not present
+	if ( ! pObject->worldPrivateData )
+	{
+		pObject->worldPrivateData = new ObjectPrivateData();
+	}
+	
+	
+	ObjectPrivateData* pPrivate = static_cast<ObjectPrivateData*>( pObject->worldPrivateData );
+	
+	
+	if ( pPrivate->proxyId < 0 )
+	{
+		QRectF br = pObject->boundingRect();
+		b2AABB aabb = rect2aabb( br );
+		if ( aabb.IsValid() && ! br.isNull() )
+		{
+			pPrivate->proxyId = int
+				( _pDecorationBroadPhase->CreateProxy( rect2aabb( br ), pObject )
+				);
+		}
+		else
+		{
+			qWarning("Invalid decoration boundary");
+		}
+	}
+	else
+	{
+		qWarning("Attempt to add object once again to decoration broadphase");
+	}
+}
+
+// ============================================================================
+/// Sneds ifnormation to decorartion broadphase that object has moved.
+void World::decorationMoved( WorldObject* pObject )
+{
+	Q_ASSERT( pObject );
+	ObjectPrivateData* pPrivate = static_cast<ObjectPrivateData*>( pObject->worldPrivateData );
+	Q_ASSERT( pPrivate );
+	
+	if ( pPrivate->proxyId >= 0 )
+	{
+		uint16 id = uint16( pPrivate->proxyId );
+		_pDecorationBroadPhase->MoveProxy( id, rect2aabb( pObject->boundingRect() ) );
+		_decorationsDirty = true;
+		
+	}
+	else
+	{
+		qWarning("Attempt to move decoration which is not in broadphase");
+	}
+}
+
+// ============================================================================
+/// Removes object from decortion boradphase. This doesn't destroy objetct, nor removes it from the world.
+void World::removeDecoration( WorldObject* pObject )
+{
+	Q_ASSERT( pObject );
+	ObjectPrivateData* pPrivate = static_cast<ObjectPrivateData*>( pObject->worldPrivateData );
+	Q_ASSERT( pPrivate );
+	
+	if ( pPrivate->proxyId >= 0 )
+	{
+		uint16 id = uint16( pPrivate->proxyId );
+		_pDecorationBroadPhase->DestroyProxy( id );
+		pPrivate->proxyId = -1;
+	}
+	else
+	{
+		qWarning("Attempt to destroy decoration which is not in broadphase");
+	}
 }
 
 }

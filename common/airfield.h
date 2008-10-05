@@ -32,7 +32,7 @@ public:
 	
 	virtual ~Airfield();
 	
-	virtual QRectF boundingRect();
+	virtual QRectF boundingRect() const;
 	virtual void renderOnMap(QPainter& painter, const QRectF& rect );
 	virtual void render(QPainter& painter, const QRectF& rect, const RenderingOptions& options );
 

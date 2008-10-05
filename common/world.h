@@ -28,6 +28,7 @@
 
 class b2World;
 class b2Body;
+class b2BroadPhase;
 
 namespace Flyer {
 
@@ -114,6 +115,17 @@ public:
 	QList<Machine*> findMachines( const QRectF& area, int types ) const;
 	
 	
+	// decoration
+	
+	/// Registers object in decoration database, using its bounding rect.
+	void addDecoration( WorldObject* pObject );
+	
+	/// Changes decoration position in brodphase
+	void decorationMoved( WorldObject* pObject );
+	
+	/// Removes object from decorations broadphase
+	void removeDecoration( WorldObject* pObject );
+	
 	Plane* _pEnemyPlane; // TODO debug, remove
 	
 	
@@ -131,7 +143,9 @@ private:
 	Plane*	_pPlayerPlane;			///< Player's plane
 	Ground*	_pGround;				///< Ground body
 	QRectF	_boundary;				///< World boundary
-	Environment	_environment;		///< Encironment data
+	Environment	_environment;		///< Environment data
+	b2BroadPhase*	_pDecorationBroadPhase;	///< Spatal database of non-physical objects
+	bool	_decorationsDirty;		///< Flag - decroatrion broadphase was modified  and should be commited.
 	
 	/// List of objects to be destroyed during next simulation stet
 	QLinkedList<WorldObject*> _objectsToDestroy;
@@ -140,6 +154,7 @@ private:
 	QLinearGradient	_skyGradient;	///< sky gradient (experimental)
 	
 	int		_steps;					///< Simulation steps so far
+	int		_renders;				///< Renders so far
 	double	_timer1Time;			///< Time from lats 1-second timer event
 	
 	void createTown( double start, double end, bool smallHouses ); // NOTE was 'small' here, but smetimes on Windows 'small' is defined as 'char' :(

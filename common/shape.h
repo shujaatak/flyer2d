@@ -56,8 +56,6 @@ public:
 	QString name() const { return _name; }
 	void setName( const QString& n ) { _name = n; }
 	
-	void setDamageManager( DamageManager* pManager );	///< Associates damage manager with shape
-
 protected:
 
 	/// Puts object into stream

@@ -26,7 +26,8 @@
 namespace Flyer
 {
 
-static const double DEFAULT_ROTATION_SPEED = 1.0; // resonabledefault
+static const double DEFAULT_ROTATION_SPEED = 1.0; // resonable default
+static const double ACCEPTABLE_DEFLECTION = 0.1;	///< Acceptable deflectin form angle when trigger is pulled
 
 // ============================================================================
 // Constructor
@@ -97,7 +98,7 @@ void AntiAirGunOperator::simulate ( double dt )
 			}
 			
 			// decide if shoot
-			if ( fabs( _desiredGunAngle - _currentAngle ) < 0.2 ) // TODO use constant or what
+			if ( fabs( _desiredGunAngle - _currentAngle ) < ACCEPTABLE_DEFLECTION )
 			{
 				// check if in angle
 				if ( fabs(_currentAngle) > _minAngle && fabs(_currentAngle ) < _maxAngle )
