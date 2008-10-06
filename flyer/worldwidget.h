@@ -43,18 +43,11 @@ public:
 	Plane* plane() const;
 	World* world() const;
 
-	void addWidget( QWidget* );	///< Adds widget to sidplay
-
 protected:
 
 	virtual void resizeEvent( QResizeEvent* );
 
-private slots:
-
-	void onTimer();
-
 private:
-	QTimer _timer;
 	WorldScene* _pScene;
 };
 

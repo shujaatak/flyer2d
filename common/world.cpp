@@ -16,21 +16,13 @@
 
 #include "Box2D.h"
 
-#include "planebumblebee.h"
 #include "ground.h"
-#include "airfield.h"
-#include "landinglight.h"
-#include "damagemanager.h"
-#include "antiairbattery.h"
-#include "explosion.h"
-#include "joint.h"
-#include "building.h"
 #include "renderingoptions.h"
-#include "ironbomb.h"
-#include "activeattachpoint.h"
 #include "common.h"
-#include "hangar.h"
 #include "b2dqt.h"
+#include "damagemanager.h"
+#include "joint.h"
+#include "machine.h"
 
 #include "world.h"
 
@@ -132,9 +124,42 @@ public:
 
 // ============================================================================
 // Constructor
-World::World()
+World::World( const QRectF& boundary )
 {
-	initWorld();
+	_steps = 0;
+	_renders = 0;
+	_timer1Time = 0.0;
+	_decorationsDirty = false;
+	
+	_boundary = boundary;
+	// create world
+	b2AABB worldAABB = rect2aabb( _boundary );
+	
+	// gravity
+	b2Vec2 gravity(0.0, -9.81);
+
+	_pb2World = new b2World(  worldAABB, gravity, true );
+	_pDecorationBroadPhase = new b2BroadPhase( worldAABB, new NullPairCallback() );
+	
+	// add contact listener to detect damage
+	_pb2World->SetContactListener( new WorldContactListener() );
+	
+	// add destruction listener
+	_pb2World->SetDestructionListener( new DestructionListener() );
+	
+	
+	// init pointers
+	_pGround		= NULL;
+	_pPlayerPlane	= NULL;
+	_pEnemyPlane	= NULL; // TODO get rid of this already
+	
+	// sky gradient
+	_skyGradient.setStart( _boundary.left() + _boundary.width()/ 2, _boundary.top() );
+	_skyGradient.setFinalStop( _boundary.left() + _boundary.width()/ 2, _boundary.bottom() );
+	_skyGradient.setColorAt( 0.0, QColor("#99B0F4"));
+	_skyGradient.setColorAt( 1.0, QColor("#0D47F4"));
+	
+
 }
 
 // ============================================================================
@@ -165,17 +190,6 @@ void World::render( QPainter& painter, const QRectF& rect )
 	
 	// get objects to be rendered in this bounding rect (TODO: use broadphase here)
 	QMultiMap<int, WorldObject* > objectsToRender;
-	
-	/* TODO obsolete, non-broadphase-based search
-	foreach( WorldObject* pObject, _objects[ObjectRendered] )
-	{
-		QRectF br = pObject->boundingRect();
-		if( br.isNull() || rect.intersects( br ) )
-		{
-			objectsToRender.insert( pObject->renderLayer(), pObject );
-		}
-	}
-	*/
 	{
 		const int MAX_SHAPES = 2048; // max shapes in visible area. wild guess
 		QVector<b2Shape*> shapes( MAX_SHAPES );
@@ -276,7 +290,26 @@ void World::renderMap( QPainter& painter, const QRectF& rect )
 }
 
 // ============================================================================
+// Initializes random ground
+void World::initRandomGround( const QList<Ground::Section>& seed )
+{
+	Q_ASSERT( ! _pGround );
+	_pGround = new Ground( this );
+	_pGround->random( seed );
+	addObject( _pGround, ObjectRenderedMap );
+}
+
+// ============================================================================
+// Sets player planme
+void World::setPlayerPlane( Plane* pPlane )
+{
+	Q_ASSERT( ! _pPlayerPlane );
+	_pPlayerPlane = pPlane;
+}
+
+// ============================================================================
 // Initializes world
+	/*
 void World::initWorld()
 {
 	_steps = 0;
@@ -287,8 +320,6 @@ void World::initWorld()
 	_boundary = QRectF( -15000, -500, 30000, 3000 ); // 30x3 km box
 	// create world
 	b2AABB worldAABB = rect2aabb( _boundary );
-	//worldAABB.lowerBound.Set( _boundary.left(), _boundary.top() );
-	//worldAABB.upperBound.Set(_boundary.right(), _boundary.bottom() );
 	
 	// gravity
 	b2Vec2 gravity(0.0, -9.81);
@@ -425,12 +456,6 @@ void World::initWorld()
 	addObject( new AntiAirBattery( this, 5500, 2.4 ), ObjectInstallation | ObjectSimulated | ObjectRendered | ObjectSide2 | ObjectRenderedMap  );
 	addObject( new AntiAirBattery( this, -1500, 1.2 ), ObjectInstallation | ObjectSimulated | ObjectRendered| ObjectSide2 | ObjectRenderedMap   );
 	
-	// sky gradient
-	_skyGradient.setStart( _boundary.left() + _boundary.width()/ 2, _boundary.top() );
-	_skyGradient.setFinalStop( _boundary.left() + _boundary.width()/ 2, _boundary.bottom() );
-	_skyGradient.setColorAt( 0.0, QColor("#99B0F4"));
-	_skyGradient.setColorAt( 1.0, QColor("#0D47F4"));
-	
 	// create towns
 	createTown( 400, 800, true ); // TODO teporarly disanled to torack down texture problems
 	createTown( 1300, 200, true );
@@ -438,8 +463,8 @@ void World::initWorld()
 	// hangar on runway
 	addObject( new Hangar( this, 40 ), ObjectInstallation | ObjectRendered | ObjectSide1 );
 	
-	
 }
+	*/
 
 // ============================================================================
 // Simulation step
@@ -556,30 +581,6 @@ double World::timestep() const
 	return TIMESTEP;
 }
 
-// ============================================================================
-/// Creates town at specified locations
-void World::createTown( double start, double end, bool /*small*/ )
-{
-	// foreground
-	double x = start;
-	while( x < end )
-	{
-		Building* pBuilding = Building::createSmallBuilding( this, x, false );
-		double spacing = 2.0 + ((qrand()%400)/100.0);
-		
-		x += spacing * pBuilding->width();
-	}
-	
-	// background
-	x = start + 20.0 * ((qrand()%100)/100.0);
-	while( x < end )
-	{
-		Building* pBuilding = Building::createSmallBuilding( this, x, true );
-		double spacing = 2.0 + ((qrand()%400)/100.0);
-		
-		x += spacing * pBuilding->width();
-	}
-}
 
 // ============================================================================
 /// Finds machines which have their positions in specified area.

@@ -25,6 +25,7 @@
 
 #include "worldobject.h"
 #include "environment.h"
+#include "ground.h"
 
 class b2World;
 class b2Body;
@@ -50,7 +51,6 @@ public:
 		ObjectSimulated				= 0x000001,
 		ObjectStatic				= 0x000002,
 		
-		ObjectRendered				= 0x000004,		///< Object is rendered on the game screen
 		ObjectRenderedMap			= 0x000080,		///< Object is rendered in the minimap
 		
 		// class
@@ -67,9 +67,16 @@ public:
 	};
 	
 
-	World();
+	World( const QRectF& boundary );
 	virtual ~World();
+
+	// initialization
 	
+	void initRandomGround( const QList<Ground::Section>& seed );
+	void setPlayerPlane( Plane* pPlane );
+	
+	// other
+
 	/// Renders world
 	void render( QPainter& painter, const QRectF& rect );
 	
@@ -156,8 +163,6 @@ private:
 	int		_steps;					///< Simulation steps so far
 	int		_renders;				///< Renders so far
 	double	_timer1Time;			///< Time from lats 1-second timer event
-	
-	void createTown( double start, double end, bool smallHouses ); // NOTE was 'small' here, but smetimes on Windows 'small' is defined as 'char' :(
 	
 };
 

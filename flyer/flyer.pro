@@ -10,15 +10,28 @@ QT += opengl
 DESTDIR = ../bin
 
 # Input
-HEADERS += mainwindow.h statuswindow.h worldwidget.h
-FORMS += mainwindow.ui statuswindow.ui
-SOURCES += main.cpp mainwindow.cpp statuswindow.cpp worldwidget.cpp
-INCLUDEPATH += ../common \
-  ../include
+HEADERS += mainwindow.h statuswindow.h worldwidget.h \
+ worldscene.h \
+ game.h \
+ gameui.h \
+ gameuidialog.h \
+ gameuimain.h
+FORMS += mainwindow.ui statuswindow.ui \
+ GameUIMain.ui
+SOURCES += main.cpp mainwindow.cpp statuswindow.cpp worldwidget.cpp \
+ worldscene.cpp \
+ game.cpp \
+ gameui.cpp \
+ gameuidialog.cpp \
+ gameuimain.cpp
 
 TARGETDEPS += ../lib/libflyercommon.a
 
 CONFIG -= release
 
 CONFIG += debug
+
+INCLUDEPATH += ../common \
+  ../common/objects/ \
+  ../include
 

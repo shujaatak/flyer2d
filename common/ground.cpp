@@ -552,7 +552,7 @@ void Ground::prepareTextures()
 		
 		GroundDecoration* pDecoration = new GroundDecoration( world() );
 		pDecoration->init( textureIndices, segmentRect, t, & _textures );
-		world()->addObject( pDecoration, World::ObjectStatic | World::ObjectRendered );
+		world()->addObject( pDecoration, World::ObjectStatic );
 	}
 }
 

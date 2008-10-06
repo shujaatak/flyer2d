@@ -219,7 +219,7 @@ void PhysicalObject::detachBody( Body* pBody )
 		Shrapnel*	pShrapnel = new Shrapnel( world() );
 		pShrapnel->setLayers( layers() );
 		pShrapnel->addBody( pCopy );
-		world()->addObject( pShrapnel, World::ObjectSimulated | World::ObjectRendered );
+		world()->addObject( pShrapnel, World::ObjectSimulated );
 		
 		QList<Body*> connectedBodies;
 		b2JointEdge* pJoint = pBody->b2body()->GetJointList();

@@ -14,50 +14,56 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#include "contactfuse.h"
-#include "world.h"
-#include "machine.h"
-#include "common.h"
+#include "worldscene.h"
+#include "gameuimain.h"
 
-#include "explosion.h"
+#include "gameui.h"
 
 namespace Flyer
 {
 
 // ============================================================================
 // Constructor
-ContactFuse::ContactFuse ( Machine* pParent, const QString& name ) : System ( pParent, name )
+GameUI::GameUI( WorldScene *pScene ) : QObject( pScene )
 {
-	_energy = 0;
-	_damageReceived = 0;
-	_destroyed = false;
+	_pScene = pScene;
+	_pMainDialog = NULL;
 }
 
 // ============================================================================
 // Destructor
-ContactFuse::~ContactFuse()
+GameUI::~GameUI()
 {
 }
 
 // ============================================================================
-// Handles damage
-void ContactFuse::damage ( double force )
+/// shows the UI
+void GameUI::show()
 {
-	_damageReceived += force;
-	//qDebug("fuse: %g/%g", _damageReceived, damageCapacity() ); TODO remove
-	if ( ! _destroyed && _damageReceived >= damageCapacity() )
-	{
-		Explosion* pExplosion = new Explosion( parent()->world() );
-		pExplosion->setEnergy( _energy );
-		pExplosion->setCenter( parent()->position() );
-		pExplosion->setRenderLayer( LayerForeground );
+	Q_ASSERT( ! _pMainDialog );
+	Q_ASSERT( _pScene );
 	
-		//add explosion to the world, remove parent
-		parent()->world()->addObject( pExplosion, World::ObjectSimulated );
-		parent()->world()->addDecoration( pExplosion ); // TODO explosion should add itself
-		parent()->world()->removeObject( parent() );
-		_destroyed = true;
+	_pMainDialog = new GameUIMain( _pScene );
+	_pScene->addWindow( _pMainDialog );
+
+}
+
+// ============================================================================
+/// hides the UI
+void GameUI::hide()
+{
+	if ( _pMainDialog )
+	{
+		_pMainDialog->deleteLater();
+		_pMainDialog = NULL;
 	}
 }
 
-}
+
+
+} // ns
+
+
+// EOF
+
+

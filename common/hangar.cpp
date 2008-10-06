@@ -115,7 +115,7 @@ void Hangar::timer1()
 			{
 				IronBomb* pBomb = new IronBomb( world() );
 				pBomb->init( QPointF( 20, 302 ), 0.0 );
-				world()->addObject( pBomb, World::ObjectRendered | World::ObjectSimulated );
+				world()->addObject( pBomb, World::ObjectSimulated );
 				
 				// TODO DEBUG
  				pBomb->setRenderLayer( LayerForeground ); 
@@ -123,7 +123,7 @@ void Hangar::timer1()
 				// attache the bomb
 				pPoint->attach( pBomb->attachPoint() );
 				
-				pPlane->addSystemMessage("Bomb reattached");
+				pPlane->addSystemMessage("Bomb attached. Go get them!");
 				return;
 			}
 		}

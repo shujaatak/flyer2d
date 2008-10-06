@@ -97,7 +97,7 @@ void Gun::simulate( double dt )
 			
 			// create bullet
 			Bullet* pBullet = new Bullet( parent()->world() );			
-			parent()->world()->addObject( pBullet, World::ObjectSimulated | World::ObjectRendered );
+			parent()->world()->addObject( pBullet, World::ObjectSimulated );
 			
 			
 			pBullet->setMass( _mass );

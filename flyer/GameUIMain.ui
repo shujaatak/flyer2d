@@ -1,0 +1,96 @@
+<ui version="4.0" >
+ <class>GameUIMain</class>
+ <widget class="QDialog" name="GameUIMain" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>269</width>
+    <height>247</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Main Menu</string>
+  </property>
+  <layout class="QVBoxLayout" >
+   <item>
+    <widget class="QPushButton" name="buttonRespawn" >
+     <property name="enabled" >
+      <bool>false</bool>
+     </property>
+     <property name="text" >
+      <string>Respawn</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="buttonNewGame" >
+     <property name="toolTip" >
+      <string>Start new game</string>
+     </property>
+     <property name="text" >
+      <string>Restart game</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="buttonHelp" >
+     <property name="toolTip" >
+      <string>Open help window</string>
+     </property>
+     <property name="text" >
+      <string>Help</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer>
+     <property name="orientation" >
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" >
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QPushButton" name="buttonResume" >
+     <property name="toolTip" >
+      <string>Return to game</string>
+     </property>
+     <property name="text" >
+      <string>Resume</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer>
+     <property name="orientation" >
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" >
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QPushButton" name="buttonQuit" >
+     <property name="toolTip" >
+      <string>Quit Flyer 2D</string>
+     </property>
+     <property name="text" >
+      <string>Quit</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
