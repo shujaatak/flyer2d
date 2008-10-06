@@ -140,7 +140,7 @@ void Autopilot::controlKeepLevel( double dt )
 }
 
 // ============================================================================
-/// implements 'follow path' mode
+/// Implements 'follow path' mode
 void Autopilot::controlFollowPath( double dt )
 {
 	// check preconditions
@@ -192,7 +192,7 @@ void Autopilot::controlFollowPath( double dt )
 	if ( u > 1.0 )
 	{
 		_track.pop_front();
-		qDebug("autopilot: taking next segment");
+		//qDebug("autopilot: taking next segment");
 		controlFollowPath( dt ); // aim at next segment
 		return;
 	}
@@ -256,7 +256,7 @@ void Autopilot::controlFollowPath( double dt )
 	{
 		// aerobatics - minimize angle error
 		// TODO
-		qDebug("don't know how to do aerobatics");
+		qDebug("autopilot: don't know how to do aerobatics");
 	}
 	
 	// control speed
@@ -297,14 +297,14 @@ void Autopilot::controlFollowPath( double dt )
 /// Debug render autopliot track
 void Autopilot::render( QPainter& painter, const QRectF&, const RenderingOptions& )
 {
-	/* TODO debug draw */
+	/* TODO debug draw 
 	painter.setPen( QPen( Qt::blue, 0 ) );
 	
 	foreach( const TrackSegment& segment, _track )
 	{
 		painter.drawLine( vec2point( segment.start ), vec2point( segment.end ) );
 	}
-	/**/
+	*/
 }
 
 }

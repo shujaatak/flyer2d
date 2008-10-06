@@ -80,7 +80,7 @@ Building* Building::createSmallBuilding( World* pWorld, double location, bool ba
 	pBuilding->initSmallBuilding( location, background );
 	
 	// add object
-	int objectClass = World::ObjectStatic | World::ObjectRendered;
+	int objectClass = World::ObjectStatic;
 	pWorld->addObject( pBuilding, objectClass );
 	
 	return pBuilding;

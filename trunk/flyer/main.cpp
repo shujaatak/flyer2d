@@ -16,6 +16,7 @@
 
 #include <QApplication>
 #include <QDateTime>
+#include <QStyleFactory>
 
 #include "mainwindow.h"
 
@@ -24,7 +25,15 @@ int main( int argc, char** argv )
 	qsrand( QDateTime::currentDateTime().toTime_t() );
 	QApplication app( argc, argv );
 	
+	QStringList styles = QStyleFactory::keys();
+	if ( styles.contains( "Plastique" ) )
+	{
+		app.setStyle( QStyleFactory::create( "Plastique" ) );
+	}
+	
 	Flyer::MainWindow mw;
+	
+	
 	
 	mw.show();
 	

@@ -14,54 +14,37 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#ifndef FLYERMESSAGE_H
-#define FLYERMESSAGE_H
+#ifndef FLYERGAMEUIDIALOG_H
+#define FLYERGAMEUIDIALOG_H
 
-#include <QString>
+#include <QDialog>
 
 namespace Flyer
 {
 
+class WorldScene;	// TODO using WorldScene as game/world interface is ugly!
+
 /**
-Text message. Stores radio and syster mmessages.
+Base class for dialogs used im game UI.
 @author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-
-class Message
+class GameUIDialog : public QDialog
 {
 
 public:
+	GameUIDialog( WorldScene* pScene );
+	virtual ~GameUIDialog();
 
-	enum Type			/// Message type
-	{
-		System,			///< Machine systems message
-		Game,			///< Game message
-		Radio,			///< Radio message
-	};
-
-	Message();
-	Message( const QString& text, double time, Type type );
-	
-	/// Initializes instance
-	void init( const QString& text, double time, Type type );
-
-	// properties
-	
-	QString text() const { return _text; }
-	double time() const { return _time; }
-	Type type() const { return _type; }
-	
+	WorldScene* scene() const { return _pScene; }
 
 private:
 
-	QString _text;	///< Message text
-	double	_time;	///< Time when message is created (game clock)
-	Type	_type;	///< Message type
+	WorldScene* _pScene;
 };
 
 }
 
-#endif // FLYERMESSAGE_H
+#endif // FLYERGAMEUIDIALOG_H
 
 // EOF
 

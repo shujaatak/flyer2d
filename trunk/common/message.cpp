@@ -29,17 +29,18 @@ Message::Message()
 
 // ============================================================================
 // Constructor
-Message::Message( const QString& text, double time )
+Message::Message( const QString& text, double time, Type type  )
 {
-	init( text, time );
+	init( text, time, type );
 }
 
 // ============================================================================
 /// Initializes message.
-void Message::init( const QString& text, double time )
+void Message::init( const QString& text, double time, Type type  )
 {
 	_text = text;
 	_time = time;
+	_type = type;
 }
 
 

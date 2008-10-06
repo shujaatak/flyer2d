@@ -14,54 +14,44 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#ifndef FLYERMESSAGE_H
-#define FLYERMESSAGE_H
+#ifndef FLYERGAMEUI_H
+#define FLYERGAMEUI_H
 
-#include <QString>
+#include <QObject>
 
 namespace Flyer
 {
 
+class WorldScene;
+class GameUIDialog;
+
 /**
-Text message. Stores radio and syster mmessages.
+Mother class for In-game UI.
 @author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-
-class Message
+class GameUI : public QObject
 {
+	Q_OBJECT
 
 public:
-
-	enum Type			/// Message type
-	{
-		System,			///< Machine systems message
-		Game,			///< Game message
-		Radio,			///< Radio message
-	};
-
-	Message();
-	Message( const QString& text, double time, Type type );
+	GameUI( WorldScene* pScene );
+	~GameUI();
 	
-	/// Initializes instance
-	void init( const QString& text, double time, Type type );
-
-	// properties
+	/// shows the UI
+	void show();
 	
-	QString text() const { return _text; }
-	double time() const { return _time; }
-	Type type() const { return _type; }
-	
+	/// hide the UI
+	void hide();
 
 private:
 
-	QString _text;	///< Message text
-	double	_time;	///< Time when message is created (game clock)
-	Type	_type;	///< Message type
+	WorldScene* _pScene;
+	GameUIDialog* _pMainDialog;
 };
 
 }
 
-#endif // FLYERMESSAGE_H
+#endif // FLYERGAMEUI_H
 
 // EOF
 

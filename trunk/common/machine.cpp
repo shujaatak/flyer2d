@@ -179,7 +179,7 @@ void Machine::addPassiveAttachPoint( PassiveAttachPoint* pPoint )
 /// Ads system message to message queue.
 void Machine::addSystemMessage( const QString& text )
 {
-	_messages.append( Message( text, world()->time() ) );
+	_messages.append( Message( text, world()->time(), Message::System ) );
 }
 
 
