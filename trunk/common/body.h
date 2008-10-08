@@ -36,6 +36,7 @@ namespace Flyer
 
 class RenderingOptions;
 class PhysicalObject;
+class World;
 
 /**
 	Wrap around b2Body. It rembeers it's shapes and know how to re-create itself.
@@ -49,10 +50,10 @@ public:
 	virtual ~Body();
 	
 	/// Creates body
-	void create( const b2BodyDef& def, b2World* pWorld );
+	void create( const b2BodyDef& def, World* pWorld );
 	
 	/// Creates body (with pres-set def)
-	void create( b2World* pWorld );
+	void create( World* pWorld );
 	
 	/// Destroys physical representation
 	void destroy();
@@ -62,6 +63,9 @@ public:
 	
 	/// Retruns underlying box2d body
 	b2Body* b2body() const { return _pBody; }
+	
+	
+	World* world() const { return _pWorld; }		///< World in which the body exists
 	
 	/// Returns body definition. Usable only before creation.
 	b2BodyDef& def() { return _definition; }
@@ -129,10 +133,37 @@ public:
 	PhysicalObject* parent() const { return _pParent; }
 	void setParent( PhysicalObject* p ) { _pParent = p; }
 
-	///< Associates damage manager with body
+	// simualtion
+	
+	void wakeUp();		///< Stars simulating body
+	void sleep();		///< Stops simulating body
+	
+	/// Simualates body
+	void simulate( double dt );
+
+	// damage
+
+	/// Associates damage manager with body
 	void setDamageManager( DamageManager* pManager ){ _pDamageManager = pManager; }
 	DamageManager* damageManager() const { return _pDamageManager; }
+	
+	void setDamageCapacity( double c ) { _damageCapacity = c; }
+	double damageCapacity() const { return _damageCapacity; }
+	
+	void setDamageTolerance(  double t ) { _damageTolerance = t; }
+	double damageTolerance() const { return _damageTolerance; }
+	
+	void setDamageMultiplier( double dm ) { _damageMultiplier = dm; }
+	double damageMultiplier() const { return _damageMultiplier; }
+	
+	void setHeats( bool h ) { _heats = h; }			///< Sets if body heats
+	bool heats() const { return _heats; }
 
+	void contact( double force );		///< Information from physics engine - contact force
+	
+	void heat( double energy );			///< heats the body
+	
+	
 protected:
 
 	/// Puts object into stream
@@ -148,14 +179,30 @@ private:
 	// operations
 	bool doIsConnectedTo( Body* pBody, QList<const Body*>& visited ) const;
 
+	// config
+	
 	QString		_name;			///< Body name
 	b2Body*		_pBody;
 	b2BodyDef	_definition;
 	QList<Shape>	_shapes;
+	PhysicalObject*	_pParent;	///< Object which owns this body
+	World*			_pWorld;
+	
+	// damage support
+	DamageManager*	_pDamageManager;	///< Associated damage manager
+	double			_damageCapacity;	///< How many damage body can take until broken
+	double			_damageTolerance;	///< How big force is accepted w/o damaging body
+	double			_damageMultiplier;	///< Multiplier of damage caused by this body
+	bool			_heats;				///< Flag - if body heats
+	
+	// damage variables
+	double			_damageRecived;		///< Damage creceived so far
+	double			_temperature;		///< Current heat. Heat is a damage that cools over time. It couses smoke and fire!
+	
+	// variables
 	int			_layers;		///< Collision layers
 	double		_orientation;	///< Body orientation [-1 - flipped, +1 - not flipped]
-	PhysicalObject*	_pParent;	///< Object which owns this body
-	DamageManager*	_pDamageManager;	///< Associated damage manager
+	bool		_awake;			///< If body is awake (receives simulatin events)
 	
 	// texturing support
 	

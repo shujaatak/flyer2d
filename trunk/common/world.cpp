@@ -52,25 +52,19 @@ class WorldContactListener : public b2ContactListener
 		Body* pBody1 = static_cast<Body*>( pData1 );
 		Body* pBody2 = static_cast<Body*>( pData2 );
 		
-		DamageManager* pDM1 = pBody1 ? pBody1->damageManager() : NULL;
-		DamageManager* pDM2 = pBody2 ? pBody2->damageManager() : NULL;
-		 
 		double multiplier1 = 1.0;
 		double multiplier2 = 1.0;
 		
-		if ( pDM1 ) multiplier1 = pDM1->damageMultiplier();
-		if ( pDM2 ) multiplier2 = pDM2->damageMultiplier();
+		if ( pBody1 ) multiplier1 = pBody1->damageMultiplier();
+		if ( pBody2 ) multiplier2 = pBody2->damageMultiplier();
 		
-		// DEBUG
-		//if ( multiplier1 * multiplier2 > 1 && pDM2 && pDM1  ) qDebug("bullet contact, force: %g", force );
-		
-		if ( pDM1 )
+		if ( pBody1 )
 		{
-			pDM1->contact( multiplier2 * force );
+			pBody1->contact( multiplier2 * force );
 		}
-		if ( pDM2 )
+		if ( pBody2 )
 		{
-			pDM2->contact(multiplier1 * force );
+			pBody2->contact(multiplier1 * force );
 		}
 	}
 	

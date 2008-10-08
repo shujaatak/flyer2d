@@ -47,6 +47,19 @@ WorldObject::~WorldObject()
 	if ( _pParent ) _pParent->_children.removeAll( this );
 }
 
+// ============================================================================
+/// Wakes up object.
+void WorldObject::wakeUp()
+{
+	// TODO
+}
+
+// ============================================================================
+/// Puts object to sleep
+void WorldObject::sleep()
+{
+	// TODO
+}
 
 }
 

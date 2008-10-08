@@ -24,6 +24,7 @@ namespace Flyer
 {
 
 class Body;
+class World;
 
 /**
 	Wrap around joint object.
@@ -36,7 +37,7 @@ public:
 	virtual ~Joint();
 	
 	/// Creates joint
-	void create( b2JointDef* pDef, b2World* pWorld, bool fix = false );
+	void create( b2JointDef* pDef, World* pWorld, bool fix = false );
 	
 	/// Returns associated box2d object.
 	b2Joint* b2joint() const { return _pJoint; }

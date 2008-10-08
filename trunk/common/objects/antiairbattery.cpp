@@ -45,17 +45,17 @@ AntiAirBattery::AntiAirBattery ( World* pWorld, double location, double angle  )
 	b2Vec2 bodyPos( location, locationY + 1.5 );
 	
 	// create damage manager
-	_dmMain = new DamageManager( 30E3 );
+	_dmMain = new DamageManager();
 	addDamageManager( _dmMain );
 	
 	_bodyMain = BodyProvider::loadBody( "installations/flak1-body.body" );
 	_bodyMain->setPosition( bodyPos );
-	_bodyMain->create( pWorld->b2world() );
+	_bodyMain->create( pWorld );
 	addBody( _bodyMain, BodyRendered1 );
 	
 	_bodyBase = BodyProvider::loadBody( "installations/flak1-base.body" );
 	_bodyBase->setPosition( basePos );
-	_bodyBase->create( pWorld->b2world() );
+	_bodyBase->create( pWorld );
 	addBody( _bodyBase, BodyRendered1 );
 	setMainBody( _bodyBase );
 	

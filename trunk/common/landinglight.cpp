@@ -41,7 +41,6 @@ LandingLight::LandingLight( World* pWorld, double x, double angle )
 	
 	// init manager
 	_damageManager = new DamageManager();
-	_damageManager->setTolerance( 5E4 ); // 1t 
 
 	
 	// create body
@@ -54,8 +53,10 @@ LandingLight::LandingLight( World* pWorld, double x, double angle )
 	def.position.Set( x, _y + 0.5 );
 	
 	_body = new Body("Main");
-	_body->create( def, pWorld->b2world() );
+	_body->create( def, pWorld );
 	_body->addShape( & shape );
+	_body->setDamageTolerance( 5E4 ); // 1t 
+
 	addBody( _body, 0 );
 	setMainBody( _body );
 	

@@ -18,7 +18,6 @@
 #define FLYERBULLET_H
 
 #include "physicalobject.h"
-#include "damagemanager.h"
 
 namespace Flyer
 {
@@ -49,8 +48,6 @@ public:
 	void fire( const QPointF& point, const QPointF& velocity );
 
 public:
-
-	DamageManager _damageManager;
 
 	// config
 	double _mass;		///< Mass [kg]

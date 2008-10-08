@@ -295,7 +295,7 @@ void Autopilot::controlFollowPath( double dt )
 
 // ============================================================================
 /// Debug render autopliot track
-void Autopilot::render( QPainter& painter, const QRectF&, const RenderingOptions& )
+void Autopilot::render( QPainter& /*painter*/, const QRectF&, const RenderingOptions& )
 {
 	/* TODO debug draw 
 	painter.setPen( QPen( Qt::blue, 0 ) );

@@ -53,11 +53,11 @@ void IronBomb::init( const QPointF& position, double angle )
 	_bodyMain->setPosition( point2vec( position ) );
 	_bodyMain->setAngle( angle );
 	addBody( _bodyMain, BodyRendered1 );
-	_bodyMain->create( world()->b2world() );
+	_bodyMain->create( world() );
 	setMainBody( _bodyMain );
 	
 	// create dm
-	_dmFuse = new DamageManager( 10E3 ); // small value
+	_dmFuse = new DamageManager();
 	_bodyMain->setDamageManager( _dmFuse );
 	addDamageManager( _dmFuse );
 	
@@ -69,9 +69,9 @@ void IronBomb::init( const QPointF& position, double angle )
 	_sysStabilizer->setLength( _diameter );
 	_sysStabilizer->setPosition( QPointF( -_length/2, 0.0 ) );
 	_sysStabilizer->setWidth( _diameter );
-	_sysStabilizer->setDragCoeffH( 0.1 );
-	_sysStabilizer->setDragCoeffV( 2 );
-	_sysStabilizer->setLiftCoeff( 6 );
+	_sysStabilizer->setDragCoeffH( 0.03 );
+	_sysStabilizer->setDragCoeffV( 1 );
+	_sysStabilizer->setLiftCoeff( 4 );
 	addSystem( _sysStabilizer, SystemSimulated );
 	
 	// create fuse

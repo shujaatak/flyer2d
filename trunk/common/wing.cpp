@@ -143,11 +143,13 @@ void Wing::setFlaps( double f )
 /// Estimates wing damage status
 double Wing::status() const
 {
-	double dragDamage = 1.0 - ( 1.0 - _currentDragH / _dragCoeffH  ) / ( DAMAGED_DRAG - 1.0 );
+	double dragDamage = 1.0 - ( 1.0 -  _dragCoeffH / _currentDragH ) / ( DAMAGED_DRAG - 1.0 );
 	double liftDamage = 1.0 - ( 1.0 - _currentLift / _liftCoeff ) / ( 1.0 - DAMAGED_LIFT ); 
 	double flapsDamage = _currentFlapsMax - _currentFlapsMin;
 	
-	return ( dragDamage + liftDamage + flapsDamage ) / 3.0;
+	double s = ( dragDamage + liftDamage + flapsDamage ) / 3.0;
+	
+	return s;
 }
 
 // ============================================================================

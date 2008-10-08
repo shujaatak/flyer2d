@@ -14,8 +14,10 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#include "joint.h"
 #include "body.h"
+#include "world.h"
+
+#include "joint.h"
 
 namespace Flyer
 {
@@ -44,11 +46,11 @@ Joint::~Joint()
 // ============================================================================
 /// Creates joint
 /// If \b fix is true, creates joint even if it was broken before.
-void Joint::create( b2JointDef* pDef, b2World* pWorld, bool fix /*= false*/  )
+void Joint::create( b2JointDef* pDef, World* pWorld, bool fix /*= false*/  )
 {
 	Q_ASSERT( pDef && pWorld );
 	
-	_pWorld = pWorld;
+	_pWorld = pWorld->b2world();
 	pDef->userData = this;
 	
 	// copy definition
@@ -67,7 +69,7 @@ void Joint::create( b2JointDef* pDef, b2World* pWorld, bool fix /*= false*/  )
 	
 	if ( ! _broken )
 	{
-		_pJoint = pWorld->CreateJoint( pDef );
+		_pJoint = _pWorld->CreateJoint( pDef );
 	}
 	
 }

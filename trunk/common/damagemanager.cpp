@@ -26,9 +26,8 @@ namespace Flyer
 
 // ============================================================================
 // Constructor
-DamageManager::DamageManager( double tolerance ) : _tolerance( tolerance )
+DamageManager::DamageManager()
 {
-	_damageMultiplier = 1.0;
 }
 
 // ============================================================================
@@ -39,16 +38,14 @@ DamageManager::~DamageManager()
 
 // ============================================================================
 // Contact callback
-void DamageManager::contact( double force )
+void DamageManager::damage( double force )
 {
-	if ( force > _tolerance && _systems.size() > 0 )
+	if ( _systems.size() > 0 )
 	{
-		double damage = force - _tolerance;
-		
 		// how many times repeat damage spreading.
 		// This is used to inflict smaller damage on multiple system instead of one big damage on single system
 		// i case of single big contacs, like in explosion
-		int repeats = qMin( int( ceil( force / _tolerance ) ), 10 ); // with some sane limit
+		int repeats = 5; // some sane value
 		
 		//qDebug("damage: %g, force: %g", damage, force );
 		// propagate damage to systems 
@@ -61,7 +58,7 @@ void DamageManager::contact( double force )
 			if ( pSystem )
 			{
 				double before = pSystem->status();
-				pSystem->damage( damage/(_systems.size()*repeats) );
+				pSystem->damage( force/(_systems.size()*repeats) );
 				double after = pSystem->status();
 				
 				// emit messages

@@ -91,7 +91,8 @@ private:
 	
 	void renderMessages( QPainter& painter ); ///< Renders messages
 	void adjustTransform();		///< Adjusts zoom and position
-	
+	void prepareStillImage();	///< Prepares still imae of the world
+	void updateFrame();			///< Repaintrs world
 	
 	World* _pWorld;
 	Game*	_pGame;
@@ -106,6 +107,8 @@ private:
 	
 	QWidget* _pView;
 	GameUI* _pUI;				///< UI manager
+	
+	QImage	_still;				///< Still image displayed during pause
 };
 
 }
