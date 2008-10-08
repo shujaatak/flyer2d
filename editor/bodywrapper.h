@@ -48,6 +48,10 @@ class BodyWrapper : public EditableWrapper
 	Q_PROPERTY( double TextureX READ getTextureX WRITE setTextureX USER true )
 	Q_PROPERTY( double TextureY READ getTextureY WRITE setTextureY USER true )
 	Q_PROPERTY( double TextureScale READ getTextureScale WRITE setTextureScale USER true )
+	
+	Q_PROPERTY( double DamageCapacityKN READ getDamageCapacity WRITE setDamageCapacity USER true )
+	Q_PROPERTY( double DamageToleranceKN READ getDamageTolerance WRITE setDamageTolerance USER true )
+	Q_PROPERTY( bool Heats READ getHeats WRITE setHeats USER true )
 
 public:
 	BodyWrapper( Flyer::Body *pBody, QGraphicsScene* pScene, QObject* parent = NULL );
@@ -96,6 +100,14 @@ public:
 	double getTextureX() const { return  _pBody->texturePosition().x(); }
 	double getTextureY() const { return  _pBody->texturePosition().y(); }
 	double getTextureScale() const { return _pBody->textureScale(); }
+	
+	double getDamageCapacity() const { return _pBody->damageCapacity()/1000; }
+	void setDamageCapacity( double d ) { _pBody->setDamageCapacity( d*1000 ); }
+	double getDamageTolerance() const { return _pBody->damageTolerance()/1000; }
+	void setDamageTolerance( double d ) { _pBody->setDamageTolerance( d*1000 ); }
+	
+	void setHeats( bool b ) { _pBody->setHeats(b); }
+	bool getHeats() const { return _pBody->heats(); }
 
 	virtual bool isValid() const;
 	virtual void sync();

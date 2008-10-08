@@ -166,8 +166,7 @@ void Explosion::actWithForce()
 			Body* pBody = static_cast<Body*>( pb2Body->GetUserData() );
 			if ( pBody )
 			{
-				DamageManager* pDM = pBody->damageManager();
-				if ( pDM ) pDM->contact( force * DAMAGE_MULTIPLIER );
+				pBody->contact( force * DAMAGE_MULTIPLIER );
 			}
 			
 		}

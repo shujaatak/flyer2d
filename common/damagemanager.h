@@ -26,34 +26,24 @@ class System;
 
 /**
 	Damage manager is object which lives associated to 
-	b2d shapes as user data. IT receives information about contacts.
+	Body objet. It is notified whern body is damaged.
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
 class DamageManager
 {
 public:
-	DamageManager( double tolerance = 0.0 );
+	DamageManager();
 	virtual ~DamageManager();
 	
-	/// Called when sape to which it's associated recives impuls due to contact
-	virtual void contact( double force );
+	/// Called when body to which the damage is associated receives damage.
+	virtual void damage( double force );
 	
 	/// Adds system to damage manager. 
 	void addSystem( System* pSystem, int weight );
 	
-	// properties
-	void setTolerance( double tol ) { _tolerance = tol; }
-	double tolerance() const { return _tolerance; }
-	
-	void setDamageMultiplier( double dm ) { _damageMultiplier = dm; }
-	double damageMultiplier() const { return _damageMultiplier; }
-
 private:
 
 	QList<System*> _systems;
-	
-	double _tolerance;			///< Tolerated force. all force above is propagated as damage to associated systems
-	double _damageMultiplier;	///< Multiplier of damage caused by this body
 };
 
 }

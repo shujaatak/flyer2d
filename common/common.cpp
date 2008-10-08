@@ -16,6 +16,9 @@
 
 #include <sys/time.h>
 
+#include <QPainter>
+#include <QPaintEngine>
+
 #include "common.h"
 
 namespace Flyer
@@ -29,6 +32,13 @@ double getms()
 	gettimeofday( &tv, 0 );
 	
 	return (tv.tv_sec & 0xff ) * 1e3 + tv.tv_usec * 1e-3;
+}
+
+// ============================================================================
+/// Checks if painter paints on OpenGL surface.
+bool isOpenGL( QPainter* p )
+{
+	return p->paintEngine()->type() == QPaintEngine::OpenGL;
 }
 
 }

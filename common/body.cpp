@@ -19,11 +19,18 @@
 #include "textureprovider.h"
 #include "renderingoptions.h"
 #include "gexception.h"
+#include "damagemanager.h"
+#include "world.h"
+#include "b2dqt.h"
 
 #include "body.h"
 
 namespace Flyer
 {
+
+static const double DEFAULT_TOLERANCE		= 40E3;	/// 30 kN
+static const double TEMPERATURE_TRANSFER	= 1.0;	// how fast bodies cool down
+static const double TEMPERATURE_TOLERANCE	= 10.0;	///< Tolerated temperature delta [K]
 
 // ============================================================================
 // Constructor
@@ -32,10 +39,19 @@ Body::Body( const QString& name ) : Serializable()
 	_name = name;
 	_pBody = NULL;
 	_layers = 0;
-	_textureScale = 0.05; // 20 px per meter, 5cm per pixel
-	_orientation = 1.0;
-	_pParent = NULL;
-	_pDamageManager = NULL;
+	_textureScale	= 0.05; // 20 px per meter, 5cm per pixel
+	_orientation	= 1.0;
+	
+	_pParent	= NULL;
+	
+	_pDamageManager		= NULL;
+	_damageCapacity		= 0; // body unbreakable by default
+	_damageTolerance	= DEFAULT_TOLERANCE;
+	_damageRecived		= 0.0;
+	_damageMultiplier	= 1.0;
+	_heats				= false;
+	_awake				= false;
+	_pWorld				= NULL;
 }
 
 // ============================================================================
@@ -51,6 +67,10 @@ Body::Body( const Body& src ) : Serializable( src )
 	_texturePosition	= src._texturePosition;
 	_textureScale		= src._textureScale;
 	_orientation		= src._orientation;
+	_damageCapacity		= src._damageCapacity;
+	_damageTolerance	= src._damageTolerance;
+	_damageRecived		= src._damageRecived;
+	_damageMultiplier	= src._damageMultiplier;
 	
 	// if original has b2body, create and copy dynamic parameters
 	if ( src._pBody )
@@ -58,7 +78,7 @@ Body::Body( const Body& src ) : Serializable( src )
 		_definition.position	= src._pBody->GetPosition();
 		_definition.angle	= src._pBody->GetAngle();
 		
-		create( src._pBody->GetWorld() );
+		create( src.world() );
 		_pBody->SetLinearVelocity( src._pBody->GetLinearVelocity() );
 		_pBody->SetAngularVelocity( src._pBody->GetAngularVelocity() );
 	}
@@ -66,6 +86,7 @@ Body::Body( const Body& src ) : Serializable( src )
 	 // do not inherit damage manager or parent
 	_pDamageManager = NULL;
 	_pParent = NULL;
+	_pWorld	= NULL;
 	
 }
 
@@ -90,7 +111,7 @@ Body::~Body()
 
 // ============================================================================
 // Creates body
-void Body::create( const b2BodyDef& def, b2World* pWorld )
+void Body::create( const b2BodyDef& def, World* pWorld )
 {
 	_definition = def;
 	create( pWorld );
@@ -98,11 +119,11 @@ void Body::create( const b2BodyDef& def, b2World* pWorld )
 
 // ============================================================================
 // Creates body
-void Body::create( b2World* pWorld )
+void Body::create( World* pWorld )
 {
 	Q_ASSERT( pWorld );
 	_definition.userData = this;
-	_pBody = pWorld->CreateBody( & _definition );
+	_pBody = pWorld->b2world()->CreateBody( & _definition );
 	
 	// if shapes added - create them
 	for( int i = 0; i < _shapes.size(); i++ )
@@ -121,6 +142,10 @@ void Body::create( b2World* pWorld )
 	{
 		_texture.setIsSprite( true );
 	}
+	
+	// init temperature form wnvironment
+	_pWorld = pWorld;
+	_temperature = pWorld->environment()->temperature( vec2point( position() ) );
 }
 
 // ============================================================================
@@ -247,7 +272,7 @@ void Body::flip( const QPointF& p1, const QPointF& p2 )
 	if ( _pBody )
 	{
 		// get world
-		b2World* pWorld = _pBody->GetWorld();
+		World* pWorld = world();
 		
 		// get current position
 		b2Vec2 pos = _pBody->GetPosition();
@@ -277,7 +302,7 @@ void Body::flip( const QPointF& p1, const QPointF& p2 )
 		_definition.angle = newAngle;
 		
 		// re-create with new def
-		pWorld->DestroyBody( _pBody );
+		pWorld->b2world()->DestroyBody( _pBody );
 		_pBody = NULL;
 		
 		create( _definition, pWorld ); // note - shapes are added here
@@ -302,14 +327,6 @@ void Body::render( QPainter& painter, const RenderingOptions& options )
 		if ( ! _texture.isNull() )
 		{
 			painter.save();
-			/* old code, using Texture::image
-				QImage texture = _texture.image( options.textureStyle );
-				t.scale( _textureScale, -_textureScale * _orientation );
-				painter.setTransform( t, true );
-				QPointF position( _texturePosition.x(), - _texturePosition.y() );
-				painter.drawImage( position/_textureScale, texture );
-			*/
-			// new code, using Texture::render
 				t.scale( 1.0,  _orientation );
 				painter.setTransform( t, true );
 				
@@ -476,6 +493,11 @@ void Body::toStream( QDataStream& stream ) const
 	stream << _textureScale;
 	stream << _texturePosition;
 	stream << _name;
+	
+	stream << _damageCapacity;
+	stream << _damageTolerance;
+	stream << _damageMultiplier;
+	stream << _heats;
 }
 
 // ============================================================================
@@ -524,6 +546,11 @@ void Body::fromStream( QDataStream& stream )
 	{
 		_texture = TextureProvider::loadTexture( _texturePath );
 	}
+	
+	stream >> _damageCapacity;
+	stream >> _damageTolerance;
+	stream >> _damageMultiplier;
+	stream >> _heats;
 
 }
 
@@ -578,6 +605,76 @@ QRectF Body::boundingRect() const
 {
 	// TODO find better implementation.
 	return shape().boundingRect();
+}
+
+// ============================================================================
+/// Message from physics engine: contatct force.
+void Body::contact( double force )
+{
+	if ( force > _damageTolerance )
+	{
+		double damage = force - _damageTolerance;
+		if ( _pDamageManager ) _pDamageManager->damage( damage );
+		_damageRecived += damage;
+	}
+	
+	// increase temperature
+	// TODO this should be called by contact listener, and should take 
+	// TODO other's force temperature and mass into account.
+	heat( force * world()->timestep() ); // Force times time - let it be energy ;)
+}
+
+// ============================================================================
+/// Heats the body. Heat causes smoke, fire and damage.
+void Body::heat( double energy )
+{
+	if ( _heats && _pBody )
+	{
+		_temperature += energy / _pBody->GetMass();
+		wakeUp();
+	}
+}
+
+// ============================================================================
+/// Starts simulating body
+void Body::wakeUp()
+{
+	Q_ASSERT( _pParent );
+	if ( ! _awake )
+	{
+		_pParent->bodyWakesUp( this );
+		_awake = true;
+	}
+}
+
+// ============================================================================
+/// Stops simulating body
+void Body::sleep()
+{
+	Q_ASSERT( _pParent );
+	if ( _awake )
+	{
+		_pParent->bodySleeps( this );
+		_awake = false;
+	}
+}
+
+// ============================================================================
+/// Simulates body
+void Body::simulate( double dt )
+{
+	// exchange temperature with sourrounding
+	double deltaT = _temperature - world()->environment()->temperature( vec2point( position() ) );
+	
+	if ( qAbs( deltaT ) < TEMPERATURE_TOLERANCE )
+	{
+		_temperature -= deltaT;
+		sleep();
+	}
+	else
+	{
+		_temperature -= deltaT * dt * TEMPERATURE_TRANSFER;
+	}
 }
 
 }

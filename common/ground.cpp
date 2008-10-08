@@ -53,7 +53,7 @@ void Ground::random( QList<Section> seed )
 	groundBodyDef.position.SetZero();
 	
 	_pGround = new Body("Ground");
-	_pGround->create( groundBodyDef, world()->b2world() );
+	_pGround->create( groundBodyDef, world() );
 	
 	QList<b2PolygonDef*> shapes = createShape();
 	foreach( b2PolygonDef* pShape, shapes )

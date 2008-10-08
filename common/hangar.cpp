@@ -47,7 +47,7 @@ Hangar::Hangar( World* pWorld, double location ): Machine( pWorld )
 
 	Body* pBody = BodyProvider::loadBody( "hangar20-1.body" );
 	pBody->setPosition( b2Vec2( location, locationY ) );
-	pBody->create( pWorld->b2world() );
+	pBody->create( pWorld );
 	addBody( pBody, BodyRendered1 );
 	setMainBody( pBody );
 	

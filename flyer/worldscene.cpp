@@ -69,7 +69,11 @@ WorldScene::~WorldScene()
 void WorldScene::render( QPainter& painter )
 {
 	// init opengl
-	glEnable( GL_LINE_SMOOTH );
+	if ( isOpenGL( & painter ) )
+	{
+		glEnable( GL_LINE_SMOOTH );
+		glEnable( GL_POLYGON_SMOOTH );
+	}
 	
 	// calculate fps
 	double now = getms();
@@ -277,11 +281,17 @@ void WorldScene::onTimer()
 	_pWorld->simulate( 1.0/FPS );
 
 	adjustTransform();
-	//updateGL();
-	update();
+	updateFrame();
 	
 	_frames ++;
 	
+}
+
+// ============================================================================
+/// Updates frame
+void WorldScene::updateFrame()
+{
+	update();
 }
 
 // ============================================================================
@@ -300,6 +310,19 @@ void WorldScene::stop()
 	update();
 	_lastRenderTime = 0;
 	_pUI->show();
+	
+	// grab still image
+	prepareStillImage();
+	
+}
+
+// ============================================================================
+/// Prepares still image of the world
+void WorldScene::prepareStillImage()
+{
+	_still = QImage( width(), height(), QImage::Format_ARGB32_Premultiplied ); 
+	QPainter p( &_still );
+	render( p );
 }
 
 // ============================================================================
@@ -381,6 +404,10 @@ void WorldScene::resized()
 {
 	_planePos = QPointF( width()/2.0, height() / 2.0 );
 	adjustTransform();
+	if ( ! isRunning() )
+	{
+		prepareStillImage();
+	}
 }
 
 // ============================================================================
@@ -546,7 +573,18 @@ Plane* WorldScene::plane() const
 /// Draws scene backgoruns - render the world
 void WorldScene::drawBackground ( QPainter * pPainter, const QRectF & /*rect*/ )
 {
-	render( * pPainter );
+	if ( isRunning() )
+	{
+		render( * pPainter );
+	}
+	else
+	{
+		if ( _still.isNull() )
+		{
+			prepareStillImage();
+		}
+		pPainter->drawImage( 0, 0,  _still );
+	}
 }
 
 // ============================================================================
@@ -568,6 +606,7 @@ void WorldScene::addWindow( QWidget* pWidget, double z )
 void WorldScene::restart()
 {
 	_pGame->restart();
+	_pWorld = _pGame->world();
 	_frames = 0;
 	_zoom = ZOOM1;
 	_lastRenderTime = 0;

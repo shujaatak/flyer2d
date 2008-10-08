@@ -43,7 +43,7 @@ static const QPointF ENGINE_POS = QPointF( 1.5, 0.0 );
 static const double ELEVATOR_LIFT = 10.0;
 static const double ELEVATOR_LENGTH = 1.0;
 static const double MAX_THRUST = 600; // kg force
-static const double WHEEL_BRAKE_TORQUE = 1200; // not too big, to have nice effects
+static const double WHEEL_BRAKE_TORQUE = 3000; // not too big, to have nice effects
 static const double ELEVATOR_STEP = 0.2;	/// elevator movement - in radians
 
 static const QPointF ENGINE_JOINT_POS( 1.4, 0.0 );
@@ -247,7 +247,7 @@ void PlaneBumblebee::createSystems()
 // Creates bodies
 void PlaneBumblebee::createBodies( const QPointF& pos, double angle )
 {
-	b2World* pWorld = world()->b2world();
+	World* pWorld = world();
 	
 	QTransform transform;
 	transform.translate( pos.x(), pos.y() );
@@ -363,8 +363,9 @@ void PlaneBumblebee::createBodies( const QPointF& pos, double angle )
 // Creates damage managers
 void PlaneBumblebee::createDamageManagers()
 {
+
 	// engine
-	_dmEngine = new DamageManager( 50E3 );
+	_dmEngine = new DamageManager();
 	// set 90% to engine, 10% unused
 	_dmEngine->addSystem( _sysEngine, 9 );
 	_dmEngine->addSystem( NULL, 0 );
@@ -373,7 +374,7 @@ void PlaneBumblebee::createDamageManagers()
 	addDamageManager( _dmEngine );
 	
 	// wheel
-	_dmWheel = new DamageManager( 5E4 );
+	_dmWheel = new DamageManager();
 	
 	// use 25% for brake/ 25% for mounting
 	_dmWheel->addSystem( _sysBrake, 1 );
@@ -383,7 +384,7 @@ void PlaneBumblebee::createDamageManagers()
 	addDamageManager( _dmWheel );
 	
 	// leg
-	_dmLeg = new DamageManager( 4E4 );
+	_dmLeg = new DamageManager();
 	_dmLeg->addSystem( _sysBrake, 1 );
 	_dmLeg->addSystem( _sysWheelMounting, 1 );
 	_dmLeg->addSystem( _sysLegMounting, 1 );
@@ -392,7 +393,7 @@ void PlaneBumblebee::createDamageManagers()
 	_bodyLeg->setDamageManager( _dmLeg );
 	
 	// hull
-	_dmHull = new DamageManager( 4E4 );
+	_dmHull = new DamageManager();
 	_dmHull->addSystem( _sysGun, 1 );
 	_dmHull->addSystem( _sysWing, 5 );
 	_dmHull->addSystem( _sysElevator, 1 );
@@ -406,7 +407,7 @@ void PlaneBumblebee::createDamageManagers()
 	_bodyHull->setDamageManager(_dmHull );
 	
 	// tail - wings and engin also could be damaged
-	_dmTail = new DamageManager( 3E4 );
+	_dmTail = new DamageManager();
 	_dmTail->addSystem( _sysEngine, 1 );
 	_dmTail->addSystem( _sysWing, 3 );
 	_dmTail->addSystem( _sysElevator, 2 );

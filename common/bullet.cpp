@@ -36,12 +36,11 @@ Bullet::Bullet ( World* pWorld ) : PhysicalObject ( pWorld )
 	_size = 0;
 	_age = 0;
 	setLayers( PhysLayerVehicles | PhysLayerBuildings );
-	_damageManager.setDamageMultiplier( DAMAGE_MULTIPLIER );
 	setName( "Bullet" );
 	setRenderLayer( LayerVehicles );
 	
 	_pBody = new Body( "Bullet" );
-	_pBody->setDamageManager( & _damageManager );
+	_pBody->setDamageMultiplier( DAMAGE_MULTIPLIER );
 	addBody( _pBody, 0 );
 	setMainBody( _pBody );
 }
@@ -115,7 +114,7 @@ void Bullet::fire( const QPointF& point, const QPointF& velocity )
 	def.isBullet = true;
 	def.linearDamping = 0.001; // TODO experimental. simluates simple air drag
 	
-	_pBody->create( def, world()->b2world() );
+	_pBody->create( def, world() );
 	
 	// create shape
 	b2CircleDef shape;
@@ -123,7 +122,6 @@ void Bullet::fire( const QPointF& point, const QPointF& velocity )
 	shape.radius = _size/2;
 	shape.restitution = 0.1; //small 'bounciness'
 	shape.friction = 0.9; // high firction
-	shape.userData = & _damageManager;
 	
 	_pBody->addShape( & shape );
 	

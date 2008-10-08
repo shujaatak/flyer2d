@@ -87,6 +87,11 @@ public:
 	void setMainBody( Body* pBody ) { _pMainBody = pBody; }
 	Body* mainBody() const { return _pMainBody; }
 	
+	/// Message from body - body wiches to receive simulation events
+	void bodyWakesUp( Body* pBody );
+	/// Message from body - body wishes to not receive any messages any more
+	void bodySleeps( Body* pBody );
+	
 	// joints
 	void addJoint( Joint* pJoint );
 	void removeJoint( Joint* pJoint );
@@ -101,6 +106,7 @@ private:
 	// bodies
 	QMap<int, QList<Body*> > _bodies;
 	QList<Body*>	_allBodies;
+	QList<Body*>	_simulatedBodies;	///< Bodies reciving 'simulate' events
 	int				_layers;
 	
 	/// Object position is determined using it's pos, and destructicion of

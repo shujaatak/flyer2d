@@ -63,6 +63,9 @@ public:
 	void setName( const QString& n ) { _name = n; }
 	QString name() const { return _name; }
 	
+	void wakeUp();		///< Object wants to be simulated
+	void sleep();		///< Object doesn't want to be simulated anymore
+	
 	// children / parent relationship
 	
 	/// Returns parent object

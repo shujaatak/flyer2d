@@ -19,6 +19,8 @@
 #ifndef FLYER_COMMON_H
 #define FLYER_COMMON_H
 
+class QPainter;
+
 namespace Flyer
 {
 
@@ -44,6 +46,9 @@ enum PhysicalLayers {
 
 /// Benchmarkng utility. Returns current imte as milliseconds.
 double getms(); 
+
+/// Checks if painter paints on OpenGL surface.
+bool isOpenGL( QPainter* p );
 
 }
 

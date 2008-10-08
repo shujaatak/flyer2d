@@ -64,7 +64,7 @@ void Building::initSmallBuilding( double location, bool background )
 	b2Vec2 pos = b2Vec2(location, world()->ground()->height( location ) );
 	_width = 9;
 	_pBody->setPosition( pos );
-	_pBody->create( world()->b2world() );
+	_pBody->create( world() );
 	setName( "Small building" );
 	_boundingRect = _pBody->shape().boundingRect().translated( vec2point( pos ));
 	addBody( _pBody, BodyRendered1 );

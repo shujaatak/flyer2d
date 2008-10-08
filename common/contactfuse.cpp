@@ -44,7 +44,7 @@ ContactFuse::~ContactFuse()
 void ContactFuse::damage ( double force )
 {
 	_damageReceived += force;
-	//qDebug("fuse: %g/%g", _damageReceived, damageCapacity() ); TODO remove
+	qDebug("fuse: %g/%g", _damageReceived, damageCapacity() );// TODO remove
 	if ( ! _destroyed && _damageReceived >= damageCapacity() )
 	{
 		Explosion* pExplosion = new Explosion( parent()->world() );

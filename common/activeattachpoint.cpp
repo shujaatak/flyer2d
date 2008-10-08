@@ -101,7 +101,7 @@ void ActiveAttachPoint::attach( PassiveAttachPoint* pPoint )
 	def.upperAngle = 0.0;
 	def.lowerAngle = 0.0;
 	
-	_pJoint->create( & def, pMasterBody->b2body()->GetWorld(), true );
+	_pJoint->create( & def, pMasterBody->world(), true );
 	_pJoint->setBodies( pMasterBody, pSlaveBody );
 	
 	// and finally - take business card from this guy

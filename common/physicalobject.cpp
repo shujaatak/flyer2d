@@ -64,12 +64,18 @@ void PhysicalObject::render ( QPainter& painter, const QRectF& /*rect*/, const R
 
 // ============================================================================
 /// Simulates physical object
-void PhysicalObject::simulate ( double /*dt*/ )
+void PhysicalObject::simulate ( double dt )
 {
 	// proceed with scheduled joint breakages
 	while ( ! _jointsToBreak.isEmpty() )
 	{
 		doBreakJoint( _jointsToBreak.takeFirst() );
+	}
+	
+	// simulate bodies
+	foreach( Body* pBody, _simulatedBodies )
+	{
+		pBody->simulate( dt );
 	}
 }
 
@@ -284,6 +290,29 @@ QRectF PhysicalObject::boundingRect() const
 	return QRectF( pos.x() - _size, pos.y() - _size, _size*2, _size*2 );
 }
 
+// ============================================================================
+/// Message from body - body wishes to receive events
+void PhysicalObject::bodyWakesUp( Body* pBody )
+{
+	if ( ! _simulatedBodies.contains( pBody ) )
+	{
+		//qDebug( "Body %s wakes up", qPrintable( pBody->name() ) );
+		_simulatedBodies.append( pBody );
+	}
+	wakeUp();
+}
+
+// ============================================================================
+/// Message from body - body need no more events
+void PhysicalObject::bodySleeps( Body* pBody )
+{
+	//qDebug( "Body %s goes to sleep", qPrintable( pBody->name() ) );
+	_simulatedBodies.removeAll( pBody );
+	if ( _simulatedBodies.empty() )
+	{
+		sleep();
+	}
+}
 
 }
 
