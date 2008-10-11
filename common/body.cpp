@@ -22,6 +22,7 @@
 #include "damagemanager.h"
 #include "world.h"
 #include "b2dqt.h"
+#include "common.h"
 
 #include "body.h"
 
@@ -39,15 +40,15 @@ Body::Body( const QString& name ) : Serializable()
 	_name = name;
 	_pBody = NULL;
 	_layers = 0;
-	_textureScale	= 0.05; // 20 px per meter, 5cm per pixel
 	_orientation	= 1.0;
+	_limitTextureToShape = false;
 	
 	_pParent	= NULL;
 	
 	_pDamageManager		= NULL;
 	_damageCapacity		= 0; // body unbreakable by default
 	_damageTolerance	= DEFAULT_TOLERANCE;
-	_damageRecived		= 0.0;
+	_damageReceived		= 0.0;
 	_damageMultiplier	= 1.0;
 	_heats				= false;
 	_awake				= false;
@@ -65,11 +66,10 @@ Body::Body( const Body& src ) : Serializable( src )
 	_texture			= src._texture;
 	_texturePath		= src._texturePath;
 	_texturePosition	= src._texturePosition;
-	_textureScale		= src._textureScale;
 	_orientation		= src._orientation;
 	_damageCapacity		= src._damageCapacity;
 	_damageTolerance	= src._damageTolerance;
-	_damageRecived		= src._damageRecived;
+	_damageReceived		= src._damageReceived;
 	_damageMultiplier	= src._damageMultiplier;
 	
 	// if original has b2body, create and copy dynamic parameters
@@ -330,18 +330,26 @@ void Body::render( QPainter& painter, const RenderingOptions& options )
 				t.scale( 1.0,  _orientation );
 				painter.setTransform( t, true );
 				
+				// filling shape
+				if ( _limitTextureToShape )
+				{
+					painter.setClipPath( shape() );
+				}
 				_texture.render( painter,  _texturePosition, options );
 			
 			painter.restore();
 			
-			/* Debug collisiton draw
-			painter.save();
-				painter.setTransform( transform(), true );
-				painter.setPen( QPen( Qt::red, 0 ) );
-				painter.setBrush( Qt::NoBrush );
-				painter.drawPath( shape() ); // TODO - debug
-			painter.restore();
-			*/
+			/* Debug collisiton draw */
+			if( _limitTextureToShape )
+			{
+				painter.save();
+					painter.setTransform( transform(), true );
+					painter.setPen( QPen( Qt::red, 0 ) );
+					painter.setBrush( Qt::NoBrush );
+					painter.drawPath( shape() ); // TODO - debug
+				painter.restore();
+			}
+			/**/
 		}
 		else
 		{
@@ -454,13 +462,6 @@ void Body::setTexturePosition( const QPointF& pos )
 }
 
 // ============================================================================
-// Sets texture scale
-void Body::setTextureScale( double s )
-{
-	_textureScale = s;
-}
-
-// ============================================================================
 /// Stores body to stream.
 void Body::toStream( QDataStream& stream ) const
 {
@@ -489,8 +490,9 @@ void Body::toStream( QDataStream& stream ) const
 	}
 	
 	// texture
+	double ddummy = 0.0;
 	stream << _texturePath;
-	stream << _textureScale;
+	stream << ddummy; // was: texture scale
 	stream << _texturePosition;
 	stream << _name;
 	
@@ -520,7 +522,7 @@ void Body::fromStream( QDataStream& stream )
 	stream >> _definition.isSleeping;
 	// dyamic data(?)
 	stream >> _definition.angle;
-	float dummy; // TODO sue these dummies in future
+	float dummy; // TODO use these dummies in future
 	stream >> dummy;
 	stream >> dummy;
 	
@@ -536,8 +538,9 @@ void Body::fromStream( QDataStream& stream )
 	}
 	
 	// texture
+	double ddummy = 0.0;
 	stream >> _texturePath;
-	stream >> _textureScale;
+	stream >> ddummy; // was: texture scale
 	stream >> _texturePosition;
 	stream >> _name;
 	
@@ -592,11 +595,27 @@ b2Vec2 Body::position() const
 }
 
 // ============================================================================
+/// Returens body angle
+double Body::angle() const
+{
+	if ( _pBody ) return _pBody->GetAngle();
+	else return _definition.angle;
+}
+
+// ============================================================================
 /// Returns body linear velocity.
 b2Vec2 Body::velocity() const
 {
 	if ( _pBody ) return _pBody->GetLinearVelocity();
 	else return b2Vec2();
+}
+
+// ============================================================================
+/// Returns body angular velocity.
+double Body::angularVelocity() const
+{
+	if ( _pBody ) return _pBody->GetAngularVelocity();
+	else return 0.0;
 }
 
 // ============================================================================
@@ -615,13 +634,31 @@ void Body::contact( double force )
 	{
 		double damage = force - _damageTolerance;
 		if ( _pDamageManager ) _pDamageManager->damage( damage );
-		_damageRecived += damage;
+		_damageReceived += damage;
+		
+		// destruction propability
+		if ( _damageCapacity > 0 && _damageReceived > _damageCapacity )
+		{
+			double destProb = damage / _damageCapacity;
+			if ( destProb > random01() )
+			{
+				// TODO destroy here
+				_pParent->breakBody( this, PhysicalObject::FragmentationEffect );
+			}
+		}
 	}
 	
 	// increase temperature
 	// TODO this should be called by contact listener, and should take 
 	// TODO other's force temperature and mass into account.
 	heat( force * world()->timestep() ); // Force times time - let it be energy ;)
+	
+	// TODO debug, remove
+	
+	//if ( force > _damageTolerance )
+	//	qDebug("Body: %s, damage: %g, temp: %g", qPrintable(_name),
+	//		 _damageReceived, _temperature - world()->environment()->temperature( vec2point( position() ) ) );
+	
 }
 
 // ============================================================================
@@ -675,6 +712,53 @@ void Body::simulate( double dt )
 	{
 		_temperature -= deltaT * dt * TEMPERATURE_TRANSFER;
 	}
+}
+
+// ============================================================================
+/// Removes hsape from body
+void Body::removeShape( const Shape* pShape )
+{
+	int index = -1;
+	for( int i = 0; i < _shapes.size(); i++ )
+	{
+		if ( & _shapes[i] == pShape )
+		{
+			index = i;
+			break;
+		}
+	}
+	
+	if ( index >= 0 )
+	{
+		_shapes.removeAt( index );
+	}
+	else
+	{
+		qDebug("Requstes removing shape form body, to which it doesn't belong");
+	}
+}
+
+// ============================================================================
+/// Creates shape from polygon, Polygon can have any nymber of vertices mand can be convex.
+/// Triangulization is used if it has more than 4 vertices.
+/// All current shapes associated with the body are removed.
+void Body::setShape( const QPolygonF& shape, double friction, double restitution, double density )
+{
+	QList<QPolygonF> triangles = triangulatePolygon( shape );
+	
+	// TODO create shapes, one by one
+	foreach( const QPolygonF& triangle, triangles )
+	{
+		b2PolygonDef def = shapeToDef( triangle );
+		def.friction = friction;
+		def.restitution = restitution;
+		def.density = density;
+		
+		Shape shape( & def );
+		addShape( shape );
+	}
+	
+	
 }
 
 }

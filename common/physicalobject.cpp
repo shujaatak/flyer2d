@@ -19,6 +19,7 @@
 #include "b2dqt.h"
 #include "shrapnel.h"
 #include "world.h"
+#include "common.h"
 
 #include "physicalobject.h"
 
@@ -70,6 +71,13 @@ void PhysicalObject::simulate ( double dt )
 	while ( ! _jointsToBreak.isEmpty() )
 	{
 		doBreakJoint( _jointsToBreak.takeFirst() );
+	}
+	
+	// proceed with scheduled body breakages
+	while ( ! _bodiesToBreak.isEmpty() )
+	{
+		QPair<Body*, CrashEffect > pair = _bodiesToBreak.takeFirst();
+		doBreakBody( pair.first, pair.second );
 	}
 	
 	// simulate bodies
@@ -186,7 +194,7 @@ QPointF PhysicalObject::position() const
 void PhysicalObject::breakJoint( Joint* pJoint )
 {
 	_jointsToBreak.append( pJoint );
-	qDebug("Joint broken");
+	//qDebug("Joint broken");
 }
 
 // ============================================================================
@@ -216,16 +224,41 @@ void PhysicalObject::doBreakJoint( Joint* pJoint )
 }
 
 // ============================================================================
+/// Body crashes. It is detached.
+void PhysicalObject::breakBody( Body* pBody, CrashEffect effect )
+{
+	_bodiesToBreak.append( QPair<Body*,CrashEffect>( pBody, effect ) );
+}
+
+// ============================================================================
+/// Body crashes. It is detached.
+void PhysicalObject::doBreakBody( Body* pBody, CrashEffect effect )
+{
+	detachBody( pBody, effect );
+	if ( pBody == mainBody() )
+	{
+		// TODO destroy machine here
+		qDebug("Object %s should be destroyed now.", qPrintable(name()));
+	}
+}
+
+// ============================================================================
 /// Detaches body from machine, turning it into shrapnell
-void PhysicalObject::detachBody( Body* pBody )
+void PhysicalObject::detachBody( Body* pBody,  CrashEffect effect )
 {
 	if ( pBody->b2body() )
 	{
-		Body*		pCopy = pBody->createCopy();
-		Shrapnel*	pShrapnel = new Shrapnel( world() );
-		pShrapnel->setLayers( layers() );
-		pShrapnel->addBody( pCopy );
-		world()->addObject( pShrapnel, World::ObjectSimulated );
+		// TODO use 'effect' to decide how to replace the body
+		switch( effect )
+		{
+			case NoEffect:
+				createShrapnel( pBody );
+				break;
+				
+			case FragmentationEffect:
+				createShrapnels( pBody );
+				break;
+		}
 		
 		QList<Body*> connectedBodies;
 		b2JointEdge* pJoint = pBody->b2body()->GetJointList();
@@ -237,15 +270,87 @@ void PhysicalObject::detachBody( Body* pBody )
 		}
 		
 		pBody->destroy();
-		qDebug("Body %s detached", qPrintable( pBody->name() ) );
+		//qDebug("Body %s detached", qPrintable( pBody->name() ) );
 		
 		// detach connected bodies
 		foreach( Body* pConnected, connectedBodies )
 		{
-			detachBody( pConnected );
+			detachBody( pConnected, NoEffect );
 		}
 	}
 }
+
+// ============================================================================
+/// Creates shrapnell that is almost exact copy of the body.
+void PhysicalObject::createShrapnel( Body* pBody )
+{
+	Body*		pCopy = pBody->createCopy();
+	Shrapnel*	pShrapnel = new Shrapnel( world() );
+	pShrapnel->setLayers( layers() );
+	pShrapnel->addBody( pCopy );
+	world()->addObject( pShrapnel, World::ObjectSimulated );
+}
+
+// ============================================================================
+/// Splits body into smaller shrapells.
+void PhysicalObject::createShrapnels( Body* pBody )
+{
+	qDebug("Creating shrapnels for body %s", qPrintable( pBody->name() ) );
+	QPolygonF bodyShape = findApproximateOutline( pBody->shape() );
+	QTransform bodyTransform = pBody->transform();
+	bodyShape = bodyTransform.inverted().map( bodyShape ); // transform shape back to local coords.
+	
+	QList<QPolygonF> shrapnelShapes = splitPolygonRandomly( bodyShape );
+	
+	if ( shrapnelShapes.size() < 2 )
+	{
+		qDebug("Don't know how to split %s into shrapnels", qPrintable(pBody->name()) );
+		createShrapnel(pBody);
+		return;
+	}
+	// get basic infromation form source body
+	float friction		= pBody->shapes().first().def()->friction;
+	float restitution	= pBody->shapes().first().def()->restitution;
+	float density		= pBody->shapes().first().def()->density;
+	
+	if ( density == 0 )
+	{
+		density = 100; // TODO dome stupid value, calculate it better.
+	}
+	
+	// ok, create bodies now
+	foreach( const QPolygonF& shape, shrapnelShapes )
+	{
+		double area = convexPolygonArea( shape );
+		if ( area < 1E-4 )
+		{
+			qDebug("Shrapnell rejected: to small" );
+		}
+		else
+		{
+			qDebug("Shrapnell area accepted (%g), proceeding with creation.", area );
+			
+			QPointF center = shape.boundingRect().center();
+			Shrapnel*	pShrapnel = new Shrapnel( world() );
+			Body* pBody = new Body("main");
+			
+			pBody->setShape( shape, friction, restitution, density );
+			pBody->setTexture( pBody->texture() );
+			pBody->setLimitTextureToShape( true );
+			pBody->setPosition( pBody->position() ); // TODO translate to shape center, aslo: translate shape
+			pBody->setAngle( pBody->angle() );
+			pBody->create( world() );
+			// TODO it'd time to add velocities to body interface
+			pBody->b2body()->SetLinearVelocity( pBody->velocity() );
+			pBody->b2body()->SetAngularVelocity( pBody->angularVelocity() );
+			
+			
+			pShrapnel->addBody( pBody );
+			world()->addObject( pShrapnel, World::ObjectSimulated );
+		}
+	}
+}
+
 
 // ============================================================================
 /// Returns machine's linear velocity, or 0 if none

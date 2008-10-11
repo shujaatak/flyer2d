@@ -74,13 +74,18 @@ public:
 	void setPosition( const b2Vec2& pos );
 	
 	b2Vec2 position() const;
+	double angle() const;
 	b2Vec2 velocity() const;
+	double angularVelocity() const;
 	
 	/// Sets body angle
 	void setAngle( double angle );
 	
 	/// Adds shape to body
 	Shape* addShape( const Shape& shape, bool removeUserData  = false );
+	
+	/// Removes shape from body
+	void removeShape( const Shape* shape );
 	
 	/// Returns list of shapes
 	const QList<Shape>& shapes() const { return _shapes; }
@@ -96,6 +101,9 @@ public:
 	
 	/// Returns body bounding rect
 	QRectF boundingRect() const;
+	
+	/// Creates shape(s) fomr polygon.
+	void setShape( const QPolygonF& shape, double friction, double restitution, double density );
 	
 	/// Renders body in the simplest ways - draws it;s shape
 	void render( QPainter& painter, const RenderingOptions& options );
@@ -126,9 +134,9 @@ public:
 	void setTexturePosition( const QPointF& pos );
 	const QPointF& texturePosition() const { return _texturePosition; }
 	
-	/// Sets texture scale [meters per pixel]
-	void setTextureScale( double s );
-	double textureScale() const { return _textureScale; }
+	/// Sets 'limit to shape' flag
+	void setLimitTextureToShape( bool b ) { _limitTextureToShape = b; }
+	bool limitTextureToShap() const { return _limitTextureToShape; }
 	
 	PhysicalObject* parent() const { return _pParent; }
 	void setParent( PhysicalObject* p ) { _pParent = p; }
@@ -196,7 +204,7 @@ private:
 	bool			_heats;				///< Flag - if body heats
 	
 	// damage variables
-	double			_damageRecived;		///< Damage creceived so far
+	double			_damageReceived;		///< Damage creceived so far
 	double			_temperature;		///< Current heat. Heat is a damage that cools over time. It couses smoke and fire!
 	
 	// variables
@@ -209,7 +217,7 @@ private:
 	Texture		_texture;
 	QString		_texturePath;	///< Path to texture
 	QPointF		_texturePosition;
-	double		_textureScale;
+	bool		_limitTextureToShape;	///< Cuts texture using shape.
 };
 
 }

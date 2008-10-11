@@ -19,10 +19,12 @@
 #include <QGraphicsScene>
 
 #include "b2dqt.h"
-
-#include "shapewrapper.h"
 #include "editorpolygon.h"
 #include "editorcircle.h"
+#include "bodywrapper.h"
+#include "common.h"
+
+#include "shapewrapper.h"
 
 // ============================================================================
 // Constructor
@@ -66,6 +68,12 @@ ShapeWrapper::ShapeWrapper( Flyer::Shape* pShape, QGraphicsScene* pScene, QObjec
 // Destructor
 ShapeWrapper::~ShapeWrapper()
 {
+	BodyWrapper*  pBodyWrapper = dynamic_cast<BodyWrapper*>( parent() );
+	if ( _pShape && pBodyWrapper )
+	{
+		pBodyWrapper->body()->removeShape( _pShape );
+		_pShape = NULL;
+	}
 }
 
 // ============================================================================
@@ -115,7 +123,7 @@ bool ShapeWrapper::isValid() const
 		
 		QPolygonF polygon = pItem->polygon();
 		
-		if ( polygon.size() < 3 || ! EditorPolygon::isConvex( polygon ) )
+		if ( polygon.size() < 3 || ! Flyer::isPolygonConvex( polygon ) )
 		{
 			return false;
 		}
@@ -163,9 +171,9 @@ void ShapeWrapper::itemChanged()
 		QPolygonF polygon = pPolygon->polygon();
 		
 		QString hint;
-		if ( EditorPolygon::isConvex( polygon ) )
+		if ( Flyer::isPolygonConvex( polygon ) )
 		{
-			double area = EditorPolygon::area( polygon );
+			double area = Flyer::convexPolygonArea( polygon );
 			double mass = area * _pShape->def()->density;
 			
 			hint = QString(tr("Polygon: mass %1 kg")).arg( mass, 0, 'f', 2 );

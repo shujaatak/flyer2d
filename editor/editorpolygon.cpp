@@ -20,6 +20,7 @@
 
 #include "editorpoint.h"
 #include "b2dqt.h"
+#include "common.h"
 
 #include "editorpolygon.h"
 
@@ -54,7 +55,7 @@ void EditorPolygon::paint ( QPainter * painter,
 	QPolygonF p = polygon();
 	painter->setBrush( Qt::NoBrush );
 	
-	if ( isConvex( p ) )
+	if ( Flyer::isPolygonConvex( p ) )
 	{
 		if ( isSelected() )
 		{
@@ -116,47 +117,6 @@ void EditorPolygon::init( int a_p )
 }
 
 // ============================================================================
-// Checks if polygon is ocnvex
-bool EditorPolygon::isConvex( const QPolygonF& p )
-{
-	int points = p.size();
-	if ( points < 3 )
-	{
-		return true; // short circuit edge case
-	}
-	
-	int negatives = 0;
-	int positives = 0;
-	
-	for( int i = 0; i < points; i++ )
-	{
-		QPointF p1 = p[i];
-		QPointF p2 = p[(i+1)%points];
-		QPointF p3 = p[(i+2)%points];
-		
-		// converts these points to 2 3d vectors
-		double a1 = p2.x() - p1.x();
-		double a2 = p2.y() - p1.y();
-		// a3 = 0
-		
-		double b1 = p3.x() - p2.x();
-		double b2 = p3.y() - p2.y();
-		// b3 = 0;
-		
-		// now find cross product of these vectors
-		// c = a x b
-		// c1 = 0, c2 = 0
-		double c3 = a1*b2 - a2*b1;
-		
-		
-		if ( c3 < 0 ) negatives ++;
-		else positives++;
-	}
-	
-	return ( negatives == 0 ) || ( positives == 0 );
-}
-
-// ============================================================================
 // Sets shape from polygon
 void EditorPolygon::setPolygon( const QPolygonF& polygon )
 {
@@ -178,29 +138,4 @@ void EditorPolygon::setPolygon( const QPolygonF& polygon )
 	update();
 }
 
-// ============================================================================
-/// Calculates polygon area
-double EditorPolygon::area( const QPolygonF& p )
-{
-	double total = 0; // sum of products of all sub - triangles
-	
-	// pRef is the reference point for forming triangles.
-	// It's location doesn't change the result (except for rounding error).
-	b2Vec2 p1(0.0f, 0.0f);
-	
-	for( int i = 0; i < p.size(); i++ )
-	{
-		b2Vec2 p2  = Flyer::point2vec( p[i] );
-		b2Vec2 p3  = Flyer::point2vec( p[ (i+1) % p.size() ] );
-		
-		b2Vec2 e1 = p2 - p1;
-		b2Vec2 e2 = p3 - p1;
-
-		double D = b2Cross(e1, e2);
-
-		total += D * 0.5;
-	}
-	
-	return total;
-}
 

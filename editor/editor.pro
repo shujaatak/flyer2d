@@ -27,18 +27,18 @@ CONFIG += rtti
 
 
 
-CONFIG += release
 
 LIBS += -L../lib/ \
   -lflyercommon \
   -lbox2d \
+  -lgpc \
   -lQPropertyEditor
 
 
 TARGETDEPS += ../lib/libflyercommon.a \
   ../lib/libbox2d.a
 
-CONFIG -= debug
+CONFIG -= release
 
 QT += opengl
 

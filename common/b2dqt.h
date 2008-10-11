@@ -38,7 +38,7 @@ inline b2AABB rect2aabb( const QRectF& r )
 }
 
 /// Creates polygon shape definition useing shape described by QPolygonF
-b2PolygonDef shapeToDef( const QPolygonF& shape, bool reversed );
+b2PolygonDef shapeToDef( const QPolygonF& shape );
 
 }
 #endif // FLYERB2DQT_H

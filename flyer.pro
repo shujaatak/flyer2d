@@ -1,5 +1,5 @@
 TEMPLATE = subdirs
 
-SUBDIRS = Box2D QPropertyEditor common flyer editor
+SUBDIRS = Box2D QPropertyEditor gpc common flyer editor
 CONFIG += ordered
 

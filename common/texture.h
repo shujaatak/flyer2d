@@ -52,6 +52,9 @@ public:
 	/// Renders texture at specified position
 	void render( QPainter& p, const QPointF& pos, const RenderingOptions o );
 	
+	/// Fills shape with texture
+	//void fill( QPainter& p, const QPointF& pos, const QPainterPath& shape, const RenderingOptions o );
+	
 	double width() const;		///< Texture width [m]
 	double height() const;		///< Texture height [m]
 	
