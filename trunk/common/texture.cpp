@@ -167,6 +167,27 @@ void Texture::render( QPainter& painter, const QPointF& pos, const RenderingOpti
 }
 
 // ============================================================================
+/// Fills supplied painter path with texture.
+/* TODO remove if not used
+void Texture::fill( QPainter& p, const QPointF& pos, const QPainterPath& shape, const RenderingOptions o )
+{
+		QTransform old = painter.transform();
+		QTransform t = old;
+		t.scale( _resolution, - _resolution );
+		
+		// TODO save/restore are expensive operations
+		painter.save();
+			painter.setTransform( t, false );
+			
+			painter.setClipPath( shape );
+			painter.drawImage( position/_resolution, image( o.textureStyle ) );
+		
+		
+		// restore previous trransform
+		painter.restore();
+}
+*/
+// ============================================================================
 /// Makes texture a sprite. Sprites are draw using glDrawPixels, which is deadly fast.
 void Texture::setIsSprite( bool sprite )
 {

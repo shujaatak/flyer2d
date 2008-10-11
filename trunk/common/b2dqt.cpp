@@ -14,16 +14,18 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+#include "common.h"
 #include "b2dqt.h"
 
 namespace Flyer {
 
 // ============================================================================
 // QPolygonF - > b2PolygonDef
-b2PolygonDef shapeToDef( const QPolygonF& shape, bool reversed )
+b2PolygonDef shapeToDef( const QPolygonF& shape )
 {
 	b2PolygonDef def;
 	def.vertexCount = 0;
+	bool reversed = convexPolygonDirection( shape );
 	
 	if ( shape.size() > 8 )
 	{

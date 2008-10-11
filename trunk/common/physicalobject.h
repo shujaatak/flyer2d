@@ -20,6 +20,8 @@
 class QPainter;
 #include <QMap>
 #include <QList>
+#include <QLinkedList>
+#include <QPair>
 #include <QPointF>
 
 #include "Box2D.h"
@@ -72,7 +74,16 @@ public:
 	
 	// damage modifiacations
 	
+	/// Effects appliet do detached bodies
+	enum CrashEffect {
+		NoEffect,				///< None. Body just lives then as a shrapnell
+		FragmentationEffect,	///< Body is crushed into smaller pieces
+	};
+	
+	/// Breaks joint, detaching all bodies behind it
 	void breakJoint( Joint* pJoint );
+	/// Message from body - body crashe, probably with some spectacular effect.
+	void breakBody( Body* pBody, CrashEffect effect );
 	
 	// bodies classes and manipulation
 	enum BodyType {					/// Body type
@@ -101,12 +112,19 @@ private:
 
 	// operations
 	void doBreakJoint( Joint* pJoint );	///< Actually breaks joint
-	void detachBody( Body* pBody );		///< Detaches body from machine
+	void detachBody( Body* pBody, CrashEffect effect = NoEffect );		///< Detaches body from machine
+	void doBreakBody( Body* pBody, CrashEffect effect );	///< Avctually crashes body
+	/// Creates shrapnell copied from body
+	void createShrapnel( Body* pBody );
+	/// Creates multiple shrapnlls from body fragments
+	void createShrapnels( Body* pBody );
 	
 	// bodies
 	QMap<int, QList<Body*> > _bodies;
 	QList<Body*>	_allBodies;
 	QList<Body*>	_simulatedBodies;	///< Bodies reciving 'simulate' events
+	/// Temporary list of bodies that are to be break during next sim step, together with break effect.
+	QLinkedList<QPair<Body*, CrashEffect > >	_bodiesToBreak;
 	int				_layers;
 	
 	/// Object position is determined using it's pos, and destructicion of
@@ -115,7 +133,7 @@ private:
 	
 	// joints
 	QList<Joint*>	_allJoints;
-	QList<Joint*>	_jointsToBreak; ///< Temporary list of joints that are to be break during next sim step
+	QLinkedList<Joint*>	_jointsToBreak; ///< Temporary list of joints that are to be break during next sim step
 	
 	// variables
 	

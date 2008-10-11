@@ -41,10 +41,6 @@ public:
 	
 	void init( int points );	///< inits polygon with specified number of points
 
-	// geometrix tools TODO: move somwhere else
-
-	static bool isConvex( const QPolygonF& p );	///< Checks if polygon is convex
-	static double area( const QPolygonF& p );	///< Calculates polygon's area
 
 private:
 

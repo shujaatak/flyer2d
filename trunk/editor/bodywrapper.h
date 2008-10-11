@@ -47,7 +47,6 @@ class BodyWrapper : public EditableWrapper
 	
 	Q_PROPERTY( double TextureX READ getTextureX WRITE setTextureX USER true )
 	Q_PROPERTY( double TextureY READ getTextureY WRITE setTextureY USER true )
-	Q_PROPERTY( double TextureScale READ getTextureScale WRITE setTextureScale USER true )
 	
 	Q_PROPERTY( double DamageCapacityKN READ getDamageCapacity WRITE setDamageCapacity USER true )
 	Q_PROPERTY( double DamageToleranceKN READ getDamageTolerance WRITE setDamageTolerance USER true )
@@ -95,11 +94,9 @@ public:
 	
 	void setTextureX( double d );
 	void setTextureY( double d );
-	void setTextureScale( double d );
 	
 	double getTextureX() const { return  _pBody->texturePosition().x(); }
 	double getTextureY() const { return  _pBody->texturePosition().y(); }
-	double getTextureScale() const { return _pBody->textureScale(); }
 	
 	double getDamageCapacity() const { return _pBody->damageCapacity()/1000; }
 	void setDamageCapacity( double d ) { _pBody->setDamageCapacity( d*1000 ); }

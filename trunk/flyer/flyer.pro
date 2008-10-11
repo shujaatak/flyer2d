@@ -5,7 +5,6 @@
 TEMPLATE = app
 TARGET = flyer
 DEPENDPATH += .
-LIBS += -L../lib -lflyercommon -lbox2d
 QT += opengl
 DESTDIR = ../bin
 
@@ -34,4 +33,9 @@ CONFIG += debug
 INCLUDEPATH += ../common \
   ../common/objects/ \
   ../include
+
+LIBS += -L../lib \
+  -lflyercommon \
+  -lgpc \
+  -lbox2d
 

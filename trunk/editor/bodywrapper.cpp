@@ -80,7 +80,8 @@ void BodyWrapper::showTexture( const QString& path )
 {
 	// show texture
 	QImage image;
-	image = Flyer::TextureProvider::loadTexture( path ).image( Flyer::Texture::Normal );
+	Flyer::Texture texture = Flyer::TextureProvider::loadTexture( path );
+	image = texture.image( Flyer::Texture::Normal );
 	if ( ! image.isNull() )
 	{
 		// create item
@@ -92,7 +93,7 @@ void BodyWrapper::showTexture( const QString& path )
 			_pTextureItem->setPos( _pBody->texturePosition() );
 			
 			QTransform t;
-			t.scale( _pBody->textureScale(), -_pBody->textureScale() );
+			t.scale( texture.resolution() , -texture.resolution() );
 			_pTextureItem->setTransform( t );
 		}
 		
@@ -118,19 +119,6 @@ void BodyWrapper::setTextureY( double d )
 	newPos.setY( d );
 	_pBody->setTexturePosition( newPos );
 	if ( _pTextureItem ) _pTextureItem->setPos( newPos );
-}
-
-// ============================================================================
-// Sets texture scale
-void BodyWrapper::setTextureScale( double d )
-{
-	_pBody->setTextureScale( d );
-	if ( _pTextureItem )
-	{
-		QTransform t;
-		t.scale( _pBody->textureScale(), _pBody->textureScale() );
-		_pTextureItem->setTransform( t );
-	}
 }
 
 // ============================================================================

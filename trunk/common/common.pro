@@ -4,7 +4,6 @@
 
 TEMPLATE = lib
 TARGET = flyercommon
-INCLUDEPATH += ../include objects
 CONFIG += staticlib \
  opengl \
  debug
@@ -107,10 +106,18 @@ SOURCES += activeattachpoint.cpp \
  common.cpp \
  physicalobject.cpp
 
-LIBS += -L../lib \
-  -lbox2d
 
 QT += opengl
 
 CONFIG -= release
+
+INCLUDEPATH += ../gpc \
+  ../include \
+  objects
+
+LIBS += ../lib/libgpc.a \
+  -L../lib \
+  -lbox2d
+
+TARGETDEPS += ../lib/libgpc.a
 
