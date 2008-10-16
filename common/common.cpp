@@ -55,7 +55,9 @@ bool isOpenGL( QPainter* p )
 /// Returns random value from 0 inclusive to 1 exclusive
 double random01()
 {
-	return (qrand() % 0xffff) / (double)0xffff;
+	double res =  double(qrand() % 0xffff) / (double)0xffff;
+	//qDebug("random01: %g", res);
+	return res;
 }
 
 // ============================================================================
@@ -68,19 +70,22 @@ QPolygonF findApproximateOutline( const QPainterPath& path )
 
 // ============================================================================
 /// Splits polygon in two
-QList<QPolygonF> splitPolygonRandomly( const QPolygonF& polygon )
+QList<QPolygonF> splitPolygonRandomly( const QPolygonF& polygon, QLineF* pdebugout )
 {
 	QRectF br = polygon.boundingRect();
 	
 	// get random angle on cutting
-	double angle = random01()* 6.0;
+	double angle = random01()* 6.28;
 	
 	// cut throught the center
 	QPointF center = br.center();
 	double upper = br.width() + br.height(); // upper bound for any of the polygon's dimensions
 	
-	QPointF p1( center.x() - upper*sin(angle), center.y() - cos(angle) );
-	QPointF p2( center.x() + upper*sin(angle), center.y() + cos(angle) );
+	QPointF p1( center.x() - upper*sin(angle), center.y() - upper*cos(angle) );
+	QPointF p2( center.x() + upper*sin(angle), center.y() + upper*cos(angle) );
+	
+	// debug
+	if ( pdebugout ) *pdebugout = QLineF( p1, p2 );
 	
 	return splitPolygon( polygon, QLineF( p1, p2 ) );
 }
@@ -132,7 +137,8 @@ QList<QPolygonF> splitPolygon( const QPolygonF& polygon, const QLineF& line )
 	QPolygonF res1, res2;
 	
 	res1.append( intersection1 );
-	for( int i = ( interIndex1 + 1 ) % polygon.size(); i != interIndex2;
+	for( int i = ( interIndex1 + 1 ) % polygon.size();
+		 i != ( interIndex2 + 1 ) % polygon.size();
 		i = ( i+1) % polygon.size() )
 	{
 		res1.append( polygon[i] );
@@ -140,7 +146,8 @@ QList<QPolygonF> splitPolygon( const QPolygonF& polygon, const QLineF& line )
 	res1.append( intersection2 );
 	
 	res2.append( intersection2 );
-	for( int i = ( interIndex2 + 1 ) % polygon.size(); i != interIndex1;
+	for( int i = ( interIndex2 + 1 ) % polygon.size();
+		i != ( interIndex1 + 1 ) % polygon.size();
 		i = ( i+1) % polygon.size() )
 	{
 		res2.append( polygon[i] );
@@ -168,6 +175,7 @@ QList<QPolygonF> triangulatePolygon( const QPolygonF& polygon )
 		triangles.append( polygon );
 		return triangles;
 	}
+	qDebug("Triangulating polygon with %d vertices", polygon.size() );
 	// triangulate here
 	// create GPC polygon from QPolygonF
 	gpc_vertex_list	vertexList;
@@ -209,6 +217,8 @@ QList<QPolygonF> triangulatePolygon( const QPolygonF& polygon )
 	// release polygon
 	delete[] vertexList.vertex;
 	gpc_free_tristrip( &tristrip );
+	
+	qDebug("%d triangles created", triangles.size() );
 	
 	return triangles;
 }
@@ -294,6 +304,127 @@ bool convexPolygonDirection( const QPolygonF& p )
 	b2Vec2 p12 = point2vec( p[2] ) - point2vec( p[1] );
 	
 	return b2Cross( p01, p12 ) < 0;
+}
+
+// ============================================================================
+/// Checks shape validity. Returns 0 if valid.
+///\author Erin Catto, Daid
+///\note Taken from Boxcuter, licensed n Box2D license.
+int CheckPolyShape(const b2PolygonDef* poly)
+{
+	if (!(3 <= poly->vertexCount && poly->vertexCount <= b2_maxPolygonVertices))
+		return -1;
+
+	b2Vec2 m_normals[poly->vertexCount];
+
+	// Compute normals. Ensure the edges have non-zero length.
+	for (int32 i = 0; i < poly->vertexCount; ++i)
+	{
+		int32 i1 = i;
+		int32 i2 = i + 1 < poly->vertexCount ? i + 1 : 0;
+		b2Vec2 edge = poly->vertices[i2] - poly->vertices[i1];
+		if (!(edge.LengthSquared() > B2_FLT_EPSILON * B2_FLT_EPSILON))
+			return -1;
+		m_normals[i] = b2Cross(edge, 1.0f);
+		m_normals[i].Normalize();
+	}
+
+	// Ensure the polygon is convex.
+	for (int32 i = 0; i < poly->vertexCount; ++i)
+	{
+		for (int32 j = 0; j < poly->vertexCount; ++j)
+		{
+			// Don't check vertices on the current edge.
+			if (j == i || j == (i + 1) % poly->vertexCount)
+			{
+				continue;
+			}
+			
+			// Your polygon is non-convex (it has an indentation).
+			// Or your polygon is too skinny.
+			float32 s = b2Dot(m_normals[i], poly->vertices[j] - poly->vertices[i]);
+			if (!(s < -b2_linearSlop))
+				return -1;
+		}
+	}
+
+	// Ensure the polygon is counter-clockwise.
+	for (int32 i = 1; i < poly->vertexCount; ++i)
+	{
+		float32 cross = b2Cross(m_normals[i-1], m_normals[i]);
+
+		// Keep asinf happy.
+		cross = b2Clamp(cross, -1.0f, 1.0f);
+
+		// You have consecutive edges that are almost parallel on your polygon.
+		float32 angle = asinf(cross);
+		if (!(angle > b2_angularSlop))
+			return -1;
+	}
+
+	// Compute the polygon centroid.
+	b2Vec2 m_centroid; m_centroid.Set(0.0f, 0.0f);
+	float32 area = 0.0f;
+
+	// pRef is the reference point for forming triangles.
+	// It's location doesn't change the result (except for rounding error).
+	b2Vec2 pRef(0.0f, 0.0f);
+
+	const float32 inv3 = 1.0f / 3.0f;
+
+	for (int32 i = 0; i < poly->vertexCount; ++i)
+	{
+		// Triangle vertices.
+		b2Vec2 p1 = pRef;
+		b2Vec2 p2 = poly->vertices[i];
+		b2Vec2 p3 = i + 1 < poly->vertexCount ? poly->vertices[i+1] : poly->vertices[0];
+
+		b2Vec2 e1 = p2 - p1;
+		b2Vec2 e2 = p3 - p1;
+
+		float32 D = b2Cross(e1, e2);
+
+		float32 triangleArea = 0.5f * D;
+		area += triangleArea;
+
+		// Area weighted centroid
+		m_centroid += triangleArea * inv3 * (p1 + p2 + p3);
+	}
+
+	// Centroid
+	if (!(area > B2_FLT_EPSILON))
+		return -1;
+	m_centroid *= 1.0f / area;
+
+	// Compute the oriented bounding box.
+	//ComputeOBB(&m_obb, m_vertices, m_vertexCount);
+
+	// Create core polygon shape by shifting edges inward.
+	// Also compute the min/max radius for CCD.
+	for (int32 i = 0; i < poly->vertexCount; ++i)
+	{
+		int32 i1 = i - 1 >= 0 ? i - 1 : poly->vertexCount - 1;
+		int32 i2 = i;
+
+		b2Vec2 n1 = m_normals[i1];
+		b2Vec2 n2 = m_normals[i2];
+		b2Vec2 v = poly->vertices[i] - m_centroid;
+
+		b2Vec2 d;
+		d.x = b2Dot(n1, v) - b2_toiSlop;
+		d.y = b2Dot(n2, v) - b2_toiSlop;
+
+		// Shifting the edge inward by b2_toiSlop should
+		// not cause the plane to pass the centroid.
+
+		// Your shape has a radius/extent less than b2_toiSlop.
+		if (!(d.x >= 0.0f))
+			return -1;
+		if (!(d.y >= 0.0f))
+			return -1;
+	}
+	
+	return 0;
 }
 
 }

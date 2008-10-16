@@ -99,6 +99,9 @@ public:
 	/// Returns body shape as painter path
 	QPainterPath shape() const;
 	
+	/// Retruns approx/ body outline as polygon. In local coordinates
+	QPolygonF outline() const;
+	
 	/// Returns body bounding rect
 	QRectF boundingRect() const;
 	
@@ -125,6 +128,7 @@ public:
 	
 	/// Sets body's collision layers
 	void setLayers( int layers );
+	int layers() const { return _layers; }
 	
 	/// Sets texture
 	void setTexture( const QString& path );

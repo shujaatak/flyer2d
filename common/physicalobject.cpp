@@ -183,10 +183,10 @@ QPointF PhysicalObject::position() const
 {
 	if ( _pMainBody && _pMainBody->b2body() )
 	{
-		return vec2point( _pMainBody->b2body()->GetPosition() );
+		_lastKnownPosition = vec2point( _pMainBody->b2body()->GetPosition() );
 	}
 	
-	return QPointF();
+	return _lastKnownPosition;
 }
 
 // ============================================================================
@@ -275,7 +275,10 @@ void PhysicalObject::detachBody( Body* pBody,  CrashEffect effect )
 		// detach connected bodies
 		foreach( Body* pConnected, connectedBodies )
 		{
-			detachBody( pConnected, NoEffect );
+			if ( ! pConnected->isConnectedTo( mainBody() ) )
+			{
+				detachBody( pConnected, NoEffect );
+			}
 		}
 	}
 }
@@ -296,9 +299,7 @@ void PhysicalObject::createShrapnel( Body* pBody )
 void PhysicalObject::createShrapnels( Body* pBody )
 {
 	qDebug("Creating shrapnels for body %s", qPrintable( pBody->name() ) );
-	QPolygonF bodyShape = findApproximateOutline( pBody->shape() );
-	QTransform bodyTransform = pBody->transform();
-	bodyShape = bodyTransform.inverted().map( bodyShape ); // transform shape back to local coords.
+	QPolygonF bodyShape = pBody->outline();
 	
 	QList<QPolygonF> shrapnelShapes = splitPolygonRandomly( bodyShape );
 	
@@ -324,7 +325,7 @@ void PhysicalObject::createShrapnels( Body* pBody )
 		double area = convexPolygonArea( shape );
 		if ( area < 1E-4 )
 		{
-			qDebug("Shrapnell rejected: to small" );
+			qDebug("Shrapnell rejected: to small (area: %g)", area );
 		}
 		else
 		{
@@ -332,20 +333,20 @@ void PhysicalObject::createShrapnels( Body* pBody )
 			
 			QPointF center = shape.boundingRect().center();
 			Shrapnel*	pShrapnel = new Shrapnel( world() );
-			Body* pBody = new Body("main");
+			Body* pSrapnellBody = new Body("main");
 			
-			pBody->setShape( shape, friction, restitution, density );
-			pBody->setTexture( pBody->texture() );
-			pBody->setLimitTextureToShape( true );
-			pBody->setPosition( pBody->position() ); // TODO translate to shape center, aslo: translate shape
-			pBody->setAngle( pBody->angle() );
-			pBody->create( world() );
+			pSrapnellBody->setTexture( pBody->texture() );
+			pSrapnellBody->setLimitTextureToShape( true );
+			pSrapnellBody->setPosition( pBody->position() ); // TODO translate to shape center, also: translate shape
+			pSrapnellBody->setAngle( pBody->angle() );
+			pSrapnellBody->setLayers( pBody->layers() );
+			pSrapnellBody->setShape( shape, friction, restitution, density );
+			pSrapnellBody->create( world() );
 			// TODO it'd time to add velocities to body interface
-			pBody->b2body()->SetLinearVelocity( pBody->velocity() );
-			pBody->b2body()->SetAngularVelocity( pBody->angularVelocity() );
+			pSrapnellBody->b2body()->SetLinearVelocity( pBody->velocity() );
+			pSrapnellBody->b2body()->SetAngularVelocity( pBody->angularVelocity() );
 			
-			
-			pShrapnel->addBody( pBody );
+			pShrapnel->addBody( pSrapnellBody );
 			world()->addObject( pShrapnel, World::ObjectSimulated );
 		}
 	}

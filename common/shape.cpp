@@ -16,6 +16,7 @@
 
 #include "gexception.h"
 #include "body.h"
+#include "b2dqt.h"
 
 #include "shape.h"
 
@@ -210,6 +211,44 @@ void Shape::create( Body* pBody )
 	Q_ASSERT( pBody->b2body() );
 	_pDef->userData = this;
 	_pShape = pBody->b2body()->CreateShape( _pDef );
+}
+
+// ============================================================================
+/// Returns approximated outline of the shape. Polygons are returned exactly, by circles are
+/// Approximated with 8-gons.
+QPolygonF Shape::outline() const
+{
+	Q_ASSERT( _pDef );
+	
+	
+	if ( _pDef->type == e_polygonShape )
+	{
+		b2PolygonDef* pDef = static_cast< b2PolygonDef* >( _pDef );
+		
+		QPolygonF result( pDef->vertexCount );
+		for( int i = 0; i < pDef->vertexCount; i++ )
+		{
+			result[i] = vec2point( pDef->vertices[i] );
+		}
+		
+		return result;
+	}
+	else
+	{
+		b2CircleDef* pDef = static_cast< b2CircleDef* >( _pDef );
+		
+		QPolygonF result( 8 );
+		for( int i =0 ; i< 8 ; i++ )
+		{
+			double angle = i * M_PI / 4.0;
+			double x = pDef->localPosition.x + 1.04*pDef->radius*cos(angle);
+			double y = pDef->localPosition.y + 1.04*pDef->radius*sin(angle);
+			
+			result[i] = QPointF( x, y );
+		
+		}
+		return result;
+	}
 }
 
 }

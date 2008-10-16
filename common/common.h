@@ -24,6 +24,7 @@ class QPainter;
 #include <QPolygonF>
 class QLineF;
 class QPainterPath;
+class b2PolygonDef;
 
 namespace Flyer
 {
@@ -69,7 +70,7 @@ double random01();
 QPolygonF findApproximateOutline( const QPainterPath& path );
 
 /// Splits polygon randomly into two, similary-sized polygons
-QList<QPolygonF> splitPolygonRandomly( const QPolygonF& polygon );
+QList<QPolygonF> splitPolygonRandomly( const QPolygonF& polygon, QLineF* pdebugout = NULL );
 
 /// Splits polygon into two, cutting it with the supplied line
 QList<QPolygonF> splitPolygon( const QPolygonF& polygon, const QLineF& line );
@@ -85,6 +86,9 @@ double convexPolygonArea( const QPolygonF& p );
 
 /// Checks polygon direction
 bool convexPolygonDirection( const QPolygonF& p );
+
+/// Cecks polgon validity for Box2D
+int CheckPolyShape(const b2PolygonDef* poly);
 
 }
 

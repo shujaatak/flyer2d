@@ -138,6 +138,7 @@ private:
 	// variables
 	
 	double _orientation;	//!< Orientation - 1 - normal, -1 - mirrored. 
+	mutable QPointF	_lastKnownPosition;	///<TODO Ugly hack to keep destroyed body still visible
 	
 	void updateSize();		///< Calculates _size;
 	double	_size;			///< Approx. size used to calculate rough bounding rect.
