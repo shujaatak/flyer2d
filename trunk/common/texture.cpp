@@ -168,25 +168,26 @@ void Texture::render( QPainter& painter, const QPointF& pos, const RenderingOpti
 
 // ============================================================================
 /// Fills supplied painter path with texture.
-/* TODO remove if not used
-void Texture::fill( QPainter& p, const QPointF& pos, const QPainterPath& shape, const RenderingOptions o )
+void Texture::fill( QPainter& painter, const QPointF& pos, const QPolygonF& shape, const RenderingOptions o )
 {
-		QTransform old = painter.transform();
-		QTransform t = old;
-		t.scale( _resolution, - _resolution );
-		
-		// TODO save/restore are expensive operations
-		painter.save();
-			painter.setTransform( t, false );
-			
-			painter.setClipPath( shape );
-			painter.drawImage( position/_resolution, image( o.textureStyle ) );
-		
-		
-		// restore previous trransform
-		painter.restore();
+	QTransform old = painter.transform();
+	
+	QTransform t;
+	t.translate(  pos.x(), pos.y() ); // TODO test
+	t.scale( _resolution, -_resolution );
+	
+	QBrush brush;
+	brush.setTextureImage( image( o.textureStyle ) );
+	brush.setTransform( t );
+	
+	painter.setBrush( brush );
+	
+	painter.setPen( Qt::NoPen );
+	//painter.setPen( Qt::blue ); // TODO debug
+	
+	painter.drawPolygon( shape );
 }
-*/
+
 // ============================================================================
 /// Makes texture a sprite. Sprites are draw using glDrawPixels, which is deadly fast.
 void Texture::setIsSprite( bool sprite )
@@ -203,6 +204,7 @@ QImage& Texture::sprite( int style )
 {
 	if (  ! _sprites.contains( style ) )
 	{
+	
 		QImage& src = image( style );
 		QImage converted = QGLWidget::convertToGLFormat( src );
 		

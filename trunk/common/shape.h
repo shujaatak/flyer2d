@@ -48,6 +48,9 @@ public:
 	/// Returns associated b2d object
 	b2Shape* b2shape() const { return _pShape; }
 	
+	/// Returns approximated outline in local coordinates
+	QPolygonF outline() const;
+	
 	/// flips shape upside-down
 	void flip();
 	

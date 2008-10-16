@@ -66,11 +66,15 @@ Body::Body( const Body& src ) : Serializable( src )
 	_texture			= src._texture;
 	_texturePath		= src._texturePath;
 	_texturePosition	= src._texturePosition;
+	_limitTextureToShape	= src._limitTextureToShape;
 	_orientation		= src._orientation;
 	_damageCapacity		= src._damageCapacity;
 	_damageTolerance	= src._damageTolerance;
 	_damageReceived		= src._damageReceived;
 	_damageMultiplier	= src._damageMultiplier;
+	
+	
+	_pWorld	= NULL; // will be set by create() below if appliable
 	
 	// if original has b2body, create and copy dynamic parameters
 	if ( src._pBody )
@@ -86,7 +90,6 @@ Body::Body( const Body& src ) : Serializable( src )
 	 // do not inherit damage manager or parent
 	_pDamageManager = NULL;
 	_pParent = NULL;
-	_pWorld	= NULL;
 	
 }
 
@@ -170,6 +173,7 @@ Shape* Body::addShape( const Shape& shape, bool removeUserData )
 	if ( _pBody )
 	{
 		_shapes.last().create( this );
+		world()->b2world()->Refilter( _shapes.last().b2shape() );
 		// create mass
 		if ( _definition.massData.mass == 0 )
 		{
@@ -217,10 +221,12 @@ QPainterPath Body::shape() const
 				path.addEllipse( center.x - r, center.y - r, 2*r, 2*r );
 				
 				// also, add line across the circle
+				/*
 				path.closeSubpath();
 				path.moveTo( center.x - r, 0 );
 				path.lineTo( center.x + r, 0 );
 				path.closeSubpath();
+				*/
 			}
 			else
 			{
@@ -330,26 +336,28 @@ void Body::render( QPainter& painter, const RenderingOptions& options )
 				t.scale( 1.0,  _orientation );
 				painter.setTransform( t, true );
 				
-				// filling shape
 				if ( _limitTextureToShape )
 				{
-					painter.setClipPath( shape() );
+					_texture.fill( painter,  _texturePosition, outline(), options );
 				}
-				_texture.render( painter,  _texturePosition, options );
+				else
+				{
+					_texture.render( painter,  _texturePosition, options );
+				}
 			
 			painter.restore();
 			
-			/* Debug collisiton draw */
+			/* Debug collisiton draw 
 			if( _limitTextureToShape )
 			{
 				painter.save();
 					painter.setTransform( transform(), true );
 					painter.setPen( QPen( Qt::red, 0 ) );
 					painter.setBrush( Qt::NoBrush );
-					painter.drawPath( shape() ); // TODO - debug
+					painter.drawPolygon( outline() ); // TODO - debug
 				painter.restore();
 			}
-			/**/
+			*/
 		}
 		else
 		{
@@ -440,6 +448,7 @@ void Body::setLayers( int layers )
 		while( pShape )
 		{
 			pShape->SetFilterData( filter );
+			world()->b2world()->Refilter( pShape );
 			pShape = pShape->GetNext();
 		}
 	}
@@ -655,9 +664,9 @@ void Body::contact( double force )
 	
 	// TODO debug, remove
 	
-	//if ( force > _damageTolerance )
-	//	qDebug("Body: %s, damage: %g, temp: %g", qPrintable(_name),
-	//		 _damageReceived, _temperature - world()->environment()->temperature( vec2point( position() ) ) );
+	if ( force > _damageTolerance )
+		qDebug("Body: %s, damage: %g, temp: %g", qPrintable(_name),
+			 _damageReceived, _temperature - world()->environment()->temperature( vec2point( position() ) ) );
 	
 }
 
@@ -750,15 +759,44 @@ void Body::setShape( const QPolygonF& shape, double friction, double restitution
 	foreach( const QPolygonF& triangle, triangles )
 	{
 		b2PolygonDef def = shapeToDef( triangle );
-		def.friction = friction;
-		def.restitution = restitution;
-		def.density = density;
-		
-		Shape shape( & def );
-		addShape( shape );
+		if ( CheckPolyShape( & def ) == 0 )
+		{
+ 			qDebug("Triangle accepted" ); 
+			def.friction = friction;
+			def.restitution = restitution;
+			def.density = density;
+			
+			Shape shape( & def );
+			addShape( shape );
+		}
+		else
+		{
+			qDebug("Triangle rejected");
+		}
+	}
+}
+	
+// ============================================================================
+/// Retruns approx/ body outline as polygon. In local coordinates
+QPolygonF Body::outline() const
+{
+	QPolygonF outline;
+	foreach( const Shape& shape, _shapes )
+	{
+		if ( outline.isEmpty() )
+		{
+			outline = shape.outline();
+		}
+		else
+		{
+			outline = outline.united( shape.outline() );
+		}
 	}
 	
+	QTransform t;
+	t.scale( 1.0, _orientation );
 	
+	return t.map( outline );
 }
 
 }

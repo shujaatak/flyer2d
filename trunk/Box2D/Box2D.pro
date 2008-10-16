@@ -5,22 +5,24 @@
 TEMPLATE = lib
 TARGET = box2d
 DESTDIR = ../lib
-CONFIG += staticlib \
- release
+CONFIG += staticlib
 
-DEPENDPATH += """. \
+DEPENDPATH += . \
               Collision \
               Common \
               Dynamics \
               Collision/Shapes \
               Dynamics/Contacts \
-              Dynamics/Joints"INCLUDEPATH += . \
+              Dynamics/Joints
+
+INCLUDEPATH += . \
                Collision \
                Common \
                Collision/Shapes \
                Dynamics \
                Dynamics/Joints \
-               Dynamics/Contacts""# Input
+               Dynamics/Contacts
+
 HEADERS += Collision/b2BroadPhase.h \
            Collision/b2Collision.h \
            Collision/b2PairManager.h \
@@ -83,5 +85,5 @@ SOURCES += Collision/b2BroadPhase.cpp \
            Dynamics/Joints/b2PulleyJoint.cpp \
            Dynamics/Joints/b2RevoluteJoint.cpp
 
-CONFIG -= debug
+CONFIG -= release
 
