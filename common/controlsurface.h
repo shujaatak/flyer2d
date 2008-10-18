@@ -35,6 +35,7 @@ public:
 	virtual void render(QPainter& painter, const QRectF& rect, const RenderingOptions& options );
 	virtual double status() const;
 	virtual void repair();
+	virtual void destroy();
 	
 	void setValue( double a );
 	double angle() const { return _value * _step; }	///< Current angle [radians]

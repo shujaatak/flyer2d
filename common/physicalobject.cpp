@@ -183,10 +183,10 @@ QPointF PhysicalObject::position() const
 {
 	if ( _pMainBody && _pMainBody->b2body() )
 	{
-		_lastKnownPosition = vec2point( _pMainBody->b2body()->GetPosition() );
+		return vec2point( _pMainBody->b2body()->GetPosition() );
 	}
 	
-	return _lastKnownPosition;
+	return QPointF();
 }
 
 // ============================================================================
@@ -237,8 +237,8 @@ void PhysicalObject::doBreakBody( Body* pBody, CrashEffect effect )
 	detachBody( pBody, effect );
 	if ( pBody == mainBody() )
 	{
-		// TODO destroy machine here
-		qDebug("Object %s should be destroyed now.", qPrintable(name()));
+		// destroy self!
+		world()->removeObject( this, true );
 	}
 }
 
@@ -298,14 +298,14 @@ void PhysicalObject::createShrapnel( Body* pBody )
 /// Splits body into smaller shrapells.
 void PhysicalObject::createShrapnels( Body* pBody )
 {
-	qDebug("Creating shrapnels for body %s", qPrintable( pBody->name() ) );
+	//qDebug("Creating shrapnels for body %s", qPrintable( pBody->name() ) );
 	QPolygonF bodyShape = pBody->outline();
 	
 	QList<QPolygonF> shrapnelShapes = splitPolygonRandomly( bodyShape );
 	
 	if ( shrapnelShapes.size() < 2 )
 	{
-		qDebug("Don't know how to split %s into shrapnels", qPrintable(pBody->name()) );
+		//qDebug("Don't know how to split %s into shrapnels", qPrintable(pBody->name()) );
 		createShrapnel(pBody);
 		return;
 	}
@@ -325,15 +325,15 @@ void PhysicalObject::createShrapnels( Body* pBody )
 		double area = convexPolygonArea( shape );
 		if ( area < 1E-4 )
 		{
-			qDebug("Shrapnell rejected: to small (area: %g)", area );
+			//qDebug("Shrapnell rejected: to small (area: %g)", area );
 		}
 		else
 		{
-			qDebug("Shrapnell area accepted (%g), proceeding with creation.", area );
+			//qDebug("Shrapnell area accepted (%g), proceeding with creation.", area );
 			
 			QPointF center = shape.boundingRect().center();
 			Shrapnel*	pShrapnel = new Shrapnel( world() );
-			Body* pSrapnellBody = new Body("main");
+			Body* pSrapnellBody = new Body("shrapnell");
 			
 			pSrapnellBody->setTexture( pBody->texture() );
 			pSrapnellBody->setLimitTextureToShape( true );

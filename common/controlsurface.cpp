@@ -91,6 +91,8 @@ QPointF ControlSurface::calculateForce( double velocity, double sinAttack ) cons
 	double dragH = _currentDragH;
 	double drag = -airDensity * velocity*velocity * (dragH +( _currentDragV-dragH) * sinAttack*sinAttack );
 	
+	//qDebug("Elevator force: lift: %g N, drag: %g N, airspeed: %g m/s, sin(AOA): %g", 
+	//	lift, drag, velocity, sinAttack );
 	return QPointF( drag, lift );	
 }
 
@@ -116,11 +118,21 @@ void ControlSurface::damage(double force)
 }
 
 // ============================================================================
+/// Destroys surface completely
+void ControlSurface::destroy()
+{
+	_currentMaxValue = _value;
+	_currentMinValue = _value;
+	_currentLift = 0;
+}
+
+// ============================================================================
 // Repairs
 void ControlSurface::repair()
 {
 	_currentMaxValue = 1.0;
 	_currentMinValue = -1.0;
+	_currentLift	= _liftCoeff;
 }
 
 // ============================================================================

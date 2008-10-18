@@ -30,6 +30,7 @@
 #include "game.h"
 #include "gameui.h"
 #include "worldscene.h"
+#include "pilot.h"
 
 namespace Flyer
 {
@@ -68,6 +69,8 @@ WorldScene::~WorldScene()
 // Renders widget
 void WorldScene::render( QPainter& painter )
 {
+	Plane* pPlane = plane();
+	
 	// init opengl
 	if ( isOpenGL( & painter ) )
 	{
@@ -108,41 +111,45 @@ void WorldScene::render( QPainter& painter )
 		_pWorld->renderMap( painter, worldRect );
 	painter.restore();
 	
-	// airpseed
-	QString airspeed;
-	airspeed.sprintf("airspeed: %.2f km/h", plane()->airspeed() * 3.6 );
-	painter.drawText( 10, 10, airspeed );
-	
-	// altitude
-	QString altitude;
-	altitude.sprintf("altitude: %.2f m", plane()->position().y() );
-	painter.drawText( 10, 25, altitude );
-	
-	// x
-	QString location;
-	location.sprintf("location: %.1f km", plane()->position().x() / 1000.0 );
-	painter.drawText( 10, 40, location );
-	
-	// autopilot ( it's time for proper rendering)
-	if ( plane()->autopilot() )
+	// gauges
+	if ( pPlane )
 	{
-		painter.drawText( 10, 55, "autopilot" );
+		// airpseed
+		QString airspeed;
+		airspeed.sprintf("airspeed: %.2f km/h", pPlane->airspeed() * 3.6 );
+		painter.drawText( 10, 10, airspeed );
+		
+		// altitude
+		QString altitude;
+		altitude.sprintf("altitude: %.2f m", pPlane->position().y() );
+		painter.drawText( 10, 25, altitude );
+		
+		// x
+		QString location;
+		location.sprintf("location: %.1f km", pPlane->position().x() / 1000.0 );
+		painter.drawText( 10, 40, location );
+		
+		// autopilot ( it's time for proper rendering)
+		if ( pPlane->autopilot() )
+		{
+			painter.drawText( 10, 55, "autopilot" );
+		}
+		
+		// fps
+		QString fps;
+		fps.sprintf("FPS: %.1f", FPS );
+		painter.drawText( 10, height() - 15, fps );
+		
+		// throttle
+		QString throttle;
+		throttle.sprintf("throttle: %d%%", int( pPlane->throttle() * 100 ) );
+		painter.drawText( width() - 100, 10, throttle );
+		
+		// flaps
+		QString flaps;
+		flaps.sprintf("flaps: %d%%", int( pPlane->flaps() * 100 ) );
+		painter.drawText( width() - 100, 25, flaps );
 	}
-	
-	// fps
-	QString fps;
-	fps.sprintf("FPS: %.1f", FPS );
-	painter.drawText( 10, height() - 15, fps );
-	
-	// throttle
-	QString throttle;
-	throttle.sprintf("throttle: %d%%", int( plane()->throttle() * 100 ) );
-	painter.drawText( width() - 100, 10, throttle );
-	
-	// flaps
-	QString flaps;
-	flaps.sprintf("flaps: %d%%", int( plane()->flaps() * 100 ) );
-	painter.drawText( width() - 100, 25, flaps );
 	
 	// pause
 	if ( ! isRunning() )
@@ -153,6 +160,7 @@ void WorldScene::render( QPainter& painter )
 	}
 	
 	// redner HUD
+	if ( pPlane )
 	{
 	
 		QPen hudPen;
@@ -160,14 +168,14 @@ void WorldScene::render( QPainter& painter )
 		hudPen.setWidthF( 1 );
 		hudPen.setColor( QColor( 128, 128, 128, 128 ) );
 		
-		double s = sin( plane()->angle() );
-		double c = cos( plane()->angle() );
+		double s = sin( pPlane->angle() );
+		double c = cos( pPlane->angle() );
 		double spacing = 40; // [px]
 		double shortLine = 100; 
 		double longLine = 200;
 		double x = _planePos.x();
 		double y = _planePos.y();
-		double o = plane()->orientation();
+		double o = pPlane->orientation();
 		// top line
 		painter.drawLine( QPointF( x - spacing*s*o, y - spacing*c*o ), QPointF( x - shortLine*s*o, y - shortLine*c*o));
 	
@@ -185,92 +193,96 @@ void WorldScene::render( QPainter& painter )
 /// Renders messages
 void WorldScene::renderMessages( QPainter& painter )
 {
-	// acquire
-	QMultiMap<double, Message > messages;
-	const int MAX_DISPLAYED_MESSAGES = 5;
-	double MAX_MESSAGE_AGE = 5.0; // 5 s
-	
-	double currentTime = world()->time();
-	double minTime = currentTime - MAX_MESSAGE_AGE;
-	
-	int last = plane()->messages().size() - 1; // index of last element
-	while( last >= 0 && messages.size() < MAX_DISPLAYED_MESSAGES )
+	Plane* pPlane = plane();
+	if ( pPlane )
 	{
-		const Message& m = plane()->messages()[ last ];
-		if ( m.time() > minTime )
-		{
-			messages.insert( m.time(), m );
-		}
-		else
-		{
-			break;
-		}
+		// acquire
+		QMultiMap<double, Message > messages;
+		const int MAX_DISPLAYED_MESSAGES = 5;
+		double MAX_MESSAGE_AGE = 5.0; // 5 s
 		
-		last --;
-	}
-	
-	last = game()->messages().size() - 1; // index of last element
-	while( last >= 0 && messages.size() < MAX_DISPLAYED_MESSAGES )
-	{
-		const Message& m = game()->messages()[ last ];
-		if ( m.time() > minTime &&  m.time() <= currentTime )
-		{
-			messages.insert( m.time(), m );
-		}
-		else
-		{
-			break;
-		}
+		double currentTime = world()->time();
+		double minTime = currentTime - MAX_MESSAGE_AGE;
 		
-		last --;
-	}
-	
-	// display
-	QFont messageFont( "Arial" );
-	messageFont.setPixelSize( height()/ 30 );
-	messageFont.setWeight( QFont::Bold );
-	
-	painter.setFont( messageFont );
-	
-	double lineHeight = messageFont.pixelSize() * 1.5;
-	double y = height()*0.7 + lineHeight*messages.size();
-	foreach( const Message& msg, messages.values() )
-	{
-		// find color
-		QColor color;
-		switch( msg.type() )
+		int last = pPlane->messages().size() - 1; // index of last element
+		while( last >= 0 && messages.size() < MAX_DISPLAYED_MESSAGES )
 		{
-			default:
-			case Message::System:
-				color = Qt::black;
+			const Message& m = pPlane->messages()[ last ];
+			if ( m.time() > minTime )
+			{
+				messages.insert( m.time(), m );
+			}
+			else
+			{
 				break;
-				
-			case Message::Game:
-				color = Qt::green;
-				break;
-				
-			case Message::Radio:
-				color = Qt::red;
-				break;
+			}
+			
+			last --;
 		}
 		
-		// find opacity
-		
-		double alpha = 0.75;
-		double age = currentTime - msg.time();
-		// fade out last 25% of lifetime
-		if ( age > 0.75*MAX_MESSAGE_AGE )
+		last = game()->messages().size() - 1; // index of last element
+		while( last >= 0 && messages.size() < MAX_DISPLAYED_MESSAGES )
 		{
-			alpha = 0.75 * 4*(1.0 - age/MAX_MESSAGE_AGE);
+			const Message& m = game()->messages()[ last ];
+			if ( m.time() > minTime &&  m.time() <= currentTime )
+			{
+				messages.insert( m.time(), m );
+			}
+			else
+			{
+				break;
+			}
+			
+			last --;
 		}
 		
-		// set pen
-		color.setAlphaF( alpha );
-		painter.setPen( color );
+		// display
+		QFont messageFont( "Arial" );
+		messageFont.setPixelSize( height()/ 30 );
+		messageFont.setWeight( QFont::Bold );
 		
-		QRectF messageRect( 0, y, width(), lineHeight );
-		painter.drawText( messageRect, Qt::AlignHCenter | Qt::AlignBottom, msg.text() );
-		y -= lineHeight;
+		painter.setFont( messageFont );
+		
+		double lineHeight = messageFont.pixelSize() * 1.5;
+		double y = height()*0.7 + lineHeight*messages.size();
+		foreach( const Message& msg, messages.values() )
+		{
+			// find color
+			QColor color;
+			switch( msg.type() )
+			{
+				default:
+				case Message::System:
+					color = Qt::black;
+					break;
+					
+				case Message::Game:
+					color = Qt::green;
+					break;
+					
+				case Message::Radio:
+					color = Qt::red;
+					break;
+			}
+			
+			// find opacity
+			
+			double alpha = 0.75;
+			double age = currentTime - msg.time();
+			// fade out last 25% of lifetime
+			if ( age > 0.75*MAX_MESSAGE_AGE )
+			{
+				alpha = 0.75 * 4*(1.0 - age/MAX_MESSAGE_AGE);
+			}
+			
+			// set pen
+			color.setAlphaF( alpha );
+			painter.setPen( color );
+			
+			QRectF messageRect( 0, y, width(), lineHeight );
+			painter.drawText( messageRect, Qt::AlignHCenter | Qt::AlignBottom, msg.text() );
+			y -= lineHeight;
+		}
 	}
 }
 
@@ -352,9 +364,14 @@ bool WorldScene::isRunning() const
 // Adjusts translation to plane position
 void WorldScene::adjustTransform()
 {
-	QPointF pos = plane()->position();
-	//double airspeed = plane()->airspeed();
-	b2Vec2 velocity = plane()->linearVelocity();
+	Plane* pPlane = plane();
+	
+	if ( pPlane )
+	{
+		_lastKnownPos = pPlane->position();
+	}
+	
+	b2Vec2 velocity = pPlane ? pPlane->linearVelocity() : b2Vec2(0,0);
 	int w = width();
 	int h = height();
 	
@@ -393,7 +410,7 @@ void WorldScene::adjustTransform()
 	
 	QTransform t;
 	t.scale( zoom , -zoom ); // rescale zoom to normalize 1000px window
-	t.translate( -pos.x() + _planePos.x()/zoom, -pos.y()- _planePos.y()/zoom );
+	t.translate( -_lastKnownPos.x() + _planePos.x()/zoom, -_lastKnownPos.y()- _planePos.y()/zoom );
 	
 	_transform = t;
 }
@@ -417,12 +434,13 @@ void WorldScene::mouseMoveEvent( QGraphicsSceneMouseEvent* pEvent )
 	QGraphicsScene::mouseMoveEvent( pEvent );
 	if ( pEvent->isAccepted() ) return;
 	
-	if ( ! plane()->autopilot() )
+	Plane* pPlane = plane();
+	if ( pPlane && ! pPlane->autopilot() )
 	{
 		double y = 2* ( - pEvent->scenePos().y() / double(height()) + 0.5 );
 		//double e = y > 0 ? y*y : -y*y; // TODO expoeriment - use 2nd power as input function (3rd is too big, I've checked)
 		double e = y; // neeeeeeeeeey, linear is teh best!
-		plane()->setElevator( e );
+		pPlane->setElevator( e );
 	}
 	setFocus(); // steal focus
 }
@@ -434,17 +452,19 @@ void WorldScene::mousePressEvent( QGraphicsSceneMouseEvent* pEvent )
 	QGraphicsScene::mousePressEvent( pEvent );
 	if ( pEvent->isAccepted() ) return;
 	
+	
+	Plane* pPlane = plane();
 	switch ( pEvent->button() )
 	{
 	
 	// Left
 	case Qt::LeftButton:
-		plane()->setFiring( true );
+		if ( pPlane ) pPlane->setFiring( true );
 		break;
 		
 	// right
 	case Qt::RightButton:
-		plane()->releaseWeapon();
+		if ( pPlane ) pPlane->releaseWeapon();
 		break;
 		
 	
@@ -460,12 +480,13 @@ void WorldScene::mouseReleaseEvent( QGraphicsSceneMouseEvent* pEvent )
 	QGraphicsScene::mouseReleaseEvent( pEvent );
 	if ( pEvent->isAccepted() ) return;
 	
+	Plane* pPlane = plane();
 	switch ( pEvent->button() )
 	{
 	
 	// Left
 	case Qt::LeftButton:
-		plane()->setFiring( false );
+		if ( pPlane ) pPlane->setFiring( false );
 		break;
 		
 	
@@ -479,10 +500,11 @@ void WorldScene::mouseReleaseEvent( QGraphicsSceneMouseEvent* pEvent )
 void WorldScene::wheelEvent( QGraphicsSceneWheelEvent* pEvent )
 {
 	QGraphicsScene::wheelEvent( pEvent );
-	if ( ! pEvent->isAccepted() )
+	Plane* pPlane = plane();
+	if ( pPlane && ! pEvent->isAccepted() )
 	{
 		double step = pEvent->delta() / 1200.0; // single click - 120, stepping in 0.1 units
-		plane()->setThrottle( plane()->throttle() + step );
+		pPlane->setThrottle( pPlane->throttle() + step );
 	}
 }
 
@@ -495,31 +517,32 @@ void WorldScene::keyPressEvent( QKeyEvent* pEvent )
 	
 	if ( pEvent->isAutoRepeat() ) return;
 	
+	Plane* pPlane = plane();
 	switch( pEvent->key() )
 	{
 	// SPACE
 	case Qt::Key_Space:
-		plane()->flipPlane();
+		if ( pPlane ) pPlane->flipPlane();
 		break;
 		
 	// V
 	case Qt::Key_V:
-		plane()->setFlaps( plane()->flaps() + 0.33 );
+		if ( pPlane ) pPlane->setFlaps( pPlane->flaps() + 0.33 );
 		break;
 	
 	// F
 	case Qt::Key_F:
-		plane()->setFlaps( plane()->flaps() - 0.33 );
+		if ( pPlane ) pPlane->setFlaps( pPlane->flaps() - 0.33 );
 		break;
 		
 	// B
 	case  Qt::Key_B:
-		plane()->applyWheelBrake( true );
+		if ( pPlane ) pPlane->applyWheelBrake( true );
 		break;
 		
 	// A
 	case Qt::Key_A:
-		plane()->setAutopilot( ! plane()->autopilot() );
+		if ( pPlane ) pPlane->setAutopilot( ! pPlane->autopilot() );
 		break;
 		
 	// pg up - zoom out
@@ -534,6 +557,7 @@ void WorldScene::keyPressEvent( QKeyEvent* pEvent )
 	
 	// puse
 	case Qt::Key_P:
+	case Qt::Key_Escape:
 		if ( isRunning() ) stop();
 		else start();
 		break;
@@ -549,11 +573,12 @@ void WorldScene::keyReleaseEvent( QKeyEvent* pEvent )
 {
 	if ( pEvent->isAutoRepeat() ) return;
 	
+	Plane* pPlane = plane();
 	switch( pEvent->key() )
 	{
 	// B
 	case Qt::Key_B:
-		plane()->applyWheelBrake( false );
+		if ( pPlane ) pPlane->applyWheelBrake( false );
 		break;
 	
 	default:
@@ -567,6 +592,13 @@ void WorldScene::keyReleaseEvent( QKeyEvent* pEvent )
 Plane* WorldScene::plane() const
 {
 	return _pWorld->playerPlane();
+}
+
+// ============================================================================
+// Returns playe
+Pilot* WorldScene::pilot() const
+{
+	return _pWorld->player();
 }
 
 // ============================================================================

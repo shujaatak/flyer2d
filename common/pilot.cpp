@@ -14,44 +14,51 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#include "contactfuse.h"
-#include "world.h"
-#include "machine.h"
-#include "common.h"
-#include "b2dqt.h"
-
-#include "explosion.h"
+#include "pilot.h"
 
 namespace Flyer
 {
 
 // ============================================================================
 // Constructor
-ContactFuse::ContactFuse ( Machine* pParent, const QString& name ) : System ( pParent, name )
+Pilot::Pilot( Machine* pParent, const QString& name ): System( pParent, name )
 {
-	_energy = 0;
-	_damageReceived = 0;
-	_destroyed = false;
+	_health = 1.0;
+	setDamageCapacity( 200E3 );
 }
 
 // ============================================================================
 // Destructor
-ContactFuse::~ContactFuse()
+Pilot::~Pilot()
 {
 }
 
 // ============================================================================
-// Handles damage
-void ContactFuse::damage ( double force )
+// Pilot's health
+double Pilot::status() const
 {
-	_damageReceived += force;
-	//qDebug("fuse: %g/%g", _damageReceived, damageCapacity() );// TODO remove
-	if ( ! _destroyed && _damageReceived >= damageCapacity() )
-	{
-		Explosion::explode( parent()->world(), point2vec( parent()->position() ), _energy );
-		parent()->world()->removeObject( parent() );
-		_destroyed = true;
-	}
+	return _health;
+}
+
+// ============================================================================
+// Damages piloy
+void Pilot::damage( double force )
+{
+	_health = qMax( 0.0, _health - force/damageCapacity() );
+}
+
+// ============================================================================
+/// Kills pilot
+void Pilot::destroy()
+{
+	_health = 0.0;
+}
+
+// ============================================================================
+// Heals pilot
+void Pilot::repair()
+{
+	_health = 1.0;
 }
 
 }

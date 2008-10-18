@@ -166,14 +166,13 @@ Game* Game::createGame()
 			// init plane
 			Plane* pPlane = new PlaneBumblebee( pWorld, QPointF( 0, pGround->height(0) + 2.5 ), 0.2 );
 			pWorld->addObject( pPlane,  World::ObjectSide1 | World::ObjectSimulated | World::ObjectPlane | World::ObjectRenderedMap );
-			pWorld->setPlayerPlane( pPlane );
+			pWorld->setPlayer( pPlane->pilot() );
 			
 			// enemy plane (!)
 			PlaneBumblebee* pEnemy = new PlaneBumblebee( pWorld, QPointF( -200, 400 ), 0.0 );
 			pEnemy->mainBody()->b2body()->SetLinearVelocity( b2Vec2( 30, 0 ) ); // some initial speed
 			pEnemy->setAutopilot( true ); // turn on autopilot
 			pWorld->addObject( pEnemy, World::ObjectSide2 | World::ObjectSimulated | World::ObjectPlane | World::ObjectRenderedMap );
-			pWorld->_pEnemyPlane = pEnemy; // TODO get rid of this variable already!
 			
 			// airfields
 			pWorld->addObject( new Airfield( pWorld, -50, 250 ), World::ObjectAirfield | World::ObjectSide1 | World::ObjectRenderedMap  );

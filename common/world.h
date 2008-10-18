@@ -36,6 +36,7 @@ namespace Flyer {
 class Plane;
 class Ground;
 class Machine;
+class Pilot;
 
 /**
 	Main world object. Holds Box2d world, and controls simulation.
@@ -73,7 +74,7 @@ public:
 	// initialization
 	
 	void initRandomGround( const QList<Ground::Section>& seed );
-	void setPlayerPlane( Plane* pPlane );
+	void setPlayer( Pilot* pPilot );
 	
 	// other
 
@@ -92,8 +93,11 @@ public:
 	/// Returns world boundary
 	QRectF boundary() const { return _boundary; }
 	
+	/// Returns player
+	Pilot* player() const { return _pPlayer; }
+	
 	/// Returns player's plane
-	Plane* playerPlane() const { return _pPlayerPlane; }
+	Plane* playerPlane() const;
 	
 	/// Return environment
 	const Environment* environment() const { return & _environment; }
@@ -133,9 +137,6 @@ public:
 	/// Removes object from decorations broadphase
 	void removeDecoration( WorldObject* pObject );
 	
-	Plane* _pEnemyPlane; // TODO debug, remove
-	
-	
 private:
 	
 	void initWorld();
@@ -147,7 +148,7 @@ private:
 	QMap< int, QList<WorldObject*> >	_objects;
 	
 	b2World*	_pb2World;			///< Box2d world
-	Plane*	_pPlayerPlane;			///< Player's plane
+	Pilot*	_pPlayer;				///< Player
 	Ground*	_pGround;				///< Ground body
 	QRectF	_boundary;				///< World boundary
 	Environment	_environment;		///< Environment data
@@ -163,6 +164,7 @@ private:
 	int		_steps;					///< Simulation steps so far
 	int		_renders;				///< Renders so far
 	double	_timer1Time;			///< Time from lats 1-second timer event
+	double	_lastKnownHealth;		///< Last known player's health.
 	
 };
 

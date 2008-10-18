@@ -75,7 +75,7 @@ void IronBomb::init( const QPointF& position, double angle )
 	addSystem( _sysStabilizer, SystemSimulated );
 	
 	// create fuse
-	_energy = 500E3; // explosion energy. 
+	_energy = 50E6; // explosion energy. 
 	_sysFuse = new ContactFuse( this, "Fuse" );
 	_sysFuse->setEnergy( _energy );
 	_sysFuse->setDamageCapacity( 30E3 ); // small enough

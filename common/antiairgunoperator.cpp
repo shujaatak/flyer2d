@@ -136,16 +136,20 @@ void AntiAirGunOperator::simulate ( double dt )
 QPointF AntiAirGunOperator::getEnemyPos()
 {
 	// player pos
-	QPointF playerPos = parent()->world()->playerPlane()->position();
-	if ( _pGun && _pGun->body() && _pGun->body()->b2body() )
+	Plane* pPlayerPlane = parent()->world()->playerPlane();
+	if ( pPlayerPlane )
 	{
-		// own pos
-		b2Vec2 gunPos = _pGun->body()->b2body()->GetWorldPoint( point2vec( _pGun->muzzle() ) );
-		
-		// check range
-		if ( ( gunPos - point2vec( playerPos ) ).Length() <= SIGHT_RANGE )
+		QPointF playerPos = pPlayerPlane->position();
+		if ( _pGun && _pGun->body() && _pGun->body()->b2body() )
 		{
-			return playerPos;
+			// own pos
+			b2Vec2 gunPos = _pGun->body()->b2body()->GetWorldPoint( point2vec( _pGun->muzzle() ) );
+			
+			// check range
+			if ( ( gunPos - point2vec( playerPos ) ).Length() <= SIGHT_RANGE )
+			{
+				return playerPos;
+			}
 		}
 	}
 	

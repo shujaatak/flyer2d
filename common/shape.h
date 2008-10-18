@@ -17,6 +17,9 @@
 #ifndef FLYERSHAPE_H
 #define FLYERSHAPE_H
 
+#include <QPolygonF>
+
+
 #include "Box2D.h"
 
 #include "serializable.h"

@@ -23,8 +23,9 @@
 namespace Flyer
 {
 
-static const double DAMAGED_LIFT	= 0.5;	///< lift value when fully damaged
-static const double DAMAGED_DRAG	= 1.5;	///< Drag value when fully damaged
+static const double DAMAGED_LIFT	= 0.3;	///< lift value when fully damaged
+static const double DAMAGED_DRAGH	= 1.5;	///< Drag value when fully damaged
+static const double DAMAGED_DRAGV	= 0.3;	///< Drag value when fully damaged
 
 // ============================================================================
 // Constructor
@@ -56,6 +57,9 @@ QPointF Wing::calculateForce ( double velocity, double sinAttack ) const
 	// drag (negative, becouse backwards)
 	double dragH = _currentDragH + _flapsDrag*_flaps;
 	double drag = -airDensity * velocity*velocity * (dragH +( _currentDragV-dragH) * sinAttack*sinAttack );
+	
+	//qDebug("Wing force: lift: %g N, drag: %g N, airspeed: %g m/s, sin(AOA): %g", 
+	//	lift, drag, velocity, sinAttack );
 	
 	return QPointF( drag, lift );	
 }
@@ -120,7 +124,7 @@ void Wing::damage ( double force )
 		// increase drag
 		case 2:
 		{
-			_currentDragH += reduce * _dragCoeffH * ( DAMAGED_DRAG - 1.0 );
+			_currentDragH += reduce * _dragCoeffH * ( DAMAGED_DRAGH - 1.0 );
 			//qDebug("Drag increased to %g from %g", _currentDragH, _dragCoeffH );
 			break;
 		}
@@ -143,7 +147,7 @@ void Wing::setFlaps( double f )
 /// Estimates wing damage status
 double Wing::status() const
 {
-	double dragDamage = 1.0 - ( 1.0 -  _dragCoeffH / _currentDragH ) / ( DAMAGED_DRAG - 1.0 );
+	double dragDamage = 1.0 - ( 1.0 -  _dragCoeffH / _currentDragH ) / ( DAMAGED_DRAGH - 1.0 );
 	double liftDamage = 1.0 - ( 1.0 - _currentLift / _liftCoeff ) / ( 1.0 - DAMAGED_LIFT ); 
 	double flapsDamage = _currentFlapsMax - _currentFlapsMin;
 	
@@ -161,6 +165,15 @@ void Wing::repair()
 	_currentFlapsMin = 0.0;
 	_currentFlapsMax = 1.0;
 	_currentLift = _liftCoeff;
+}
+
+// ============================================================================
+// Destroys wing
+void Wing::destroy()
+{
+	_currentLift = _liftCoeff * DAMAGED_LIFT;
+	_currentDragH = _dragCoeffH * DAMAGED_DRAGH;
+	_currentDragV = _dragCoeffV * DAMAGED_DRAGV;
 }
 
 }

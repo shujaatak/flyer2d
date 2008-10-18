@@ -23,6 +23,8 @@
 #include "damagemanager.h"
 #include "joint.h"
 #include "machine.h"
+#include "pilot.h"
+#include "plane.h"
 
 #include "world.h"
 
@@ -124,6 +126,7 @@ World::World( const QRectF& boundary )
 	_renders = 0;
 	_timer1Time = 0.0;
 	_decorationsDirty = false;
+	_lastKnownHealth = 1.0;
 	
 	_boundary = boundary;
 	// create world
@@ -144,8 +147,7 @@ World::World( const QRectF& boundary )
 	
 	// init pointers
 	_pGround		= NULL;
-	_pPlayerPlane	= NULL;
-	_pEnemyPlane	= NULL; // TODO get rid of this already
+	_pPlayer		= NULL;
 	
 	// sky gradient
 	_skyGradient.setStart( _boundary.left() + _boundary.width()/ 2, _boundary.top() );
@@ -259,6 +261,24 @@ void World::render( QPainter& painter, const QRectF& rect )
 		//qDebug("Rendering item %s on layer %d", qPrintable( pObject->name() ), pObject->renderLayer() );
 	}
 	
+	// redner pilot's health blindshield
+	if( _pPlayer )
+	{
+		_lastKnownHealth = _pPlayer->status();
+	}
+	
+	{
+		double alpha = 0.0;
+		if ( _lastKnownHealth < 0.75 )
+		{
+			alpha = 0.5 * ( 1 - ( _lastKnownHealth / 0.75 ) );
+			if ( alpha > 0.02 )
+			{
+				QColor color( 192, 0, 0, 255*alpha );
+				painter.fillRect( _boundary, color );
+			}
+		}
+	}
 	
 	_renders ++;
 }
@@ -295,10 +315,10 @@ void World::initRandomGround( const QList<Ground::Section>& seed )
 
 // ============================================================================
 // Sets player planme
-void World::setPlayerPlane( Plane* pPlane )
+void World::setPlayer( Pilot* pPilot )
 {
-	Q_ASSERT( ! _pPlayerPlane );
-	_pPlayerPlane = pPlane;
+	Q_ASSERT( ! _pPlayer );
+	_pPlayer = pPilot;
 }
 
 // ============================================================================
@@ -566,6 +586,15 @@ void World::removeObject( WorldObject* pObject, bool destroy )
 		delete pPrivate;
 		pObject->worldPrivateData = NULL;
 	}
+	
+	// detect important events
+	// TODO move this to game?
+	if ( _pPlayer && pObject == _pPlayer->parent() )
+	{
+		qDebug("Player was killed!");
+		_lastKnownHealth = _pPlayer->status(); // get health while you still have chance
+		_pPlayer = NULL;
+	}
 }
 
 // ============================================================================
@@ -687,6 +716,18 @@ void World::removeDecoration( WorldObject* pObject )
 	{
 		qWarning("Attempt to destroy decoration which is not in broadphase");
 	}
+}
+
+// ============================================================================
+/// Returns player's plane
+Plane* World::playerPlane() const
+{
+	if ( _pPlayer )
+	{
+		return dynamic_cast<Plane*>( _pPlayer->parent() );
+	}
+	
+	return NULL;
 }
 
 }

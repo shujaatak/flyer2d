@@ -175,7 +175,7 @@ QList<QPolygonF> triangulatePolygon( const QPolygonF& polygon )
 		triangles.append( polygon );
 		return triangles;
 	}
-	qDebug("Triangulating polygon with %d vertices", polygon.size() );
+	//qDebug("Triangulating polygon with %d vertices", polygon.size() );
 	// triangulate here
 	// create GPC polygon from QPolygonF
 	gpc_vertex_list	vertexList;
@@ -218,7 +218,7 @@ QList<QPolygonF> triangulatePolygon( const QPolygonF& polygon )
 	delete[] vertexList.vertex;
 	gpc_free_tristrip( &tristrip );
 	
-	qDebug("%d triangles created", triangles.size() );
+	//qDebug("%d triangles created", triangles.size() );
 	
 	return triangles;
 }
@@ -286,7 +286,7 @@ double convexPolygonArea( const QPolygonF& p )
 
 		double D = b2Cross(e1, e2);
 
-		total += D * 0.5;
+		total += fabs( D * 0.5 ); // NOTE fabs here makes it direction-resitant, but vulnelabre for concave shapes
 	}
 	
 	return total;

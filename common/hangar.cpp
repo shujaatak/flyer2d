@@ -25,6 +25,7 @@
 #include "activeattachpoint.h"
 #include "passiveattachpoint.h"
 #include "common.h"
+#include "pilot.h"
 
 #include "hangar.h"
 
@@ -91,7 +92,15 @@ void Hangar::timer1()
 	if ( ! systems.isEmpty() )
 	{
 		System* pSystem = systems.values().last();
-		QString message = QString( QObject::tr("%1 repaired.") ).arg( pSystem->name() );
+		QString message;
+		if ( dynamic_cast<Pilot*>( pSystem ) )
+		{
+			message = QString( QObject::tr("%1 healed.") ).arg( pSystem->name() );
+		}
+		else
+		{
+			message = QString( QObject::tr("%1 repaired.") ).arg( pSystem->name() );
+		}
 		
 		pSystem->repair();
 		

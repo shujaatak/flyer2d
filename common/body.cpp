@@ -23,6 +23,7 @@
 #include "world.h"
 #include "b2dqt.h"
 #include "common.h"
+#include "explosion.h"
 
 #include "body.h"
 
@@ -50,9 +51,12 @@ Body::Body( const QString& name ) : Serializable()
 	_damageTolerance	= DEFAULT_TOLERANCE;
 	_damageReceived		= 0.0;
 	_damageMultiplier	= 1.0;
-	_heats				= false;
 	_awake				= false;
 	_pWorld				= NULL;
+	_heatCapacity		= 0.0;
+	
+	_explosionTemp		= 0.0;
+	_explosionEnergy	= 0.0;
 }
 
 // ============================================================================
@@ -508,7 +512,9 @@ void Body::toStream( QDataStream& stream ) const
 	stream << _damageCapacity;
 	stream << _damageTolerance;
 	stream << _damageMultiplier;
-	stream << _heats;
+	stream << _heatCapacity;
+	stream << _explosionTemp;
+	stream << _explosionEnergy;
 }
 
 // ============================================================================
@@ -562,8 +568,9 @@ void Body::fromStream( QDataStream& stream )
 	stream >> _damageCapacity;
 	stream >> _damageTolerance;
 	stream >> _damageMultiplier;
-	stream >> _heats;
-
+	stream >> _heatCapacity;
+	stream >> _explosionTemp;
+	stream >> _explosionEnergy;
 }
 
 // ============================================================================
@@ -651,8 +658,8 @@ void Body::contact( double force )
 			double destProb = damage / _damageCapacity;
 			if ( destProb > random01() )
 			{
-				// TODO destroy here
-				_pParent->breakBody( this, PhysicalObject::FragmentationEffect );
+				// body is destroyed here
+				breakBody();
 			}
 		}
 	}
@@ -663,10 +670,12 @@ void Body::contact( double force )
 	heat( force * world()->timestep() ); // Force times time - let it be energy ;)
 	
 	// TODO debug, remove
-	
+	/*
 	if ( force > _damageTolerance )
-		qDebug("Body: %s, damage: %g, temp: %g", qPrintable(_name),
-			 _damageReceived, _temperature - world()->environment()->temperature( vec2point( position() ) ) );
+		qDebug("Body: %s, damage: %g, temp: %g(%g ), explodes at: %g K", qPrintable(_name),
+			 _damageReceived, _temperature - world()->environment()->temperature( vec2point( position() ) ) 
+			 , _temperature, _explosionTemp	);
+	*/
 	
 }
 
@@ -674,11 +683,27 @@ void Body::contact( double force )
 /// Heats the body. Heat causes smoke, fire and damage.
 void Body::heat( double energy )
 {
-	if ( _heats && _pBody )
+	if ( _heatCapacity > 0.0 && _pBody )
 	{
-		_temperature += energy / _pBody->GetMass();
+		_temperature += _heatCapacity * energy / _pBody->GetMass();
 		wakeUp();
+		if ( _explosionEnergy > 0.0 &&_explosionTemp > 0.0 && _temperature > _explosionTemp )
+		{
+			Explosion::explode( world(), position(), _explosionEnergy );
+			// prevent further exploding
+			_explosionEnergy = 0.0;
+			_explosionTemp = 0.0;
+			// TODO change texture to 'smoked' here
+		}
 	}
+}
+
+// ============================================================================
+/// Destroys body
+void Body::breakBody()
+{
+	if ( _pDamageManager ) _pDamageManager->destroy();
+	_pParent->breakBody( this, PhysicalObject::FragmentationEffect );
 }
 
 // ============================================================================
@@ -719,7 +744,8 @@ void Body::simulate( double dt )
 	}
 	else
 	{
-		_temperature -= deltaT * dt * TEMPERATURE_TRANSFER;
+		// TODO this _should_ be mass depoendand. but also size dependand
+		_temperature -= deltaT * dt * TEMPERATURE_TRANSFER * _heatCapacity;
 	}
 }
 
@@ -761,7 +787,7 @@ void Body::setShape( const QPolygonF& shape, double friction, double restitution
 		b2PolygonDef def = shapeToDef( triangle );
 		if ( CheckPolyShape( & def ) == 0 )
 		{
- 			qDebug("Triangle accepted" ); 
+ 			//qDebug("Triangle accepted" ); 
 			def.friction = friction;
 			def.restitution = restitution;
 			def.density = density;
@@ -771,7 +797,7 @@ void Body::setShape( const QPolygonF& shape, double friction, double restitution
 		}
 		else
 		{
-			qDebug("Triangle rejected");
+			//qDebug("Triangle rejected");
 		}
 	}
 }

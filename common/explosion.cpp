@@ -24,6 +24,7 @@
 #include "b2dqt.h"
 #include "body.h"
 #include "damagemanager.h"
+#include "common.h"
 
 #include "explosion.h"
 
@@ -55,21 +56,21 @@ Explosion::~Explosion()
 QRectF Explosion::boundingRect() const
 {
 	// return max possible bounding rect, to avoid updating broadphase each step
-	return QRectF ( _center.x() - _maxRadius, _center.y() - _maxRadius, _maxRadius*2, _maxRadius*2 );
+	return QRectF ( _center.x - _maxRadius, _center.y - _maxRadius, _maxRadius*2, _maxRadius*2 );
 }
 
 // ============================================================================
 // Sets energy. Also - calculates maxima radius
 void Explosion::setEnergy( double e )
 {
-	// Force will be equal e/(r+1),
+	// Force will be equal e/(r*r+1),
 	// soe at zero this will be e.
 	// Let minimal sensible force is 100N
-	// f = e/(r+1)
-	// f*r+f = e
-	// r = (e-f)/f
-	double minForce = 10E3;
-	_maxRadius = (e-minForce)/minForce;
+	// f = e/(r*r+1)
+	// f*r*r+f = e
+	// r = sqrt( (e-f)/f )
+	double minForce = qMin( 10E3*DAMAGE_MULTIPLIER, e );
+	_maxRadius = qMax( 5.0, sqrt( (e-minForce)/minForce ) );
 	_maxFireRadius = _maxRadius/4; // dumb guess
 	_energy = e;
 }
@@ -80,8 +81,8 @@ void Explosion::render ( QPainter& painter, const QRectF&, const RenderingOption
 {
 	// render fire
 	double fireRadius = qMin( _radius*0.9, _maxFireRadius );
-	QRectF fire( _center.x() - fireRadius, _center.y() - fireRadius, fireRadius*2, fireRadius*2 );
-	QRectF shockwave( _center.x() - _radius, _center.y() - _radius, _radius*2, _radius*2 );
+	QRectF fire( _center.x - fireRadius, _center.y - fireRadius, fireRadius*2, fireRadius*2 );
+	QRectF shockwave( _center.x - _radius, _center.y - _radius, _radius*2, _radius*2 );
 	
 	painter.setPen( Qt::NoPen );
 	painter.setBrush( QColor( 128, 0, 0, 200 ) );
@@ -127,8 +128,8 @@ void Explosion::actWithForce()
 	
 	// find bodies within range
 	b2AABB aabb;
-	aabb.lowerBound.Set( _center.x()-maxRange, _center.y()-maxRange );
-	aabb.upperBound.Set( _center.x()+maxRange, _center.y()+maxRange );
+	aabb.lowerBound.Set( _center.x-maxRange, _center.y-maxRange );
+	aabb.upperBound.Set( _center.x+maxRange, _center.y+maxRange );
 	
 	const int bufsize = 100; // firs 100 lucky ibjects. rest will go untouched. Maybe use some heuristiv value basing on radius?
 	b2Shape* shapes[ bufsize ];
@@ -137,7 +138,6 @@ void Explosion::actWithForce()
 	// ok, now i have 'count' shapes. Acti with force on bodies and damage managers
 	
 	QList<b2Body*> bodiesTouched; // to not repeat
-	b2Vec2 center = point2vec( _center );
 	
 	for( int i = 0; i < count; i++ )
 	{
@@ -145,15 +145,15 @@ void Explosion::actWithForce()
 		b2Body* pb2Body = shapes[i]->GetBody();
 		
 		// find distance, normal vector and force value
-		double distance = ( pb2Body->GetPosition() - center ).Length();
+		double distance = ( pb2Body->GetPosition() - _center ).Length();
 
 		if ( distance < maxRange &&  distance >= minRange )
 		{
-			b2Vec2 diff = pb2Body->GetPosition() - center;
+			b2Vec2 diff = pb2Body->GetPosition() - _center;
 			b2Vec2 normal = diff;
 			normal.Normalize();
 			
-			double force = _energy / ( distance+1);
+			double force = _energy / ( distance*distance+1);
 		
 			// act with force on body (but only once)
 			if ( ! bodiesTouched.contains( pb2Body ) )
@@ -167,10 +167,27 @@ void Explosion::actWithForce()
 			if ( pBody )
 			{
 				pBody->contact( force * DAMAGE_MULTIPLIER );
+				//qDebug("Explosion: contact with body %s, force: %g", qPrintable(pBody->name()),force * DAMAGE_MULTIPLIER ); 
 			}
 			
 		}
 	}
+}
+
+// ============================================================================
+/// Creates explosion
+void Explosion::explode( World* pWorld, const b2Vec2& center, double energy )
+{
+	Explosion* pExplosion = new Explosion( pWorld );
+	pExplosion->setEnergy( energy );
+	pExplosion->setCenter( center );
+	pExplosion->setRenderLayer( LayerForeground );
+
+	//add explosion to the world
+	pWorld->addObject( pExplosion, World::ObjectSimulated );
+	pWorld->addDecoration( pExplosion );
+	
+	//qDebug("BOOOOM!!!");
 }
 
 }

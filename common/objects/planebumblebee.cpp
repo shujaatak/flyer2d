@@ -29,6 +29,7 @@
 #include "ironbomb.h"
 #include "bodyprovider.h"
 #include "activeattachpoint.h"
+#include "pilot.h"
 
 #include "planebumblebee.h"
 
@@ -112,6 +113,11 @@ void PlaneBumblebee::createSystems()
 	_sysEngine->setPropllerAxis( QLineF( 0.3, 0.0, 0.7, 0.0 ) );
 	addSystem( _sysEngine, SystemRendered2 | SystemSimulated );
 	setEngine( _sysEngine );
+	
+	// pilot
+	Pilot* sysPilot = new Pilot( this, "Pilot" );
+	addSystem( sysPilot, 0 );
+	setPilot( sysPilot );
 	
 	// wheel mounting
 	_sysWheelMounting = new Mounting( this, "Wheel mounting" );
@@ -370,6 +376,7 @@ void PlaneBumblebee::createDamageManagers()
 	_dmEngine->addSystem( _sysEngine, 9 );
 	_dmEngine->addSystem( NULL, 0 );
 	_dmEngine->addSystem( _sysEngineMounting, 1 );
+	_dmEngine->addSystem( pilot(), 1 );
 	_bodyEngine->setDamageManager( _dmEngine );
 	addDamageManager( _dmEngine );
 	
@@ -394,15 +401,16 @@ void PlaneBumblebee::createDamageManagers()
 	
 	// hull
 	_dmHull = new DamageManager();
-	_dmHull->addSystem( _sysGun, 1 );
-	_dmHull->addSystem( _sysWing, 5 );
+	_dmHull->addSystem( _sysGun, 1, true );
+	_dmHull->addSystem( _sysWing, 5, true );
 	_dmHull->addSystem( _sysElevator, 1 );
-	_dmHull->addSystem( _sysAutopilot, 1 );
+	_dmHull->addSystem( _sysAutopilot, 1, true );
 	_dmHull->addSystem( _sysEngine, 2 );
 	_dmHull->addSystem( _sysLegMounting, 1 );
 	_dmHull->addSystem( _sysTailMounting, 1 );
 	_dmHull->addSystem( _sysEngineMounting, 1 );
-	_dmHull->addSystem( NULL, 10 ); // 50% unused
+	_dmHull->addSystem( pilot(), 2, true );
+	_dmHull->addSystem( NULL, 14 ); // 50% unused
 	addDamageManager( _dmHull );
 	_bodyHull->setDamageManager(_dmHull );
 	
@@ -410,7 +418,7 @@ void PlaneBumblebee::createDamageManagers()
 	_dmTail = new DamageManager();
 	_dmTail->addSystem( _sysEngine, 1 );
 	_dmTail->addSystem( _sysWing, 3 );
-	_dmTail->addSystem( _sysElevator, 2 );
+	_dmTail->addSystem( _sysElevator, 2, true );
 	_dmTail->addSystem( _sysTailMounting, 1 );
 	_dmTail->addSystem( NULL, 5 );
 	addDamageManager( _dmTail );

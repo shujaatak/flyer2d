@@ -56,7 +56,8 @@ HEADERS += activeattachpoint.h \
  grounddecoration.h \
  hangar.h \
  message.h \
- physicalobject.h
+ physicalobject.h \
+ pilot.h
 
 
 SOURCES += activeattachpoint.cpp \
@@ -104,7 +105,8 @@ SOURCES += activeattachpoint.cpp \
  hangar.cpp \
  message.cpp \
  common.cpp \
- physicalobject.cpp
+ physicalobject.cpp \
+ pilot.cpp
 
 
 QT += opengl

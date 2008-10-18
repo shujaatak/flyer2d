@@ -168,12 +168,19 @@ public:
 	void setDamageMultiplier( double dm ) { _damageMultiplier = dm; }
 	double damageMultiplier() const { return _damageMultiplier; }
 	
-	void setHeats( bool h ) { _heats = h; }			///< Sets if body heats
-	bool heats() const { return _heats; }
+	void setHeatCapacity( double h ) { _heatCapacity = h; }			///< Sets if body heats
+	double heatCapacity() const { return _heatCapacity; }
+	
+	void setExplosionTemp( double d ){ _explosionTemp = d; }	///< Sets explosion temperature [k]
+	double explosionTemp() const { return _explosionTemp; }		///< Sets explosion energy
+	
+	void setExplosionEnergy( double d ){ _explosionEnergy = d; }	///< Sets explosion temperature [k]
+	double explosionEnergy() const { return _explosionEnergy; }		///< Sets explosion energy
+	
 
 	void contact( double force );		///< Information from physics engine - contact force
-	
 	void heat( double energy );			///< heats the body
+	void breakBody();					///< Destroys body
 	
 	
 protected:
@@ -205,7 +212,9 @@ private:
 	double			_damageCapacity;	///< How many damage body can take until broken
 	double			_damageTolerance;	///< How big force is accepted w/o damaging body
 	double			_damageMultiplier;	///< Multiplier of damage caused by this body
-	bool			_heats;				///< Flag - if body heats
+	double			_heatCapacity;		///< Heat capacity
+	double			_explosionTemp;		///< Explosion temperature [K]
+	double			_explosionEnergy;	///< Explosion energy
 	
 	// damage variables
 	double			_damageReceived;		///< Damage creceived so far
