@@ -27,6 +27,7 @@ class Plane;
 class World;
 class Game;
 class GameUI;
+class Pilot;
 
 /**
 Graphics Scene used to render the game world.
@@ -43,6 +44,7 @@ public:
 	// world an it's elements
 	
 	Plane* plane() const;
+	Pilot* pilot() const;
 	World* world() const { return _pWorld; }
 	Game* game() const { return _pGame; }
 	
@@ -109,6 +111,7 @@ private:
 	GameUI* _pUI;				///< UI manager
 	
 	QImage	_still;				///< Still image displayed during pause
+	QPointF	_lastKnownPos;		///< last known player position
 };
 
 }

@@ -47,8 +47,13 @@ public:
 	virtual void simulate ( double dt );
 	
 	// properties
-	void setCenter( const QPointF& c ) { _center = c; }
+	void setCenter( const b2Vec2& c ) { _center = c; }
 	void setEnergy( double e );
+	
+	// utilities
+	
+	/// Creates explosion
+	static void explode( World* pWorld, const b2Vec2& center, double energy );
 	
 private:
 
@@ -57,7 +62,7 @@ private:
 	// config
 	double _speed;			///< Speed of expansions [m/s], defaults to speed of sound
 	double _energy;			///< Explosion energy
-	QPointF _center;		///< Explosion center
+	b2Vec2 _center;			///< Explosion center
 	double _maxRadius;		///< Max radius
 	double _maxFireRadius;	///< max radius of fire
 	

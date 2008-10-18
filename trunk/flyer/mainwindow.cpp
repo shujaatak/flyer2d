@@ -38,6 +38,7 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags f): QWidget(parent, f)
 	QGLFormat::setDefaultFormat( format );
 	
  	setupUi( this );
+ 	resize( 640, 480 );
 
 	/*
 	TODO do it in more elegant waym using game UI

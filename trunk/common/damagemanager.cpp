@@ -18,6 +18,7 @@
 
 #include "system.h"
 #include "machine.h"
+#include "pilot.h"
 
 #include "damagemanager.h"
 
@@ -64,12 +65,28 @@ void DamageManager::damage( double force )
 				// emit messages
 				if ( before > 0.5 && after < 0.5 && after > 0.0 )
 				{
-					QString message = QString(QObject::tr("%1 severly damaged")).arg( pSystem->name() );
+					QString message;
+					if ( dynamic_cast<Pilot*>( pSystem ) )
+					{
+						message = QString(QObject::tr("%1 severly wounded")).arg( pSystem->name() );
+					}
+					else
+					{
+						message = QString(QObject::tr("%1 severly damaged")).arg( pSystem->name() );
+					}
 					pSystem->parent()->addSystemMessage( message );
 				}
 				else if ( before > 0.0 && after <= 0.0 )
 				{
-					QString message = QString(QObject::tr("%1 destroyed")).arg( pSystem->name() );
+					QString message;
+					if ( dynamic_cast<Pilot*>( pSystem ) )
+					{
+						message = QString(QObject::tr("%1 killed")).arg( pSystem->name() );
+					}
+					else
+					{
+						message = QString(QObject::tr("%1 destroyed")).arg( pSystem->name() );
+					}
 					pSystem->parent()->addSystemMessage( message );
 				}
 			}
@@ -78,14 +95,34 @@ void DamageManager::damage( double force )
 }
 
 // ============================================================================
-/// Adds system to damage manager. Propability ogf getting damage is proportional to
-/// system weight. You can add NULL system with non-ero weight to tune propability distribution.
-void DamageManager::addSystem( System* pSystem, int weight )
+/// Adds system to damage manager. Propability of getting damage is proportional to
+/// system weight. You can add NULL system with non-zero weight to tune propability distribution.
+/// If \b critical is set, system is destroyed when body containing the manages is destroyed.
+void DamageManager::addSystem( System* pSystem, int weight, bool critical )
 {
 	for ( int i = 0; i < weight; i++ )
 	{
 		_systems.append( pSystem );
 	}
+	if ( critical )
+	{
+		_criticalSystems[ pSystem ] = 0;
+	}
+}
+
+// ============================================================================
+/// Body is destroyed. Al critical systems are destrotyed too.
+void DamageManager::destroy()
+{
+	foreach( System* pSystem, _criticalSystems.keys() )
+	{
+		qDebug("System %s destroyed", qPrintable( pSystem->name() ) );
+		pSystem->destroy();
+	}
+	
+	// cease further operation
+	_criticalSystems.clear();
+	_systems.clear();
 }
 
 }

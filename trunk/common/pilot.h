@@ -14,46 +14,40 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#ifndef FLYERDAMAGEMANAGER_H
-#define FLYERDAMAGEMANAGER_H
+#ifndef FLYERPILOT_H
+#define FLYERPILOT_H
 
-#include <QList>
-#include <QMap>
+#include <system.h>
 
 namespace Flyer
 {
 
-class System;
-
 /**
-	Damage manager is object which lives associated to 
-	Body objet. It is notified whern body is damaged.
-	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
+Pilot represent actual pilot. Be it player or AI.
+@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class DamageManager
+
+class Pilot : public System
 {
+
 public:
-	DamageManager();
-	virtual ~DamageManager();
-	
-	/// Called when body to which the damage is associated receives damage.
+	Pilot( Machine* pParent, const QString& name );
+	virtual ~Pilot();
+
+	virtual double status() const;
 	virtual void damage( double force );
-	
-	/// Called when body to which the damage manager is attached is destroyed.
 	virtual void destroy();
-	
-	/// Adds system to damage manager. 
-	void addSystem( System* pSystem, int weight, bool critical = false  );
+	virtual void repair();
 	
 private:
 
-	QList<System*> _systems;
-	QMap<System*, int> _criticalSystems;
+	double _health;			///< Pilot's health: 0-1
+
 };
 
 }
 
-#endif // FLYERDAMAGEMANAGER_H
+#endif // FLYERPILOT_H
 
 // EOF
 

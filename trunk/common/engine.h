@@ -42,6 +42,7 @@ public:
 	
 	virtual double status() const;
 	virtual void repair();
+	virtual void destroy();
 	// properties
 	
 	void setThrottle( double throttle ); /// Sets throttle (0-1)

@@ -91,6 +91,13 @@ void Engine::repair()
 }
 
 // ============================================================================
+/// Destroyes engine.
+void Engine::destroy()
+{
+	_currentMaxThrust = 0.0;
+}
+
+// ============================================================================
 // Simulates engine operation.
 void Engine::simulate ( double dt )
 {

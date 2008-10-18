@@ -32,6 +32,7 @@ namespace Flyer
 // Constructor
 Machine::Machine ( World* pWorld ) : PhysicalObject ( pWorld )
 {
+	_sysPilot = NULL;
 }
 
 // ============================================================================

@@ -57,7 +57,6 @@ public:
 	double damageCapacity() const { return _damageCapacity; }
 	
 	virtual double status() const { return 1.0; }	///< Returns status: 0-1
-	virtual void repair() {}						///< Repairs system
 	
 	Machine* parent() const { return _pParent; }
 	
@@ -66,6 +65,8 @@ public:
 	virtual void render( QPainter& /*painter*/, const QRectF& /*rect*/, const RenderingOptions& /*options*/ ){};
 	virtual void simulate( double /*dt*/ ){};
 	virtual void damage( double /*force*/ ){};
+	virtual void repair() {}						///< Repairs system
+	virtual void destroy() {}						///< Destroys system.
 	
 
 protected:

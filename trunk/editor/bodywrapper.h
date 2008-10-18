@@ -50,7 +50,11 @@ class BodyWrapper : public EditableWrapper
 	
 	Q_PROPERTY( double DamageCapacityKN READ getDamageCapacity WRITE setDamageCapacity USER true )
 	Q_PROPERTY( double DamageToleranceKN READ getDamageTolerance WRITE setDamageTolerance USER true )
-	Q_PROPERTY( bool Heats READ getHeats WRITE setHeats USER true )
+	Q_PROPERTY( double HeatCpacity READ getHeatCpacity WRITE setHeatCpacity USER true )
+	
+	Q_PROPERTY( double ExplosionTemp READ getExplosionTemp WRITE setExplosionTemp USER true )
+	Q_PROPERTY( double ExplosionEnergyKJ READ getExplosionEnergyKJ WRITE setExplosionEnergyKJ USER true )
+	
 
 public:
 	BodyWrapper( Flyer::Body *pBody, QGraphicsScene* pScene, QObject* parent = NULL );
@@ -103,8 +107,14 @@ public:
 	double getDamageTolerance() const { return _pBody->damageTolerance()/1000; }
 	void setDamageTolerance( double d ) { _pBody->setDamageTolerance( d*1000 ); }
 	
-	void setHeats( bool b ) { _pBody->setHeats(b); }
-	bool getHeats() const { return _pBody->heats(); }
+	void setHeatCpacity( double b ) { _pBody->setHeatCapacity(b); }
+	double getHeatCpacity() const { return _pBody->heatCapacity(); }
+	
+	void setExplosionTemp( double b ) { _pBody->setExplosionTemp(b); }
+	double getExplosionTemp() const { return _pBody->explosionTemp(); }
+	
+	void setExplosionEnergyKJ( double b ) { _pBody->setExplosionEnergy(b*1000); }
+	double getExplosionEnergyKJ() const { return _pBody->explosionEnergy()/1000; }
 
 	virtual bool isValid() const;
 	virtual void sync();

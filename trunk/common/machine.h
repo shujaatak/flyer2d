@@ -31,6 +31,7 @@ class System;
 class DamageManager;
 class ActiveAttachPoint;
 class PassiveAttachPoint;
+class Pilot;
 
 /**
 	Base class for machines. Machine is a set of systems, bodies and joints.
@@ -58,6 +59,9 @@ public:
 	void removeSystem( System* pSystem );
 	const QList<System*>& systems() const { return _allSystems; }
 	
+	void setPilot( Pilot* pPilot ) { _sysPilot = pPilot; }
+	Pilot* pilot() const { return  _sysPilot; }
+	
 	// damage managers
 	void addDamageManager( DamageManager* pManager );
 	void removeDamageManager( DamageManager* pManager );
@@ -82,6 +86,7 @@ protected:
 
 	
 	// special designated items
+	Pilot*	_sysPilot;
 	
 	// systems
 	QMap<int, QList<System*> >	_systems;
