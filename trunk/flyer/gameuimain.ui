@@ -34,6 +34,13 @@
     </widget>
    </item>
    <item>
+    <widget class="QPushButton" name="buttonStatus" >
+     <property name="text" >
+      <string>Plane status</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QPushButton" name="buttonHelp" >
      <property name="toolTip" >
       <string>Open help window</string>

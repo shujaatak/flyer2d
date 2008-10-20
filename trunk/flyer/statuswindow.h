@@ -17,9 +17,9 @@
 #ifndef FLYERSTATUSWINDOW_H
 #define FLYERSTATUSWINDOW_H
 
-#include <QWidget>
 #include <QTimer>
 #include "ui_statuswindow.h"
+#include "gameuidialog.h"
 
 namespace Flyer
 {
@@ -29,11 +29,11 @@ class Machine;
 	Windows showing status of plane systems
 	@author Maciek Gajewski <maciej.gajewski0@gmail.com>
 */
-class StatusWindow : public QWidget, private Ui::StatusWindow
+class StatusWindow : public GameUIDialog, private Ui::StatusWindow
 {
 	Q_OBJECT
 public:
-	StatusWindow();
+	StatusWindow( WorldScene* pScene );
 	~StatusWindow();
 
 	void setMachine( Machine* pMachine );

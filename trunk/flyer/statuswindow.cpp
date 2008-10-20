@@ -23,7 +23,7 @@ namespace Flyer
 
 // ============================================================================
 // Constructor
-StatusWindow::StatusWindow() : QWidget( NULL )
+StatusWindow::StatusWindow( WorldScene* pScene ) : GameUIDialog( pScene )
 {
 	setupUi( this );
 	

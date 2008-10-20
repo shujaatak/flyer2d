@@ -18,8 +18,11 @@
 #include <QTextEdit>
 #include <QTimer>
 
+#include "plane.h"
+
 #include "worldscene.h"
 #include "game.h"
+#include "statuswindow.h"
 
 #include "gameuimain.h"
 
@@ -95,6 +98,18 @@ void GameUIMain::on_buttonHelp_clicked()
 	scene()->addWindow( pHelpDialog, 1.0 );
 	pHelpDialog->setFocus();
 	
+}
+
+// ============================================================================
+// Plane status button handler
+void GameUIMain::on_buttonStatus_clicked()
+{
+	StatusWindow* pStatus = new StatusWindow( scene() );
+	pStatus->setWindowFlags(  Qt::WindowSystemMenuHint | pStatus->windowFlags() );
+	pStatus->setMachine( scene()->plane() );
+	
+	scene()->addWindow( pStatus, 1.0 );
+	pStatus->setFocus();
 }
 
 }

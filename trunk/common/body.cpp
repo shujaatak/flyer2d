@@ -672,8 +672,8 @@ void Body::contact( double force )
 	// TODO debug, remove
 	/*
 	if ( force > _damageTolerance )
-		qDebug("Body: %s, damage: %g, temp: %g(%g ), explodes at: %g K", qPrintable(_name),
-			 _damageReceived, _temperature - world()->environment()->temperature( vec2point( position() ) ) 
+		qDebug("Body: %s, damage: %g/%g, temp: %g(%g ), explodes at: %g K", qPrintable(_name),
+			 _damageReceived, _damageCapacity,_temperature - world()->environment()->temperature( vec2point( position() ) ) 
 			 , _temperature, _explosionTemp	);
 	*/
 	

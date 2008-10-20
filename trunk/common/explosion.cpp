@@ -32,6 +32,7 @@ namespace Flyer
 {
 
 static const double DAMAGE_MULTIPLIER	= 10; ///< Explosion damage multiplier
+static const double MIN_FORCE	=	2E3;		///< Minimal reasonable to force
 
 // ============================================================================
 // Constructor
@@ -69,7 +70,7 @@ void Explosion::setEnergy( double e )
 	// f = e/(r*r+1)
 	// f*r*r+f = e
 	// r = sqrt( (e-f)/f )
-	double minForce = qMin( 10E3*DAMAGE_MULTIPLIER, e );
+	double minForce = qMin( MIN_FORCE*DAMAGE_MULTIPLIER, e );
 	_maxRadius = qMax( 5.0, sqrt( (e-minForce)/minForce ) );
 	_maxFireRadius = _maxRadius/4; // dumb guess
 	_energy = e;
@@ -153,7 +154,7 @@ void Explosion::actWithForce()
 			b2Vec2 normal = diff;
 			normal.Normalize();
 			
-			double force = _energy / ( distance*distance+1);
+			double force = qMin( _energy, _energy / ( distance*distance+1) );
 		
 			// act with force on body (but only once)
 			if ( ! bodiesTouched.contains( pb2Body ) )

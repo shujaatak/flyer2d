@@ -228,6 +228,7 @@ void PhysicalObject::doBreakJoint( Joint* pJoint )
 void PhysicalObject::breakBody( Body* pBody, CrashEffect effect )
 {
 	_bodiesToBreak.append( QPair<Body*,CrashEffect>( pBody, effect ) );
+	wakeUp();
 }
 
 // ============================================================================
