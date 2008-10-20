@@ -116,7 +116,6 @@ void DamageManager::destroy()
 {
 	foreach( System* pSystem, _criticalSystems.keys() )
 	{
-		qDebug("System %s destroyed", qPrintable( pSystem->name() ) );
 		pSystem->destroy();
 	}
 	

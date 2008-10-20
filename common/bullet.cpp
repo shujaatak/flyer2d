@@ -25,7 +25,7 @@ namespace Flyer
 {
 
 static const double MINIMAL_MOMENTUM	= 1.0; ///< below this momentum bullet is removed
-static const double DAMAGE_MULTIPLIER	= 200;	///< Damage multiplier
+static const double DAMAGE_MULTIPLIER	= 10;	///< Damage multiplier
 
 // ============================================================================
 // Constructor

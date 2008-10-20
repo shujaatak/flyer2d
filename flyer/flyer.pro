@@ -16,7 +16,7 @@ HEADERS += mainwindow.h statuswindow.h worldwidget.h \
  gameuidialog.h \
  gameuimain.h
 FORMS += mainwindow.ui statuswindow.ui \
- GameUIMain.ui
+ gameuimain.ui
 SOURCES += main.cpp mainwindow.cpp statuswindow.cpp worldwidget.cpp \
  worldscene.cpp \
  game.cpp \

@@ -18,7 +18,7 @@
 #define FLYERGAMEUIMAIN_H
 
 #include "gameuidialog.h"
-#include "ui_GameUIMain.h"
+#include "ui_gameuimain.h"
 
 namespace Flyer
 {
@@ -42,6 +42,7 @@ private slots:
 	void on_buttonResume_clicked();
 	void on_buttonNewGame_clicked();
 	void on_buttonHelp_clicked();
+	void on_buttonStatus_clicked();
 };
 
 }
