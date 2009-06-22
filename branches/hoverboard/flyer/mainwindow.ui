@@ -1,0 +1,58 @@
+<ui version="4.0" >
+ <class>MainWindow</class>
+ <widget class="QWidget" name="MainWindow" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>642</width>
+    <height>557</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Flyer</string>
+  </property>
+  <layout class="QVBoxLayout" >
+   <property name="spacing" >
+    <number>0</number>
+   </property>
+   <property name="leftMargin" >
+    <number>0</number>
+   </property>
+   <property name="topMargin" >
+    <number>0</number>
+   </property>
+   <property name="rightMargin" >
+    <number>0</number>
+   </property>
+   <property name="bottomMargin" >
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="Flyer::WorldWidget" name="worldWidget" >
+     <property name="cursor" stdset="0" >
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="mouseTracking" >
+      <bool>true</bool>
+     </property>
+     <property name="focusPolicy" >
+      <enum>Qt::StrongFocus</enum>
+     </property>
+     <property name="frameShape" >
+      <enum>QFrame::NoFrame</enum>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Flyer::WorldWidget</class>
+   <extends>QGraphicsView</extends>
+   <header>worldwidget.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
